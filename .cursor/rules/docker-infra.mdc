@@ -1,0 +1,44 @@
+---
+description: Docker Compose e variáveis de ambiente
+globs: "{docker-compose*.yml,Dockerfile*,.env.example}"
+alwaysApply: false
+---
+
+# Docker & Infra
+
+## Requisito
+
+Um comando sobe tudo:
+
+```bash
+docker compose up --build
+```
+
+## Serviços
+
+| Nome | Função |
+|------|--------|
+| `postgres` | PostgreSQL 16, volume persistente |
+| `api` | NestJS — migrations + seed no entrypoint |
+| `frontend` | React — proxy ou env `VITE_API_URL` |
+
+## Ordem de startup
+
+1. Postgres healthy
+2. API: `prisma migrate deploy` → `prisma db seed` → `node dist/main`
+3. Frontend
+
+## .env.example
+
+Documentar todas as variáveis (ver `docs/spec/08-docker.md` §8.2):
+
+- `DATABASE_URL`
+- `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`
+- `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`
+- `PORT`, `NODE_ENV`
+- `VITE_API_URL`
+
+## Dockerfiles
+
+- Backend: multi-stage (build → production com node:22-alpine)
+- Frontend: build estático servido por nginx ou dev server conforme ambiente

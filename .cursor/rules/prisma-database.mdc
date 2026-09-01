@@ -1,0 +1,51 @@
+---
+description: Prisma schema, migrations e seed
+globs: nexus-backend/prisma/**/*
+alwaysApply: false
+---
+
+# Prisma & PostgreSQL
+
+Schema de referência em `docs/spec/04-modelo-dados.md` §4.2.
+
+## Regras
+
+- PKs: `@id @default(uuid())`
+- Índices em FKs (`tenantId`, `integrationId`) e campos de filtro
+- Enums Prisma para `Role`, `IntegrationType`, `ExecutionStatus`
+- Campos JSON: `customHeaders`, `defaultPayload`, `requestPayload`
+
+## Migrations
+
+```bash
+npx prisma migrate dev --name descriptive_name   # dev
+npx prisma migrate deploy                         # prod/docker
+```
+
+Nunca editar migration já aplicada — criar nova migration.
+
+## Seed
+
+`prisma/seed.ts` deve criar:
+
+- 1 tenant (`Acme Corp`)
+- 1 admin + 1 viewer
+- 1 integração demo (tipo WEBHOOK)
+
+Senhas do seed documentadas no [`readme.md`](../../readme.md) (ex.: `Admin123!`).
+
+## PrismaService
+
+Módulo global exportando `PrismaService` que estende `PrismaClient` com `onModuleInit` conectando ao banco.
+
+## Queries multi-tenant
+
+Sempre incluir `tenantId` no `where`:
+
+```typescript
+// ❌ Vulnerável
+prisma.integration.findUnique({ where: { id } });
+
+// ✅ Seguro
+prisma.integration.findFirst({ where: { id, tenantId } });
+```

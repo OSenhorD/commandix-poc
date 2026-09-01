@@ -1,0 +1,35 @@
+---
+description: Visão geral e princípios do Commandix PoC — aplicar sempre
+alwaysApply: true
+---
+
+# Commandix PoC — Regras Gerais
+
+Spec completa em `docs/spec/`. Contexto para agentes em `AGENTS.md`.
+
+## Princípios
+
+- **Sempre TypeScript**: código de aplicação em `.ts`/`.tsx`; sem JavaScript puro (exceto configs mínimas de tooling se inevitável)
+- **Multi-tenancy é crítico**: toda query de negócio filtra por `tenantId` do JWT
+- **Escopo mínimo**: implementar só o que a spec pede
+- **Backend first**: auth → integrações → execuções → frontend
+- **Código em inglês**, docs em português
+
+## Estrutura do monorepo
+
+- `nexus-backend/` — API NestJS 12 (ESM)
+- `nexus-frontend/` — React + Vite (a criar)
+- `docker-compose.yml` na raiz — `docker compose up --build`
+
+## Antes de implementar
+
+1. Consultar checklist em `docs/spec/11-checklist.md`
+2. Verificar módulo/domínio correto
+3. Não duplicar lógica entre services e controllers
+
+## Segurança
+
+- Hash de senha com bcrypt
+- Refresh token com hash no banco
+- Cross-tenant → 404 (NotFoundException)
+- DTOs validados; nunca confiar em `tenantId` do body

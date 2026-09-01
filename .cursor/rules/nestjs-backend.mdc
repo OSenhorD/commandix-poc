@@ -1,0 +1,80 @@
+---
+description: Padrões NestJS para nexus-backend
+globs: nexus-backend/**/*.ts
+alwaysApply: false
+---
+
+# NestJS Backend
+
+## Módulos
+
+Um módulo por domínio: `auth`, `tenants`, `integrations`, `executions`, `prisma`, `common`.
+
+```
+feature/
+├── feature.module.ts
+├── feature.controller.ts
+├── feature.service.ts
+├── dto/
+└── entities/ (se necessário)
+```
+
+## Imports ESM
+
+```typescript
+// ✅ Correto (projeto usa "type": "module")
+import { AppService } from './app.service.js';
+
+// ❌ Errado
+import { AppService } from './app.service';
+```
+
+## DTOs e validação
+
+```typescript
+export class CreateIntegrationDto {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsEnum(IntegrationType)
+  type: IntegrationType;
+
+  @IsUrl()
+  targetUrl: string;
+}
+```
+
+Global pipe em `main.ts`:
+
+```typescript
+app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+app.setGlobalPrefix('api/v1');
+```
+
+## Guards e decorators
+
+- `JwtAuthGuard` — rotas autenticadas
+- `RolesGuard` + `@Roles(Role.ADMIN)` — controle de papel
+- `@CurrentUser()` — extrai `{ id, tenantId, role, email }` do request
+
+## Services
+
+- Lógica de negócio nos services, controllers finos
+- Tenant scoping no service, não no controller:
+
+```typescript
+async findOne(id: string, tenantId: string) {
+  const item = await this.prisma.integration.findFirst({
+    where: { id, tenantId },
+  });
+  if (!item) throw new NotFoundException();
+  return item;
+}
+```
+
+## HTTP trigger
+
+- Usar `@nestjs/axios` ou `fetch` nativo
+- Timeout configurável (default 30s)
+- Capturar erros de rede como `FAILURE` com `httpStatusCode: null`
