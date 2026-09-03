@@ -31,19 +31,21 @@ Fonte de verdade: `AGENTS.md`. Spec funcional: `docs/spec/`. Domínio (campos, A
 
 ```
 commandix-poc/
-├── nexus-backend/     # API NestJS + Prisma 8
-├── nexus-frontend/    # React + Vite
+├── .cursor/rules/          # regras (monorepo)
+├── .cursor/skills/         # symlink prisma-8 → backend
+├── nexus-backend/          # API + Prisma 8
+├── nexus-frontend/         # React (a criar)
 ├── docker-compose.yml
 └── docs/spec/
 ```
+
+Comandos Prisma: `cd nexus-backend` antes de CLI. Skill: `.cursor/skills/prisma-8/SKILL.md` ou `nexus-backend/.cursor/skills/prisma-8/SKILL.md`.
 
 ## Módulos backend
 
 `auth`, `tenants`, `integrations`, `executions`, `database`, `common`.
 
 Fora de escopo: módulo `users/` (bootstrap cria o admin).
-
-Prisma 8: skill em `nexus-backend/.cursor/skills/prisma-8/SKILL.md`.
 
 ## Antes de implementar
 

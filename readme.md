@@ -9,6 +9,7 @@ Plataforma de automação B2B — módulo de gestão de integrações multi-tena
 | [`docs/spec/`](./docs/spec/README.md) | Spec técnica (funcionalidades, API, schema, checklist) |
 | [`docs/spec/12-revisao-planejamento.md`](./docs/spec/12-revisao-planejamento.md) | Brechas resolvidas e decisões adotadas |
 | [`AGENTS.md`](./AGENTS.md) | Contexto para agentes de IA |
+| [`.cursor/skills/`](./.cursor/skills/README.md) | Skills do monorepo (Prisma 8) |
 | [`.cursor/rules/`](./.cursor/rules/) | Regras Cursor por domínio |
 
 ## Status

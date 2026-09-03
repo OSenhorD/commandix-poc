@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Prisma 8 & PostgreSQL
 
-**Skill oficial (ler antes de codar):** `nexus-backend/.cursor/skills/prisma-8/SKILL.md` — usar a routing table; não responder de memória.
+**Skill oficial (ler antes de codar):** `.cursor/skills/prisma-8/SKILL.md` (symlink) ou `nexus-backend/.cursor/skills/prisma-8/SKILL.md` (fonte).
 
 Domínio (campos, enums, relações): `docs/spec/04-modelo-dados.md` §4.1–4.3 → implementar em `src/prisma/contract.prisma`.
 

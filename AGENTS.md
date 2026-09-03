@@ -32,6 +32,17 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 
 > O módulo `users/` é **fora de escopo** — bootstrap cria o admin; novos usuários não são requisito da PoC.
 
+## Monorepo
+
+| Pacote | Diretório | Notas |
+|--------|-----------|-------|
+| API | `nexus-backend/` | NestJS + Prisma 8; `prisma.config.ts` e skills aqui |
+| Frontend | `nexus-frontend/` | A criar |
+| Spec / rules | raiz | `docs/spec/`, `.cursor/rules/` |
+| Skills Prisma | `nexus-backend/.cursor/skills/prisma-8/` | Symlink na raiz: `.cursor/skills/prisma-8/` |
+
+**Workspace:** abrir `commandix-poc/` (raiz). Comandos Prisma: `cd nexus-backend` antes de `contract emit`, `db migrate`, etc.
+
 ## Decisões adotadas
 
 Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-planejamento.md`](./docs/spec/12-revisao-planejamento.md).
@@ -153,8 +164,9 @@ npx prisma db migrate              # aplica migrations pendentes
 |---------|----------|
 | `docs/spec/` | Spec funcional, API, schema, checklist |
 | `docs/spec/12-revisao-planejamento.md` | Brechas, ambiguidades, decisões |
-| `.cursor/rules/*.mdc` | Regras por domínio para o Cursor |
-| `nexus-backend/.cursor/skills/prisma-8/` | Skill oficial Prisma 8 |
+| `.cursor/rules/*.mdc` | Regras por domínio (raiz do monorepo) |
+| `.cursor/skills/prisma-8/` | Symlink → skill Prisma 8 |
+| `nexus-backend/.cursor/skills/prisma-8/` | Fonte da skill (sync via `npm run skills:sync`) |
 | `readme.md` | Setup, seed, decisões do candidato |
 
 ## Fluxo de trabalho sugerido para IA

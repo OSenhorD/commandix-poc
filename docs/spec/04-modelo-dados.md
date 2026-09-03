@@ -160,7 +160,7 @@ model RefreshToken {
 | Campo | Tipo | Obrigatório | Notas |
 |-------|------|-------------|-------|
 | `id` | UUID | sim (PK) | Gerado automaticamente |
-| `name` | string | sim | Nome único do tenant |
+| `name` | string | sim | Nome descritivo (sem UK) |
 | `slug` | string | sim (UK) | Identificador URL-friendly |
 | `createdAt` | datetime | sim | Default: now |
 

@@ -14,7 +14,7 @@
 **Regras de negócio:**
 
 - Email único **globalmente** (não por tenant)
-- Tenant slug ou nome único
+- Tenant `slug` único globalmente; `name` é descritivo (sem unique)
 - Refresh token armazenado com hash no banco
 - Todas as queries de integração/execução filtradas por `tenantId` derivado do JWT
 
