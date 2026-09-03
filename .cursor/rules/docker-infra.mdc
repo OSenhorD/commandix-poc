@@ -66,4 +66,9 @@ HTTP_TRIGGER_TIMEOUT_MS=30000
 
 ## CORS
 
-Dev Vite (`localhost:5173`): CORS na API. Docker com proxy nginx: mesma origem — CORS não necessário para chamadas `/api`.
+| Ambiente | Configuração |
+|----------|--------------|
+| Dev Vite (`:5173`) + API (`:3000`) | `app.enableCors({ origin: 'http://localhost:5173' })` em `main.ts` |
+| Docker (nginx proxy `/api/`) | CORS **desnecessário** — mesma origem |
+
+Detalhes: [08-docker §8.8](../../docs/spec/08-docker.md#88-cors).

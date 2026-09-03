@@ -30,7 +30,7 @@ Frontend (React) → API (NestJS) → PostgreSQL (Prisma 8)
 
 Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (wrapper do client Prisma), `common`.
 
-> O módulo `users/` é **fora de escopo** — bootstrap cria o admin; novos usuários não são requisito da PoC.
+> O módulo `users/` é **fora de escopo**. **Única criação de usuários:** `POST /tenants/bootstrap` (tenant + primeiro `ADMIN`). Sem convite ou CRUD de `VIEWER`/`ADMIN`.
 
 ## Monorepo
 
@@ -69,13 +69,22 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 | Erro de rede / timeout | `FAILURE`, `httpStatusCode: null` |
 | Execuções — tenant | Sempre validar via join/relação com `Integration.tenantId` (tabela não tem `tenantId`) |
 | Ordenação execuções | `executedAt DESC` |
-| Truncamento | `responseBody` limitado a 10 KB |
-| Filtros de data | ISO 8601; `from`/`to` inclusive |
+| Truncamento | `responseBody` limitado a **10 240 bytes** UTF-8 (+ sufixo `… [truncated]` se cortado) |
+| PATCH integração | Parcial — todos os campos opcionais; `authKey` omitido mantém; JSON substitui inteiro |
+| Filtros de data | ISO 8601/RFC 3339; UTC; `from`/`to` **inclusive**; date-only `YYYY-MM-DD` → dia inteiro UTC; `from > to` → 400 |
+| Paginação | Envelope `{ data, meta }` — `page`/`limit` (default 20, máx. 100); `meta`: `total`, `totalPages`, `hasNextPage`, `hasPreviousPage` — [05-api §5.0](./docs/spec/05-api.md#50-paginação-listagens) |
+| Listagem integrações | Filtro opcional `isActive`; `updatedAt DESC` — [05-api §5.3](./docs/spec/05-api.md#get-integrations) |
 | Frontend UI | **Escopo completo do protótipo** — login, logout, bootstrap, CRUD integrações (admin), trigger, histórico + detalhe; viewer somente leitura |
 | API URL (frontend) | Default **`/api/v1`** (relativo) — nginx (Docker) e proxy Vite (dev) encaminham para a API |
 | Refresh 401 | Interceptor tenta `POST /auth/refresh`; falha → logout |
+| JWT claims | `{ sub, tenantId, role, email }` — ver [05-api](./docs/spec/05-api.md) §5.2 |
+| JWT access / refresh | `15m` / `7d` — `JWT_ACCESS_EXPIRES_IN` / `JWT_REFRESH_EXPIRES_IN` |
+| Logout | Revoga **só** o refresh token do dispositivo atual; outras sessões permanecem |
+| Bootstrap rate limit | `@nestjs/throttler` em `POST /tenants/bootstrap` — default 5 req / 60s por IP |
+| Criação de usuários | **Somente bootstrap** (tenant + `ADMIN`); sem convite/CRUD de usuários; módulo `users/` fora de escopo |
+| Health | `GET /api/v1/health` → `{ "status": "ok" }` — público; Docker healthcheck |
 | Tokens frontend | `localStorage` |
-| CORS (dev) | `http://localhost:5173` |
+| CORS (dev) | `http://localhost:5173` → API `:3000`; ver [08-docker §8.8](./docs/spec/08-docker.md#88-cors) |
 | Seed Docker | Idempotente; pula se tenant `acme` existir |
 | Seed no startup | **Sempre** no entrypoint Docker (`db migrate` → seed → start); idempotente — não re-insere se `acme` já existir; **decisão consciente da PoC**, não padrão de produção |
 | Node | **24.16.0** — `engines` em `nexus-backend/package.json`; imagem Docker `node:24.16.0-alpine` |
@@ -103,7 +112,7 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 - Nunca expor `passwordHash`, `tokenHash` ou `authKey` completo nas respostas
 - Mascarar `authKey` na resposta (ex.: `****-key`)
 - Cross-tenant access → `NotFoundException` (404), não 403
-- CORS habilitado para frontend local
+- CORS habilitado em **dev local** — `origin: 'http://localhost:5173'` (frontend Vite `:5173`, API `:3000`); Docker com nginx: mesma origem, CORS desnecessário
 - `GET /api/v1/health` — healthcheck para Docker
 
 ### Banco (Prisma 8)
@@ -165,7 +174,7 @@ npx prisma db migrate              # aplica migrations pendentes
 - Não editar `contract.json` / `contract.d.ts` manualmente
 - Não colocar `DATABASE_URL` em `prisma.config.ts`
 - Não criar abstrações prematuras (repositórios genéricos, CQRS)
-- Não adicionar features fora da spec (OAuth social, 2FA, rate limiting avançado, CRUD de usuários)
+- Não adicionar features fora da spec (OAuth social, 2FA, rate limiting **global/avancado**, CRUD de usuários) — rate limit **básico no bootstrap** está no escopo
 - Não usar GraphQL
 - Não escrever código de aplicação em JavaScript puro
 - Não commitar `.env` ou secrets

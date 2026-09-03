@@ -76,11 +76,18 @@ Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
 | Multi-tenancy | `tenantId` no JWT + filtro no service; cross-tenant → 404 |
 | Infra local | Docker Compose com um comando (`docker compose up --build`) |
 | Trigger HTTP | POST, timeout 30s, `authKey` como Bearer, merge shallow de payload |
+| Execuções | `responseBody` truncado em 10 240 bytes UTF-8 |
+| Integrações | PATCH parcial; desativar via PATCH; DELETE hard + cascade |
 | Frontend API | URL relativa `/api/v1` + proxy nginx/Vite |
+| CORS | Dev: `localhost:5173` → API `:3000`; Docker: mesma origem |
 | Frontend auth | Interceptor 401 → refresh → logout |
-| Integrações | Desativar via PATCH; DELETE hard + cascade execuções |
 | Frontend UI | Escopo completo — cadastros e ações via UI (CRUD integrações, trigger, histórico) |
 | API prefix | `/api/v1` (global prefix no NestJS) |
+| Health | `GET /api/v1/health` → `{ "status": "ok" }` |
+| JWT | Access `15m`, refresh `7d`; claims `{ sub, tenantId, role, email }` |
+| Logout | Apenas dispositivo atual — outras sessões permanecem |
+| Bootstrap | Rate limit básico — 5 req / 60s por IP em `POST /tenants/bootstrap` |
+| Usuários | Criação **somente** no bootstrap (`ADMIN`); sem convite/CRUD |
 
 ## Licença
 

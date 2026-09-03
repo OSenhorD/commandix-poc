@@ -202,7 +202,7 @@ model RefreshToken {
 **Critério `SUCCESS` / `FAILURE`:** se a API da integração retornar sucesso (HTTP 2xx), `SUCCESS`; senão, `FAILURE`. Não interpretar o body — apenas o status HTTP (ou ausência de resposta).
 | `responseTimeMs` | int | sim | Tempo de resposta em ms |
 | `requestPayload` | JSON | não | Payload enviado ao serviço externo |
-| `responseBody` | text | não | Corpo da resposta (truncar se necessário) |
+| `responseBody` | text | não | Corpo da resposta externa; **máx. 10 240 bytes UTF-8** na persistência ([05-api §5.4](./05-api.md#truncamento-de-responsebody)) |
 | `executedAt` | datetime | sim | Default: now |
 
 ### RefreshToken
@@ -213,13 +213,15 @@ model RefreshToken {
 | `userId` | UUID | sim (FK) | Referência a `User` |
 | `tokenHash` | string | sim | Hash do refresh token; **nunca expor na API** |
 | `expiresAt` | datetime | sim | |
-| `revokedAt` | datetime | não | Preenchido no logout |
+| `revokedAt` | datetime | não | Preenchido no logout **deste** refresh token (dispositivo atual) |
 
 ## 4.4 Seed sugerido
 
 Implementado em `nexus-backend/src/prisma/seed.ts` (idempotente). Senha padrão: `Admin123!` (ver [`readme.md`](../../readme.md)).
 
 Entrypoint Docker **sempre** executa seed após migrate; pula inserção se tenant `acme` já existir ([08-docker](./08-docker.md) §8.5).
+
+O `VIEWER` abaixo é **dado demo** inserido pelo seed — não há API de convite/criação de usuários ([02-escopo §2.1](./02-escopo-funcional.md)).
 
 | Entidade | Dados |
 |----------|-------|

@@ -11,25 +11,29 @@
 - [ ] Migration inicial: `migration plan --name initial` → commit em `migrations/app/`
 - [ ] `DatabaseModule` (wrapper injectable de `db`)
 - [ ] Seed idempotente em `src/prisma/seed.ts`
+- [ ] `GET /api/v1/health` (público; healthcheck Docker)
+- [ ] CORS em dev — `enableCors({ origin: 'http://localhost:5173' })` em `main.ts`
 - [ ] Docker Compose (postgres + api + frontend)
 - [ ] Entrypoint: `db migrate` → seed idempotente (sempre) → start
 
 ## Fase 2 — Auth
 
-- [ ] Bootstrap de tenant
-- [ ] Login / refresh / logout
+- [ ] Bootstrap de tenant + rate limit básico (`@nestjs/throttler`, 5 req / 60s por IP)
+- [ ] Login / refresh / logout (access `15m`, refresh `7d`; claims §5.2 de [05-api](./05-api.md))
 - [ ] JwtAuthGuard + RolesGuard
 - [ ] Decorator @CurrentUser()
 
 ## Fase 3 — Integrações
 
-- [ ] CRUD de integrações com tenant scoping
+- [ ] CRUD de integrações com tenant scoping (PATCH parcial — [05-api §5.3](./05-api.md#patch-integrationsid))
+- [ ] Listagem paginada ([05-api §5.0](./05-api.md#50-paginação-listagens) + filtro `isActive` — [§5.3](./05-api.md#get-integrations))
 - [ ] Serviço HTTP para disparo
-- [ ] Registro de execuções
+- [ ] Registro de execuções (`responseBody` truncado em 10 240 bytes)
 
 ## Fase 4 — Histórico
 
-- [ ] Listagem paginada com filtros
+- [ ] Ordenação execuções (`executedAt DESC`)
+- [ ] Listagem paginada com filtros ([05-api §5.0](./05-api.md#50-paginação-listagens) + `status`, `from`/`to`)
 - [ ] Detalhe de execução (tenant via `Integration`)
 
 ## Fase 5 — Frontend

@@ -45,7 +45,7 @@ Comandos Prisma: `cd nexus-backend` antes de CLI. Skill: `.cursor/skills/prisma-
 
 `auth`, `tenants`, `integrations`, `executions`, `database`, `common`.
 
-Fora de escopo: módulo `users/` (bootstrap cria o admin).
+Fora de escopo: módulo `users/` — criação de usuários **somente** via `POST /tenants/bootstrap` (tenant + `ADMIN`).
 
 ## Antes de implementar
 

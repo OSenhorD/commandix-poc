@@ -53,6 +53,8 @@ src/
 
 Tenant ID no JWT + filtro explícito em todas as queries no **service**.
 
+Access token — claims: `sub` (userId), `tenantId`, `role`, `email`. Detalhes: [05-api §5.2](./05-api.md#jwt--access-token).
+
 ```typescript
 const integration = await db.orm.Integration
   .where({ id, tenantId: user.tenantId })
@@ -81,6 +83,10 @@ sequenceDiagram
     C->>A: POST /auth/refresh
     A->>DB: valida refresh token
     A-->>C: novo accessToken
+
+    C->>A: POST /auth/logout { refreshToken }
+    A->>DB: revokedAt no token enviado (outros dispositivos intactos)
+    A-->>C: 204
 
     Note over C,A: Authorization: Bearer {accessToken}
 ```

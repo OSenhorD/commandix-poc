@@ -14,6 +14,7 @@
 | PostgreSQL | **16** (`postgres:16-alpine`; mínimo Prisma Next 15+) | Via Docker |
 | Prisma 8 | v8 RC — `@prisma/orm-postgres`, contract em `src/prisma/` | Inicializado |
 | class-validator | DTOs + `ValidationPipe` global | Pendente |
+| @nestjs/throttler | Rate limit básico em `POST /tenants/bootstrap` | Pendente |
 | @nestjs/jwt + passport | Guards de autenticação | Pendente |
 | bcrypt | Hash de senhas | Pendente |
 | Vitest | 4.x | Starter |
@@ -43,6 +44,7 @@ VIEWER: leitura em integrações e histórico. ADMIN: todas as ações de escrit
 |-----------|--------|
 | Docker Compose: `api`, `frontend`, `postgres` | Pendente |
 | Healthcheck no PostgreSQL antes da API subir | Pendente |
+| CORS dev (`localhost:5173`) | Fase 1 — ver [08-docker §8.8](./08-docker.md#88-cors) |
 | Migrations no Docker | `db migrate` no entrypoint (migrations em `migrations/app/`) |
 | `.env.example` com todas as variáveis | Pendente |
 

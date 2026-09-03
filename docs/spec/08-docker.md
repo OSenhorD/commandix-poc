@@ -32,6 +32,26 @@ HTTP_TRIGGER_TIMEOUT_MS=30000
 
 Frontend usa `/api/v1` relativo — ver §8.6. `VITE_API_URL` opcional.
 
+### JWT — duração dos tokens
+
+| Token | Variável | Default | Uso |
+|-------|----------|---------|-----|
+| Access | `JWT_ACCESS_EXPIRES_IN` | `15m` | Curta duração; enviado em `Authorization: Bearer` |
+| Refresh | `JWT_REFRESH_EXPIRES_IN` | `7d` | Longa duração; body de `/auth/refresh` e `/auth/logout` |
+
+Formato: string compatível com biblioteca JWT (ex.: `15m`, `7d`, `1h`). Claims do access token: [05-api §5.2](./05-api.md#jwt--access-token).
+
+Secrets separados: `JWT_ACCESS_SECRET` e `JWT_REFRESH_SECRET`.
+
+### Rate limit (bootstrap)
+
+| Variável | Default | Descrição |
+|----------|---------|-----------|
+| `BOOTSTRAP_THROTTLE_TTL` | `60000` | Janela em ms |
+| `BOOTSTRAP_THROTTLE_LIMIT` | `5` | Máx. requisições por IP na janela |
+
+Aplica-se **somente** a `POST /tenants/bootstrap`. Resposta `429` quando excedido. Ver [05-api §5.2](./05-api.md#post-tenantsbootstrap).
+
 ## 8.3 Comando único
 
 ```bash
@@ -85,6 +105,31 @@ server: {
 ### Override opcional
 
 `VITE_API_URL` no `.env` apenas se necessário (ex.: API em outro host durante dev).
+
+## 8.8 CORS
+
+| Ambiente | Frontend | API | CORS na API |
+|----------|----------|-----|-------------|
+| **Dev local** | Vite `:5173` | Nest `:3000` | **Sim** — `origin: 'http://localhost:5173'` |
+| **Docker** | nginx `:5173` → `:80` | `:3000` (interno) | **Não** — browser usa mesma origem; `/api/` via proxy nginx |
+
+### Dev local
+
+Frontend e API em portas diferentes → browser exige CORS para chamadas diretas à API (`http://localhost:3000`).
+
+```typescript
+// main.ts
+app.enableCors({ origin: 'http://localhost:5173' });
+```
+
+Com proxy Vite (`/api` → `:3000`) e URL relativa `/api/v1`, a maioria das chamadas do frontend é **same-origin** (`localhost:5173`). CORS na API ainda é configurado para:
+
+- ferramentas externas (Postman, curl com `Origin`)
+- override `VITE_API_URL` apontando direto para `:3000`
+
+### Docker
+
+nginx faz proxy `/api/` → `api:3000`. Browser só fala com o host do frontend — **sem preflight CORS** para rotas `/api/v1/*`.
 
 ## 8.7 Arquivos de infra
 
