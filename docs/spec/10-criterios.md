@@ -9,6 +9,7 @@
 | Modelagem PostgreSQL | Alto | Schema Prisma, relações, migrations, tenant isolation |
 | Multi-tenancy | Alto | Dados de um tenant nunca vazam para outro |
 | Histórico de execuções | Médio | Registro correto, filtros e paginação |
-| README e decisões | Médio | Clareza, aprendizados, melhorias futuras |
+| README e decisões | Médio | Clareza, aprendizados, melhorias futuras; incluir escolha de `authKey` at-rest |
+| Testes críticos | **Obrigatório** | Tenant isolation, auth guards, trigger, scoping de execuções (Vitest + supertest) |
 | Bônus n8n | Bônus | Workflow funcional integrado |
-| Testes | Bônus | Unitário ou E2E |
+| Testes extras | Bônus | Cobertura E2E/unitária além do mínimo crítico |

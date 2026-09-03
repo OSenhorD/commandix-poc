@@ -297,6 +297,8 @@ Campos **não** patcháveis: `id`, `tenantId`, `createdAt` (`updatedAt` atualiza
 
 ### POST /integrations/:id/trigger
 
+Disparo HTTP outbound: **sempre POST** para `targetUrl`; timeout 30s; **sem retry**. Não há campo `httpMethod` no modelo.
+
 Request (payload opcional; merge shallow com `defaultPayload`):
 
 > **Status da execução:** `SUCCESS` se a API externa responder com HTTP 2xx; `FAILURE` em qualquer outro caso (não-2xx, timeout, erro de rede). Body da resposta não altera o status.

@@ -7,7 +7,6 @@ Plataforma de automação B2B — módulo de gestão de integrações multi-tena
 | Arquivo | Descrição |
 |---------|-----------|
 | [`docs/spec/`](./docs/spec/README.md) | Spec técnica (funcionalidades, API, schema, checklist) |
-| [`docs/spec/12-revisao-planejamento.md`](./docs/spec/12-revisao-planejamento.md) | Brechas resolvidas e decisões adotadas |
 | [`AGENTS.md`](./AGENTS.md) | Contexto para agentes de IA |
 | [`.cursor/skills/`](./.cursor/skills/README.md) | Skills do monorepo (Prisma 8) |
 | [`.cursor/rules/`](./.cursor/rules/) | Regras Cursor por domínio |
@@ -51,9 +50,11 @@ Serviços após subir:
 - **Backend:** NestJS 12, Node 24, TypeScript 6 (ESM), Prisma 8, PostgreSQL, JWT
 - **Frontend:** React 19, TypeScript, Vite
 - **Infra:** Docker Compose (Postgres 16, nginx)
-- **Testes:** Vitest (+ supertest E2E planejado)
+- **Testes:** Vitest + supertest — **testes críticos obrigatórios** (tenant isolation, auth, trigger, execuções); cobertura extra = bônus
 
 ## Extensões sugeridas (VS Code / Cursor)
+
+Opcionais — a UI da PoC usa **HTML/CSS simples** (sem Tailwind ou biblioteca de componentes obrigatória).
 
 - [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
 - [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
@@ -75,13 +76,14 @@ Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
 | Schema no Docker | `contract emit` (build) → `db migrate` → seed idempotente (sempre no entrypoint) |
 | Multi-tenancy | `tenantId` no JWT + filtro no service; cross-tenant → 404 |
 | Infra local | Docker Compose com um comando (`docker compose up --build`) |
-| Trigger HTTP | POST, timeout 30s, `authKey` como Bearer, merge shallow de payload |
+| Trigger HTTP | Sempre POST, timeout 30s, sem retry, `authKey` como Bearer |
+| `authKey` at-rest | Texto ou criptografia — documentar no README final |
 | Execuções | `responseBody` truncado em 10 240 bytes UTF-8 |
 | Integrações | PATCH parcial; desativar via PATCH; DELETE hard + cascade |
 | Frontend API | URL relativa `/api/v1` + proxy nginx/Vite |
 | CORS | Dev: `localhost:5173` → API `:3000`; Docker: mesma origem |
 | Frontend auth | Interceptor 401 → refresh → logout |
-| Frontend UI | Escopo completo — cadastros e ações via UI (CRUD integrações, trigger, histórico) |
+| Frontend UI | Escopo completo na UI |
 | API prefix | `/api/v1` (global prefix no NestJS) |
 | Health | `GET /api/v1/health` → `{ "status": "ok" }` |
 | JWT | Access `15m`, refresh `7d`; claims `{ sub, tenantId, role, email }` |

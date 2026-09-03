@@ -13,7 +13,7 @@ Desenvolver um módulo de **gestão de integrações multi-tenant**: cada empres
 | **Alto** | Arquitetura backend, modelagem PostgreSQL, multi-tenancy, NestJS |
 | **Médio** | Histórico de execuções, README com decisões |
 | **Baixo** | Beleza do frontend (mínimo funcional basta) |
-| **Bônus** | n8n, testes unitários/E2E |
+| **Bônus** | n8n, testes extras além do mínimo crítico |
 
 ## Entregáveis obrigatórios
 
@@ -21,4 +21,4 @@ Desenvolver um módulo de **gestão de integrações multi-tenant**: cada empres
 - Frontend React com **fluxo completo** (login, integrações, histórico — cadastros e ações na UI)
 - `docker compose up` sobe API + frontend + PostgreSQL
 - `.env.example` documentado
-- README com setup, seed, decisões técnicas e pontos em aberto
+- README com setup, seed, decisões técnicas (incl. `authKey` at-rest) e pontos em aberto

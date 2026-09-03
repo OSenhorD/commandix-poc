@@ -17,13 +17,13 @@
 | @nestjs/throttler | Rate limit básico em `POST /tenants/bootstrap` | Pendente |
 | @nestjs/jwt + passport | Guards de autenticação | Pendente |
 | bcrypt | Hash de senhas | Pendente |
-| Vitest | 4.x | Starter |
+| Vitest + supertest | 4.x — **testes críticos obrigatórios** (ver [10-criterios § Testes](./10-criterios.md)) | Starter |
 
 ## 6.2 Frontend (mínimo funcional)
 
 | Tecnologia | Nota | Status |
 |------------|------|--------|
-| React + TypeScript | React 19, Vite (última versão) | Pendente |
+| React 19 | React 19 + TypeScript, Vite (última versão) | Pendente |
 | React Router | Rotas protegidas | Pendente |
 | Fetch/axios | Cliente HTTP com interceptor JWT | Pendente |
 

@@ -184,7 +184,7 @@ model RefreshToken {
 | `name` | string | sim | |
 | `type` | enum | sim | `WEBHOOK` \| `REST_API` \| `N8N` |
 | `targetUrl` | string | sim | URL de destino |
-| `authKey` | string | não | Armazenada criptografada ou em texto; **mascarada na API** |
+| `authKey` | string | não | At-rest: texto ou criptografia — **documentar escolha no README final**; **mascarada na API** |
 | `customHeaders` | JSON | não | Objeto chave-valor |
 | `defaultPayload` | JSON | não | Payload padrão para disparos |
 | `isActive` | boolean | sim | Default: `true` |

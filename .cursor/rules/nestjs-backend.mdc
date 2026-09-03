@@ -80,7 +80,7 @@ Todas as listagens seguem [05-api §5.0](../../docs/spec/05-api.md#50-paginaçã
 
 ## HTTP trigger (`POST /integrations/:id/trigger`)
 
-POST, timeout 30s, sem retry, `isActive: true`, shallow merge de payload, `authKey` como Bearer.
+POST, timeout 30s, **sem retry**, **sempre POST** (sem `httpMethod` no modelo), `isActive: true`, shallow merge, `authKey` como Bearer.
 
 **Status:** API externa retornou sucesso (HTTP 2xx) → `SUCCESS`; senão → `FAILURE`. Body da resposta não altera o status.
 

@@ -41,7 +41,7 @@
 
 1. Valida tenant + permissão (`ADMIN`)
 2. Valida integração ativa
-3. Monta request (method POST por padrão, headers + auth)
+3. Monta request (**sempre POST**, headers + auth; sem campo `httpMethod`; sem retry)
 4. Executa com timeout (ex.: 30s)
 5. Persiste `IntegrationExecution` — `SUCCESS` se a API externa retornar sucesso (HTTP 2xx); `FAILURE` caso contrário; `responseBody` truncado em 10 240 bytes ([05-api §5.4](./05-api.md#truncamento-de-responsebody))
 6. Retorna resultado da execução

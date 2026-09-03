@@ -24,7 +24,7 @@ Fonte de verdade: `AGENTS.md`. Spec funcional: `docs/spec/`. Domínio (campos, A
 | ORM | Prisma 8 (`@prisma/orm-postgres`) — `src/prisma/contract.prisma` |
 | DB | PostgreSQL 16+ |
 | Frontend | React 19, Vite, TypeScript |
-| Testes | Vitest 4, supertest (E2E) |
+| Testes | Vitest 4 + supertest — **críticos obrigatórios**; extra = bônus |
 | Infra | Docker Compose |
 
 ## Estrutura do monorepo

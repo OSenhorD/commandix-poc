@@ -53,5 +53,6 @@
 
 - [ ] `.env.example` completo
 - [ ] README com decisões
-- [ ] Testes críticos (auth, tenant isolation, execuções)
+- [ ] Testes críticos (auth, tenant isolation, execuções) — **obrigatório**
+- [ ] (Bônus) cobertura E2E/unitária extra
 - [ ] (Bônus) n8n workflow

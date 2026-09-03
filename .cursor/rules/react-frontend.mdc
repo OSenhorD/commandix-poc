@@ -6,7 +6,7 @@ alwaysApply: false
 
 # React Frontend
 
-Mínimo funcional — sem foco em design. **Escopo completo do protótipo:** todas as telas e ações expostas pela API necessárias ao fluxo end-to-end (via UI, não curl).
+Mínimo funcional — **HTML/CSS simples** (sem Tailwind ou UI library obrigatória). **Escopo completo do protótipo:** todas as telas e ações expostas pela API necessárias ao fluxo end-to-end (via UI, não curl).
 
 ## Stack
 

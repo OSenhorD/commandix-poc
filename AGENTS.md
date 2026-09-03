@@ -6,8 +6,7 @@ Contexto para agentes de IA trabalhando neste repositório.
 
 **Commandix PoC** (codename interno: **Nexus**) — módulo de gestão de integrações multi-tenant para plataforma de automação B2B. Desafio técnico de processo seletivo.
 
-**Spec completa:** [`docs/spec/`](./docs/spec/README.md)  
-**Revisão de planejamento (brechas resolvidas):** [`docs/spec/12-revisao-planejamento.md`](./docs/spec/12-revisao-planejamento.md)
+**Spec completa:** [`docs/spec/`](./docs/spec/README.md)
 
 ## Estado atual
 
@@ -45,8 +44,6 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 
 ## Decisões adotadas
 
-Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-planejamento.md`](./docs/spec/12-revisao-planejamento.md).
-
 | Tópico | Decisão |
 |--------|---------|
 | Versões | **Sempre as mais recentes** — runtime, frameworks, ORM e imagens Docker; ver `engines`/`package.json` |
@@ -60,7 +57,8 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 | Desativar integração | `PATCH { isActive: false }` |
 | DELETE integração | Hard delete + cascade em execuções |
 | Trigger inativo | Rejeitar (integração deve estar `isActive: true`) |
-| HTTP outbound | POST; timeout 30s; sem retry |
+| HTTP outbound | **Sempre POST**; timeout 30s; **sem retry** |
+| `authKey` at-rest | Texto ou criptografia — candidato documenta no README final |
 | Merge payload | Shallow: `{ ...defaultPayload, ...payload }` |
 | `authKey` outbound | `Authorization: Bearer {authKey}` se presente |
 | `authKey` PATCH | Omitido = mantém valor anterior |
@@ -149,9 +147,9 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 
 ### Testes
 
-- Vitest (já no backend)
-- Prioridade: tenant isolation, auth guards, trigger service, scoping de execuções
-- E2E com supertest para fluxos críticos
+- **Obrigatório (PoC):** Vitest + supertest — tenant isolation, auth guards, trigger service, scoping de execuções
+- **Bônus:** cobertura E2E/unitária adicional além do mínimo crítico
+- Ver [10-criterios](./docs/spec/10-criterios.md)
 
 ## Comandos úteis
 
@@ -186,7 +184,6 @@ npx prisma db migrate              # aplica migrations pendentes
 | Arquivo | Conteúdo |
 |---------|----------|
 | `docs/spec/` | Spec funcional, API, schema, checklist |
-| `docs/spec/12-revisao-planejamento.md` | Brechas, ambiguidades, decisões |
 | `.cursor/rules/*.mdc` | Regras por domínio (raiz do monorepo) |
 | `.cursor/skills/prisma-8/` | Symlink → skill Prisma 8 |
 | `nexus-backend/.cursor/skills/prisma-8/` | Fonte da skill (sync via `npm run skills:sync`) |
