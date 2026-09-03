@@ -77,6 +77,7 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 | Tokens frontend | `localStorage` |
 | CORS (dev) | `http://localhost:5173` |
 | Seed Docker | Idempotente; pula se tenant `acme` existir |
+| Seed no startup | **Sempre** no entrypoint Docker (`db migrate` → seed → start); idempotente — não re-insere se `acme` já existir; **decisão consciente da PoC**, não padrão de produção |
 | Node | 24.x (ver `engines` em `nexus-backend/package.json`) |
 
 ## Convenções
@@ -115,7 +116,7 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 - Primeira bootstrap (DB vazio): `npx prisma db init`
 - Migrations: `nexus-backend/migrations/app/` (commitar)
 - Domínio: [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md) §4.1–4.3
-- Seed: `src/prisma/seed.ts` idempotente; senha `Admin123!`
+- Seed: `src/prisma/seed.ts` idempotente; senha `Admin123!`; entrypoint Docker sempre executa seed (ver decisão acima)
 - Scripts one-off: `await db.close()` ao final (ver skill `references/runtime.md`)
 
 ### Frontend (React)

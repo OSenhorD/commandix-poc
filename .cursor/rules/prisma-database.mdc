@@ -38,7 +38,7 @@ nexus-backend/
 | Mudança versionada (branch/CI/Docker) | `npx prisma migration plan --name <slug>` → `npx prisma db migrate` |
 | Verificar drift | `npx prisma db verify` |
 
-**Docker / produção:** `contract emit` (build) → `db migrate` → seed → start. Não usar `db update` em ambientes compartilhados.
+**Docker / PoC:** `contract emit` (build) → `db migrate` → seed (sempre; idempotente) → start. Não usar `db update` em ambientes compartilhados.
 
 ## NestJS
 
@@ -79,7 +79,7 @@ Tipos temporais e atributos PSL: `nexus-backend/.cursor/skills/prisma-8/referenc
 
 ## Seed
 
-`src/prisma/seed.ts` — idempotente; pular se tenant `acme` existir. Scripts one-off: `await db.close()` ao final (`references/runtime.md` na skill prisma-8).
+`src/prisma/seed.ts` — idempotente; pular se tenant `acme` existir. Entrypoint Docker **sempre** invoca seed (não condicional a `NODE_ENV`); ver `docs/spec/08-docker.md` §8.5. Scripts one-off: `await db.close()` ao final (`references/runtime.md` na skill prisma-8).
 
 ## Proibições
 

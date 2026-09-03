@@ -72,7 +72,7 @@ Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
 | Versões | Sempre as mais recentes (runtime, frameworks, ORM, Docker) |
 | ORM | Prisma 8 — skill em `nexus-backend/.cursor/skills/prisma-8/` |
 | Migrations | `migrations/app/` + `db migrate` no Docker |
-| Schema no Docker | `contract emit` (build) → `db migrate` → seed idempotente |
+| Schema no Docker | `contract emit` (build) → `db migrate` → seed idempotente (sempre no entrypoint) |
 | Multi-tenancy | `tenantId` no JWT + filtro no service; cross-tenant → 404 |
 | Infra local | Docker Compose com um comando (`docker compose up --build`) |
 | Trigger HTTP | POST, timeout 30s, `authKey` como Bearer, merge shallow de payload |

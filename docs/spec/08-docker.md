@@ -42,6 +42,19 @@ docker compose up --build
 2. **API** — build inclui `contract emit` → entrypoint: `db migrate` → seed idempotente → `node dist/main.js`
 3. **Frontend** — após API healthy (`GET /api/v1/health`)
 
+## 8.5 Seed no entrypoint
+
+**Decisão PoC:** o entrypoint da API **sempre** executa o seed após `db migrate`, em qualquer `NODE_ENV`. Não há seed condicional.
+
+| Aspecto | Comportamento |
+|---------|---------------|
+| Objetivo | Garantir dados demo após `docker compose up` em banco vazio |
+| Idempotência | Se tenant `acme` já existir, seed encerra sem inserir nada |
+| Restart / redeploy | Seed roda de novo, mas é no-op quando dados demo já existem |
+| Produção real | **Fora de escopo** — em produção típica seed não roda a cada deploy; aqui é conveniência para avaliadores |
+
+Implementação: `nexus-backend/docker-entrypoint.sh` chama `tsx src/prisma/seed.ts` (ou equivalente) entre migrate e start.
+
 ## 8.6 Frontend — roteamento da API
 
 O cliente HTTP usa **`/api/v1`** (caminho relativo). Mesma origem do browser → funciona com qualquer host (localhost, IP, hostname).
@@ -71,7 +84,7 @@ server: {
 
 `VITE_API_URL` no `.env` apenas se necessário (ex.: API em outro host durante dev).
 
-## 8.5 Arquivos de infra
+## 8.7 Arquivos de infra
 
 | Item | Arquivo |
 |------|---------|

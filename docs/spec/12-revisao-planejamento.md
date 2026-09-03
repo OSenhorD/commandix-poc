@@ -142,17 +142,6 @@ Para role insuficiente (VIEWER em rota ADMIN) → **403**. Consistente em [05-ap
 
 Documentada corretamente em [08-docker](./08-docker.md): Postgres → API (migrate + seed + start) → Frontend.
 
-### 6.2 Seed a cada startup
-
-Entrypoint: `contract emit` (build) → `db migrate` → seed → `node dist/main.js`.
-
-Seed idempotente (tenant `acme`) mitiga duplicação, mas:
-
-- Seed em todo deploy de produção é incomum.
-- Não está claro se seed deve rodar só em `NODE_ENV=development`.
-
-**Sugestão:** seed condicional ou documentar que PoC sempre re-seeda dados demo.
-
 ### 6.3 Versões não alinhadas
 
 | Componente | Documento | Versão |

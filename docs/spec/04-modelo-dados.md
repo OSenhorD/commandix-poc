@@ -219,6 +219,8 @@ model RefreshToken {
 
 Implementado em `nexus-backend/src/prisma/seed.ts` (idempotente). Senha padrão: `Admin123!` (ver [`readme.md`](../../readme.md)).
 
+Entrypoint Docker **sempre** executa seed após migrate; pula inserção se tenant `acme` já existir ([08-docker](./08-docker.md) §8.5).
+
 | Entidade | Dados |
 |----------|-------|
 | Tenant | `Acme Corp` (slug: `acme`) |

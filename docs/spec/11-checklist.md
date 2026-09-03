@@ -12,7 +12,7 @@
 - [ ] `DatabaseModule` (wrapper injectable de `db`)
 - [ ] Seed idempotente em `src/prisma/seed.ts`
 - [ ] Docker Compose (postgres + api + frontend)
-- [ ] Entrypoint: `db migrate` → seed → start
+- [ ] Entrypoint: `db migrate` → seed idempotente (sempre) → start
 
 ## Fase 2 — Auth
 
