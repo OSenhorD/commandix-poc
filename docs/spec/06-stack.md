@@ -35,6 +35,8 @@
 
 VIEWER: leitura em integrações e histórico. ADMIN: todas as ações de escrita.
 
+**API no browser:** URL relativa `/api/v1`; proxy Vite (dev) ou nginx (Docker) — ver [08-docker §8.6](./08-docker.md#86-frontend--roteamento-da-api).
+
 ## 6.3 Infraestrutura (obrigatório)
 
 | Requisito | Status |

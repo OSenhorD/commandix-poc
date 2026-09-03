@@ -1,6 +1,6 @@
 ---
 description: Docker Compose e variáveis de ambiente
-globs: "{docker-compose*.yml,Dockerfile*,.env.example,nexus-backend/docker-entrypoint.sh}"
+globs: "{docker-compose*.yml,Dockerfile*,.env.example,nexus-backend/docker-entrypoint.sh,nexus-frontend/nginx.conf}"
 alwaysApply: false
 ---
 
@@ -24,37 +24,36 @@ Versões mais recentes compatíveis; backend: `node:24-alpine` (ver `engines`).
 ## Startup
 
 1. `postgres` — `pg_isready`
-2. `api` — `db migrate` (migrations em `migrations/app/`) → seed → `node dist/main.js`
+2. `api` — `db migrate` → seed → `node dist/main.js`
 3. `frontend` — após `GET /api/v1/health`
 
-Build da API inclui `npm run contract:emit`. Migrations versionadas commitadas em `nexus-backend/migrations/app/`.
+## Frontend → API (nginx)
 
-## Entrypoint API (referência)
+Frontend usa URL relativa `/api/v1`. No `nginx.conf`:
 
-```bash
-npx prisma db migrate
-npx tsx src/prisma/seed.ts
-node dist/main.js
+```nginx
+location /api/ {
+  proxy_pass http://api:3000/api/;
+}
 ```
 
-Primeira bootstrap local (antes de existir migration): `migration plan --name initial` → commit → `db migrate`.
+Sem `VITE_API_URL` absoluto no build Docker.
 
 ## Variáveis (`.env.example`)
 
 ```env
 DATABASE_URL=postgresql://commandix:commandix@postgres:5432/commandix
+
 JWT_ACCESS_SECRET=change-me-access
 JWT_REFRESH_SECRET=change-me-refresh
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
+
 PORT=3000
 NODE_ENV=development
-VITE_API_URL=http://localhost:3000/api/v1
 HTTP_TRIGGER_TIMEOUT_MS=30000
 ```
 
-`VITE_API_URL` é build-time.
-
 ## CORS
 
-`http://localhost:5173` em dev.
+Dev Vite (`localhost:5173`): CORS na API. Docker com proxy nginx: mesma origem — CORS não necessário para chamadas `/api`.

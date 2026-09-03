@@ -136,15 +136,6 @@ Para role insuficiente (VIEWER em rota ADMIN) → **403**. Consistente em [05-ap
 
 ---
 
-## 5. Brechas de frontend
-
-### Infra frontend
-
-- `VITE_API_URL=http://localhost:3000/api/v1` é **build-time**; quebra se acessar frontend por IP/hostname diferente.
-- Interceptor de refresh em 401 mencionado em `AGENTS.md`, mas não no checklist.
-
----
-
 ## 6. Brechas de infra / Docker
 
 ### 6.1 Ordem de startup
@@ -198,7 +189,7 @@ Além das fases 1–6 em [11-checklist](./11-checklist.md), considerar:
 - [ ] Soft delete vs hard delete + efeito em execuções
 - [ ] Tenant scoping em **execuções** (via join com Integration)
 - [ ] Truncamento de `responseBody` (limite em bytes/chars)
-- [ ] Escopo frontend: CRUD na UI ou só via API
+- [x] Escopo frontend: paridade funcional completa na UI (ver [01-visao-geral](./01-visao-geral.md), Fase 5 do checklist)
 - [ ] Conflito `customHeaders` vs `authKey`
 - [ ] Ordenação e formato de filtros de data na listagem
 

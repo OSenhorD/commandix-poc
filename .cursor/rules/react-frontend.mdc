@@ -30,6 +30,7 @@ src/
 - Tokens em **`localStorage`** (`accessToken`, `refreshToken`)
 - `ProtectedRoute` → redirect `/login` se não autenticado
 - 401 → tentar `POST /auth/refresh` → logout se falhar
+- Cliente HTTP centralizado (`src/api/client.ts`) com interceptor de refresh
 - **Logout** na UI
 
 ## Telas e ações
@@ -50,8 +51,11 @@ Forms de integração: `name`, `type`, `targetUrl`, `authKey`, `customHeaders`, 
 ## API
 
 ```typescript
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
+// Relativo — nginx (Docker) ou proxy Vite (dev) encaminham /api → backend
+const API_URL = import.meta.env.VITE_API_URL ?? '/api/v1';
 ```
+
+**Dev:** configurar proxy em `vite.config.ts` (`/api` → `http://localhost:3000`).
 
 Contrato: `docs/spec/05-api.md`.
 

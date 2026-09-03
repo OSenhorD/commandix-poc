@@ -34,7 +34,10 @@
 
 ## Fase 5 — Frontend
 
-- [ ] Login + logout + token storage (`localStorage`) + interceptor refresh
+- [ ] Cliente HTTP (`src/api/client.ts`) com base `/api/v1`
+- [ ] Interceptor 401 → refresh → logout
+- [ ] Proxy Vite dev (`/api` → localhost:3000)
+- [ ] Login + logout + token storage (`localStorage`)
 - [ ] Bootstrap (cadastro tenant + admin)
 - [ ] Integrações — listar (ADMIN + VIEWER)
 - [ ] Integrações — criar / editar / desativar / excluir (ADMIN)

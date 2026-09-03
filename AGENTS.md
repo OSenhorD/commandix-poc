@@ -72,6 +72,8 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 | Truncamento | `responseBody` limitado a 10 KB |
 | Filtros de data | ISO 8601; `from`/`to` inclusive |
 | Frontend UI | **Escopo completo do protótipo** — login, logout, bootstrap, CRUD integrações (admin), trigger, histórico + detalhe; viewer somente leitura |
+| API URL (frontend) | Default **`/api/v1`** (relativo) — nginx (Docker) e proxy Vite (dev) encaminham para a API |
+| Refresh 401 | Interceptor tenta `POST /auth/refresh`; falha → logout |
 | Tokens frontend | `localStorage` |
 | CORS (dev) | `http://localhost:5173` |
 | Seed Docker | Idempotente; pula se tenant `acme` existir |
@@ -120,9 +122,19 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 
 - Vite + React 19 + TypeScript
 - React Router v6+ — rotas protegidas com redirect para login
+- **API base:** `/api/v1` (URL relativa; ver infra abaixo)
 - Tokens em `localStorage`
-- Interceptor: em 401, tenta refresh; se falhar, logout
+- **Interceptor HTTP:** resposta 401 → tentar refresh → logout se falhar
 - UI funcional com **todas as telas/ações do protótipo**; sem foco em design; HTML/CSS simples
+
+**Infra API no frontend:**
+
+| Ambiente | Como `/api/v1` chega na API |
+|----------|----------------------------|
+| Docker (nginx) | `location /api/` → proxy `http://api:3000` |
+| Dev (`vite dev`) | `server.proxy['/api']` → `http://localhost:3000` |
+
+`VITE_API_URL` é opcional (override); default no código: `/api/v1`. Evita quebrar ao acessar por IP/hostname diferente.
 
 ### Testes
 

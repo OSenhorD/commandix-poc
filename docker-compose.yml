@@ -55,8 +55,6 @@ services:
   #   build:
   #     context: ./nexus-frontend
   #     dockerfile: Dockerfile
-  #     args:
-  #       VITE_API_URL: ${VITE_API_URL:-http://localhost:${API_PORT:-3000}/api/v1}
   #   networks:
   #     - commandix-production
   #   ports:

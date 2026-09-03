@@ -25,9 +25,10 @@ JWT_REFRESH_EXPIRES_IN=7d
 PORT=3000
 NODE_ENV=development
 
-VITE_API_URL=http://localhost:3000/api/v1
 HTTP_TRIGGER_TIMEOUT_MS=30000
 ```
+
+Frontend usa `/api/v1` relativo — ver §8.6. `VITE_API_URL` opcional.
 
 ## 8.3 Comando único
 
@@ -41,7 +42,34 @@ docker compose up --build
 2. **API** — build inclui `contract emit` → entrypoint: `db migrate` → seed idempotente → `node dist/main.js`
 3. **Frontend** — após API healthy (`GET /api/v1/health`)
 
-Migrations versionadas em `nexus-backend/migrations/app/` (Prisma 8). Skill: `nexus-backend/.cursor/skills/prisma-8/references/migrations.md`.
+## 8.6 Frontend — roteamento da API
+
+O cliente HTTP usa **`/api/v1`** (caminho relativo). Mesma origem do browser → funciona com qualquer host (localhost, IP, hostname).
+
+### Docker (nginx)
+
+```nginx
+location /api/ {
+  proxy_pass http://api:3000/api/;
+}
+```
+
+Build do frontend **não** precisa de `VITE_API_URL` absoluto.
+
+### Dev local (Vite)
+
+```typescript
+// vite.config.ts
+server: {
+  proxy: {
+    '/api': 'http://localhost:3000',
+  },
+},
+```
+
+### Override opcional
+
+`VITE_API_URL` no `.env` apenas se necessário (ex.: API em outro host durante dev).
 
 ## 8.5 Arquivos de infra
 

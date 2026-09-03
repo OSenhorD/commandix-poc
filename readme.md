@@ -76,6 +76,8 @@ Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
 | Multi-tenancy | `tenantId` no JWT + filtro no service; cross-tenant → 404 |
 | Infra local | Docker Compose com um comando (`docker compose up --build`) |
 | Trigger HTTP | POST, timeout 30s, `authKey` como Bearer, merge shallow de payload |
+| Frontend API | URL relativa `/api/v1` + proxy nginx/Vite |
+| Frontend auth | Interceptor 401 → refresh → logout |
 | Integrações | Desativar via PATCH; DELETE hard + cascade execuções |
 | Frontend UI | Escopo completo — cadastros e ações via UI (CRUD integrações, trigger, histórico) |
 | API prefix | `/api/v1` (global prefix no NestJS) |
