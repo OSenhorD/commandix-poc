@@ -6,15 +6,9 @@
 
 ## Fase 1 — Fundação
 
-- [ ] Domínio em `src/prisma/contract.prisma` (§4 de [modelo de dados](./04-modelo-dados.md))
-- [ ] `npm run contract:emit`
-- [ ] Migration inicial: `migration plan --name initial` → commit em `migrations/app/`
 - [ ] `DatabaseModule` (wrapper injectable de `db`)
-- [ ] Seed idempotente em `src/prisma/seed.ts`
-- [ ] `GET /api/v1/health` (público; healthcheck Docker)
 - [ ] CORS em dev — `enableCors({ origin: 'http://localhost:5173' })` em `main.ts`
-- [ ] Docker Compose (postgres + api + frontend)
-- [ ] Entrypoint: `db migrate` → seed idempotente (sempre) → start
+- [ ] Docker Compose (postgres + api ✅; frontend pendente — `nexus-frontend/` a criar)
 
 ## Fase 2 — Auth
 

@@ -12,10 +12,10 @@ Contexto para agentes de IA trabalhando neste repositório.
 
 | Componente | Status |
 |------------|--------|
-| `nexus-backend/` | NestJS 12 starter — **Prisma 8 inicializado**; sem módulos de negócio |
+| `nexus-backend/` | Domínio Prisma 8 + migration + seed; Docker (Dockerfile + entrypoint); sem módulos de negócio |
 | `nexus-frontend/` | **Não criado** |
-| Prisma 8 | `src/prisma/contract.prisma` + `db.ts` — modelos demo a substituir |
-| Docker Compose | **Não criado** |
+| Prisma 8 | `contract.prisma` — domínio Commandix; migration `20260903T0509_initial` |
+| Docker Compose | **postgres + api** (`docker compose up --build`); frontend pendente |
 
 ## Arquitetura alvo
 

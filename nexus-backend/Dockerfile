@@ -8,21 +8,33 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-COPY nest-cli.json tsconfig.json tsconfig.build.json ./
+COPY nest-cli.json tsconfig.json tsconfig.build.json prisma.config.ts ./
+COPY migrations ./migrations
 COPY src ./src
+
+RUN npm run contract:emit
 RUN npm run build
 
 FROM node:24.16.0-alpine AS production
 
 WORKDIR /app
 
-ENV NODE_ENV=production
+# bcrypt native bindings on Alpine
+RUN apk add --no-cache python3 make g++
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
+ENV NODE_ENV=production
+
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/prisma.config.ts ./
+COPY --from=build /app/migrations ./migrations
+COPY --from=build /app/src/prisma ./src/prisma
+COPY docker-entrypoint.sh ./
+
+RUN chmod +x docker-entrypoint.sh
 
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
