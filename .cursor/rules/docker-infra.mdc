@@ -1,44 +1,74 @@
 ---
 description: Docker Compose e variáveis de ambiente
-globs: "{docker-compose*.yml,Dockerfile*,.env.example}"
+globs: "{docker-compose*.yml,Dockerfile*,.env.example,nexus-backend/docker-entrypoint.sh}"
 alwaysApply: false
 ---
 
 # Docker & Infra
 
-## Requisito
-
 Um comando sobe tudo:
 
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
 
 ## Serviços
 
-| Nome | Função |
-|------|--------|
-| `postgres` | PostgreSQL 16, volume persistente |
-| `api` | NestJS — migrations + seed no entrypoint |
-| `frontend` | React — proxy ou env `VITE_API_URL` |
+| Nome | Imagem / build | Porta (host) |
+|------|----------------|--------------|
+| `postgres` | `postgres:16-alpine` | 5432 |
+| `api` | `nexus-backend/Dockerfile` | 3000 |
+| `frontend` | `nexus-frontend/Dockerfile` (nginx) | 5173 → 80 |
 
-## Ordem de startup
+Usar **versões mais recentes** das imagens base (Node 24-alpine no backend, Postgres 16+).
 
-1. Postgres healthy
-2. API: `prisma migrate deploy` → `prisma db seed` → `node dist/main`
-3. Frontend
+## Startup
 
-## .env.example
+1. **postgres** — healthcheck `pg_isready`
+2. **api** — `npm run contract:emit` (build) → entrypoint: `prisma db init` → seed idempotente → `node dist/main.js`
+3. **frontend** — após API healthy (`GET /api/v1/health`)
 
-Documentar todas as variáveis (ver `docs/spec/08-docker.md` §8.2):
+## Entrypoint API (referência)
 
-- `DATABASE_URL`
-- `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`
-- `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`
-- `PORT`, `NODE_ENV`
-- `VITE_API_URL`
+```bash
+npx prisma db init
+npx tsx src/prisma/seed.ts   # ou script equivalente
+node dist/main.js
+```
+
+## Variáveis (`.env.example` na raiz)
+
+```env
+DB_DATABASE=commandix-db
+DB_USERNAME=commandix-user
+DB_PASSWORD=commandix-pass
+
+POSTGRES_PORT=5432
+
+JWT_ACCESS_SECRET=change-me-access
+JWT_REFRESH_SECRET=change-me-refresh
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+PORT=3000
+NODE_ENV=development
+
+VITE_API_URL=http://localhost:3000/api/v1
+HTTP_TRIGGER_TIMEOUT_MS=30000
+```
+
+`VITE_API_URL` é **build-time** — usar `http://localhost:3000/api/v1` para acesso via browser no host.
 
 ## Dockerfiles
 
-- Backend: multi-stage (build → production com node:22-alpine)
-- Frontend: build estático servido por nginx ou dev server conforme ambiente
+- **Backend**: multi-stage, `node:24-alpine` (alinhar com `engines` em `package.json`)
+- **Frontend**: build Vite → nginx servindo estático
+
+## Volume
+
+`postgres_data` persistente para dados do PostgreSQL.
+
+## CORS
+
+API aceita `http://localhost:5173` em desenvolvimento.

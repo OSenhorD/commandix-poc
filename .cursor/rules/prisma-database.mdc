@@ -1,51 +1,91 @@
 ---
-description: Prisma schema, migrations e seed
-globs: nexus-backend/prisma/**/*
+description: Prisma Next — contract, client, seed e queries multi-tenant
+globs: "{nexus-backend/src/prisma/**,nexus-backend/prisma.config.ts,nexus-backend/**/seed.ts}"
 alwaysApply: false
 ---
 
-# Prisma & PostgreSQL
+# Prisma Next & PostgreSQL
 
-Schema de referência em `docs/spec/04-modelo-dados.md` §4.2.
+ORM: **Prisma Next v8 RC** (`@prisma/orm-postgres`).
 
-## Regras
+Modelo de domínio (campos, enums, relações): `docs/spec/04-modelo-dados.md` §4.1–4.3 — implementar em `src/prisma/contract.prisma`.
 
-- PKs: `@id @default(uuid())`
-- Índices em FKs (`tenantId`, `integrationId`) e campos de filtro
-- Enums Prisma para `Role`, `IntegrationType`, `ExecutionStatus`
-- Campos JSON: `customHeaders`, `defaultPayload`, `requestPayload`
+## Layout
 
-## Migrations
-
-```bash
-npx prisma migrate dev --name descriptive_name   # dev
-npx prisma migrate deploy                         # prod/docker
+```
+nexus-backend/
+├── prisma.config.ts
+└── src/prisma/
+    ├── contract.prisma   # editar modelos aqui
+    ├── contract.json     # gerado — commitar
+    ├── contract.d.ts     # gerado — commitar
+    ├── db.ts             # client exportado
+    └── seed.ts           # seed idempotente (recomendado)
 ```
 
-Nunca editar migration já aplicada — criar nova migration.
+## Workflow
+
+```bash
+npm run contract:emit   # após editar contract.prisma
+npx prisma db init      # sincronizar tabelas (dev)
+```
+
+Docker: entrypoint da API executa `db init` → seed → `node dist/main.js` (ver `docker-infra.mdc`).
+
+## Schema
+
+- PKs: UUID (`@id @default(uuid())`)
+- Índices: `tenantId`, `integrationId`, `(integrationId, executedAt)`, `status`
+- Enums: `Role`, `IntegrationType`, `ExecutionStatus`
+- JSON: `customHeaders`, `defaultPayload`, `requestPayload`
+- `Tenant.slug` — `@unique`; `Tenant.name` — sem unique
+- `Integration` DELETE — cascade em `IntegrationExecution`
+
+## NestJS
+
+Expor `db` via `DatabaseModule` / `DatabaseService` injectable global. Controllers não importam `db` diretamente.
+
+```typescript
+import { db } from '../prisma/db.js';
+
+const integration = await db.orm.public.Integration
+  .where({ id, tenantId })
+  .first();
+```
 
 ## Seed
 
-`prisma/seed.ts` deve criar:
+Idempotente — pular se tenant `acme` existir:
 
-- 1 tenant (`Acme Corp`)
-- 1 admin + 1 viewer
-- 1 integração demo (tipo WEBHOOK)
+- Tenant `Acme Corp` (slug `acme`)
+- Admin `admin@acme.com` / Viewer `viewer@acme.com` — senha `Admin123!`
+- 1 integração WEBHOOK demo
 
-Senhas do seed documentadas no [`readme.md`](../../readme.md) (ex.: `Admin123!`).
+## Multi-tenant
 
-## PrismaService
-
-Módulo global exportando `PrismaService` que estende `PrismaClient` com `onModuleInit` conectando ao banco.
-
-## Queries multi-tenant
-
-Sempre incluir `tenantId` no `where`:
+Entidades com `tenantId` — sempre filtrar:
 
 ```typescript
 // ❌ Vulnerável
-prisma.integration.findUnique({ where: { id } });
+db.orm.public.Integration.where({ id }).first();
 
 // ✅ Seguro
-prisma.integration.findFirst({ where: { id, tenantId } });
+db.orm.public.Integration.where({ id, tenantId }).first();
 ```
+
+### Execuções
+
+`IntegrationExecution` não tem `tenantId`. Validar via relação:
+
+```typescript
+const execution = await db.orm.public.IntegrationExecution
+  .where({ id })
+  .include({ integration: true })
+  .first();
+
+if (!execution || execution.integration.tenantId !== tenantId) {
+  throw new NotFoundException();
+}
+```
+
+Adaptar encadeamentos (`.include`, `.where`) à API gerada pelo contract.

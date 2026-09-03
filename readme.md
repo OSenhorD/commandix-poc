@@ -7,6 +7,7 @@ Plataforma de automação B2B — módulo de gestão de integrações multi-tena
 | Arquivo | Descrição |
 |---------|-----------|
 | [`docs/spec/`](./docs/spec/README.md) | Spec técnica (funcionalidades, API, schema, checklist) |
+| [`docs/spec/12-revisao-planejamento.md`](./docs/spec/12-revisao-planejamento.md) | Brechas resolvidas e decisões adotadas |
 | [`AGENTS.md`](./AGENTS.md) | Contexto para agentes de IA |
 | [`.cursor/rules/`](./.cursor/rules/) | Regras Cursor por domínio |
 
@@ -16,7 +17,7 @@ Plataforma de automação B2B — módulo de gestão de integrações multi-tena
 |------------|-----------|--------|
 | API NestJS | `nexus-backend/` | Starter — implementação pendente |
 | Frontend React | `nexus-frontend/` | A criar |
-| PostgreSQL + Prisma | `nexus-backend/prisma/` | A configurar |
+| PostgreSQL + Prisma Next | `nexus-backend/src/prisma/` | Contract demo — domínio pendente |
 | Docker Compose | raiz | A criar |
 
 ## Setup (local)
@@ -46,7 +47,7 @@ Serviços após subir:
 
 ## Stack
 
-- **Backend:** NestJS 12, TypeScript (ESM), Prisma, PostgreSQL, JWT
+- **Backend:** NestJS 12, Node 24, TypeScript 6 (ESM), Prisma Next, PostgreSQL, JWT
 - **Frontend:** React 19, TypeScript, Vite
 - **Infra:** Docker Compose (Postgres 16, nginx)
 - **Testes:** Vitest (+ supertest E2E planejado)
@@ -63,15 +64,19 @@ Serviços após subir:
 
 ## Decisões técnicas
 
+Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
+
 | Tópico | Decisão |
 |--------|---------|
+| Versões | Sempre as mais recentes (runtime, frameworks, ORM, Docker) |
+| ORM | Prisma Next — `src/prisma/contract.prisma` + `db.ts` |
+| Multi-tenancy | `tenantId` no JWT + filtro no service; cross-tenant → 404 |
 | Infra local | Docker Compose com um comando (`docker compose up --build`) |
-| Migrations no Docker | `prisma migrate deploy` no entrypoint da API, após Postgres healthy |
-| Seed | `prisma/seed.ts`; idempotente — pula se tenant `acme` já existir |
-| Frontend no Docker | Build Vite + nginx na porta 80, exposta como `5173` no host |
+| Schema no Docker | `prisma db init` + seed idempotente no entrypoint da API |
+| Trigger HTTP | POST, timeout 30s, `authKey` como Bearer, merge shallow de payload |
+| Integrações | Desativar via PATCH; DELETE hard + cascade execuções |
+| Frontend UI | Login + lista + trigger + histórico (CRUD via API) |
 | API prefix | `/api/v1` (global prefix no NestJS) |
-
-_Pontos em aberto (auth, secrets, soft delete, etc.) serão documentados nas fases seguintes._
 
 ## Licença
 

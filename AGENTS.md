@@ -6,15 +6,16 @@ Contexto para agentes de IA trabalhando neste repositório.
 
 **Commandix PoC** (codename interno: **Nexus**) — módulo de gestão de integrações multi-tenant para plataforma de automação B2B. Desafio técnico de processo seletivo.
 
-**Spec completa:** [`docs/spec/`](./docs/spec/README.md)
+**Spec completa:** [`docs/spec/`](./docs/spec/README.md)  
+**Revisão de planejamento (brechas resolvidas):** [`docs/spec/12-revisao-planejamento.md`](./docs/spec/12-revisao-planejamento.md)
 
 ## Estado atual
 
 | Componente | Status |
 |------------|--------|
-| `nexus-backend/` | NestJS 12 starter (ESM, Vitest) — **sem módulos de negócio** |
+| `nexus-backend/` | NestJS 12 starter (ESM, Vitest) — **Prisma Next inicializado**; sem módulos de negócio |
 | `nexus-frontend/` | **Não criado** |
-| Prisma / PostgreSQL | **Não configurado** |
+| Prisma Next | `src/prisma/contract.prisma` + `db.ts` — modelos demo a substituir pelo domínio |
 | Docker Compose | **Não criado** |
 
 ## Arquitetura alvo
@@ -22,17 +23,54 @@ Contexto para agentes de IA trabalhando neste repositório.
 Monorepo com API NestJS + React (Vite) + PostgreSQL via Docker Compose.
 
 ```
-Frontend (React) → API (NestJS) → PostgreSQL (Prisma)
+Frontend (React) → API (NestJS) → PostgreSQL (Prisma Next)
                         ↓
                  Serviços externos (webhook, REST, n8n)
 ```
 
-Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `prisma`, `common`.
+Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (wrapper do client Prisma), `common`.
+
+> O módulo `users/` é **fora de escopo** — bootstrap cria o admin; novos usuários não são requisito da PoC.
+
+## Decisões adotadas
+
+Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-planejamento.md`](./docs/spec/12-revisao-planejamento.md).
+
+| Tópico | Decisão |
+|--------|---------|
+| Versões | **Sempre as mais recentes** — runtime, frameworks, ORM e imagens Docker; ver `engines`/`package.json` |
+| ORM | **Prisma Next** (v8 RC) — contract em `src/prisma/contract.prisma`, client em `src/prisma/db.ts` |
+| Multi-tenancy | `tenantId` no JWT + filtro explícito no **service** (não confiar em body/query) |
+| Cross-tenant | `NotFoundException` (404), nunca 403 |
+| Role insuficiente | 403 |
+| Tenant UK | Apenas `slug` único; `name` é descritivo |
+| Email UK | Global (um email = um tenant) |
+| `IntegrationType` | Metadado; disparo HTTP idêntico para `WEBHOOK`, `REST_API`, `N8N` |
+| Desativar integração | `PATCH { isActive: false }` |
+| DELETE integração | Hard delete + cascade em execuções |
+| Trigger inativo | Rejeitar (integração deve estar `isActive: true`) |
+| HTTP outbound | POST; timeout 30s; sem retry |
+| Merge payload | Shallow: `{ ...defaultPayload, ...payload }` |
+| `authKey` outbound | `Authorization: Bearer {authKey}` se presente |
+| `authKey` PATCH | Omitido = mantém valor anterior |
+| `customHeaders` vs auth | `customHeaders` aplicados primeiro; `Authorization` de `authKey` sobrescreve se ambos existirem |
+| SUCCESS / FAILURE | SUCCESS = HTTP 2xx recebido; FAILURE = timeout, erro de rede ou HTTP não-2xx |
+| Erro de rede | `FAILURE`, `httpStatusCode: null` |
+| Execuções — tenant | Sempre validar via join/relação com `Integration.tenantId` (tabela não tem `tenantId`) |
+| Ordenação execuções | `executedAt DESC` |
+| Truncamento | `responseBody` limitado a 10 KB |
+| Filtros de data | ISO 8601; `from`/`to` inclusive |
+| Frontend UI | Login + lista integrações + trigger (admin) + histórico; **CRUD via API** (sem forms create/edit na UI) |
+| Tokens frontend | `localStorage` |
+| CORS (dev) | `http://localhost:5173` |
+| Seed Docker | Idempotente; pula se tenant `acme` existir |
+| Node | 24.x (ver `engines` em `nexus-backend/package.json`) |
 
 ## Convenções
 
 ### Geral
 
+- **Versões mais recentes** — preferir sempre a última versão estável (ou RC, se for o único caminho da stack escolhida) de runtime, frameworks, bibliotecas e imagens Docker; alinhar `package.json`, `engines` e Dockerfiles
 - **Sempre TypeScript** — backend, frontend, seed, scripts de app; sem `.js` para código de negócio
 - Idioma do código: **inglês** (nomes de variáveis, rotas, enums)
 - Idioma da documentação: **português**
@@ -43,69 +81,82 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `prisma`, `co
 
 - ESM com sufixo `.js` nos imports relativos (`import { X } from './x.js'`)
 - Um módulo por domínio (`auth.module.ts`, `integrations.module.ts`)
-- DTOs com `class-validator`; `ValidationPipe` global com `whitelist: true`
+- DTOs com `class-validator`; `ValidationPipe` global com `whitelist: true, transform: true`
+- Global prefix: `api/v1`
 - Guards: `JwtAuthGuard` → `RolesGuard` → tenant scoping no service
-- Nunca expor `passwordHash` ou `authKey` completo nas respostas
+- JWT payload: `{ sub: userId, tenantId, role, email }`
+- Nunca expor `passwordHash`, `tokenHash` ou `authKey` completo nas respostas
+- Mascarar `authKey` na resposta (ex.: `****-key`)
 - Cross-tenant access → `NotFoundException` (404), não 403
+- CORS habilitado para frontend local
+- `GET /api/v1/health` — healthcheck para Docker
 
-### Banco (Prisma)
+### Banco (Prisma Next)
 
-- UUIDs como PK
-- Migrations versionadas; rodar com `prisma migrate deploy` no Docker
-- Seed em `prisma/seed.ts` com tenant + admin + viewer + integração demo
-- Índices em `tenantId` e campos de filtro (`executedAt`, `status`)
+- Contract: `nexus-backend/src/prisma/contract.prisma`
+- Client: `import { db } from './prisma/db.js'` (wrapper NestJS injectable recomendado)
+- Após alterar contract: `npm run contract:emit`
+- Schema de domínio: [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md) §4.2 (adaptar sintaxe Prisma Next)
+- PKs: UUID (`@default(uuid())`)
+- Índices em FKs (`tenantId`, `integrationId`) e campos de filtro (`executedAt`, `status`)
+- Seed: script idempotente com tenant + admin + viewer + integração demo
+- Senha seed: `Admin123!` (documentada no readme)
+
+> **Nota:** docs `04`, `07`, `08` ainda referenciam Prisma clássico (`prisma/schema.prisma`, `migrate deploy`). Seguir **este arquivo** e `.cursor/rules/prisma-database.mdc` como fonte de verdade para ORM.
 
 ### Frontend (React)
 
-- Vite + TypeScript
-- Rotas protegidas com redirect para login
-- Tokens em `localStorage` ou `sessionStorage` (documentar escolha)
-- Interceptor para refresh automático em 401
-- UI funcional, sem foco em design
+- Vite + React 19 + TypeScript
+- React Router v6+ — rotas protegidas com redirect para login
+- Tokens em `localStorage`
+- Interceptor: em 401, tenta refresh; se falhar, logout
+- UI funcional, sem foco em design; HTML/CSS simples (sem biblioteca UI pesada)
 
 ### Testes
 
 - Vitest (já no backend)
-- Prioridade: tenant isolation, auth guards, trigger service
+- Prioridade: tenant isolation, auth guards, trigger service, scoping de execuções
 - E2E com supertest para fluxos críticos
 
 ## Comandos úteis
 
 ```bash
-# Docker — sobe postgres + api + frontend
+# Docker — sobe postgres + api + frontend (após implementação)
 docker compose up --build
+
+# Prisma Next — backend
+cd nexus-backend
+npm run contract:emit    # após editar contract.prisma
+npx prisma db init       # criar/atualizar tabelas (dev)
 ```
-
-## Decisões técnicas esperadas (documentar no README)
-
-- Estratégia de multi-tenancy (JWT tenantId + query filter)
-- Tratamento de secrets (`authKey` — criptografia vs. mascaramento)
-- Timeout e retry no disparo HTTP
-- Soft delete vs. hard delete de integrações
-- Truncamento de `responseBody` em execuções
 
 ## O que NÃO fazer
 
+- Não fixar versões antigas quando existe release mais recente compatível — exceto se o usuário pedir pin explícito
+- Não usar Prisma clássico (`PrismaClient`, `prisma/schema.prisma`) — projeto adotou Prisma Next
 - Não criar abstrações prematuras (repositórios genéricos, CQRS)
-- Não adicionar features fora da spec (OAuth social, 2FA, rate limiting avançado)
+- Não adicionar features fora da spec (OAuth social, 2FA, rate limiting avançado, CRUD de usuários)
 - Não usar GraphQL
-- Não escrever código de aplicação em JavaScript puro (usar TypeScript)
+- Não escrever código de aplicação em JavaScript puro
 - Não commitar `.env` ou secrets
-- Não ignorar tenant scoping em nenhuma query
+- Não ignorar tenant scoping em nenhuma query — **incluindo execuções**
+- Não query `IntegrationExecution` por `id` sem validar tenant via `Integration`
 
 ## Arquivos de referência
 
 | Arquivo | Conteúdo |
 |---------|----------|
-| `docs/spec/` | Spec funcional, API, schema, checklist (por arquivo) |
+| `docs/spec/` | Spec funcional, API, schema, checklist |
+| `docs/spec/12-revisao-planejamento.md` | Brechas, ambiguidades, decisões |
 | `.cursor/rules/*.mdc` | Regras por domínio para o Cursor |
 | `readme.md` | Setup, seed, decisões do candidato |
 
 ## Fluxo de trabalho sugerido para IA
 
 1. Ler o arquivo relevante em `docs/spec/`
-2. Verificar [checklist](./docs/spec/11-checklist.md) antes e depois da tarefa
-3. Seguir regras em `.cursor/rules/`
-4. Implementar com diff mínimo
-5. Rodar testes/lint antes de declarar concluído
-6. Atualizar README apenas quando pedido ou ao finalizar fase
+2. Consultar **decisões adotadas** neste arquivo antes de implementar
+3. Verificar [checklist](./docs/spec/11-checklist.md) antes e depois da tarefa
+4. Seguir regras em `.cursor/rules/`
+5. Implementar com diff mínimo
+6. Rodar testes/lint antes de declarar concluído
+7. Atualizar README apenas quando pedido ou ao finalizar fase

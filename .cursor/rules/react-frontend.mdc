@@ -8,11 +8,13 @@ alwaysApply: false
 
 Mínimo funcional — sem foco em design.
 
+**Escopo UI:** login + lista de integrações + trigger (admin) + histórico. CRUD de integrações **somente via API** (sem forms create/edit/delete na UI).
+
 ## Stack
 
-- Vite + React + TypeScript
-- React Router v6+
-- Cliente HTTP (fetch ou axios)
+- React 19 + TypeScript + Vite (versões mais recentes)
+- React Router v7+ (ou última estável)
+- fetch ou axios com interceptor JWT
 
 ## Estrutura
 
@@ -22,30 +24,31 @@ src/
 ├── pages/        # Login, Integrations, Executions
 ├── components/   # Layout, ProtectedRoute, tabelas
 ├── hooks/        # useAuth, useIntegrations
-└── types/        # interfaces espelhando DTOs da API
+└── types/        # DTOs espelhando docs/spec/05-api.md
 ```
 
 ## Auth
 
-- Login → armazena `accessToken` + `refreshToken`
-- `ProtectedRoute` redireciona para `/login` se não autenticado
-- Interceptor: em 401, tenta refresh; se falhar, logout
+- Tokens em **`localStorage`** (`accessToken`, `refreshToken`)
+- `ProtectedRoute` → redirect `/login` se não autenticado
+- 401 → tentar `POST /auth/refresh` → logout se falhar
 
-## Telas mínimas
+## Telas
 
-1. **Login** — form email/senha
-2. **Integrações** — lista, botão trigger (só admin), link para histórico
-3. **Histórico** — tabela paginada, filtros status e datas
+1. **Login** — email/senha
+2. **Integrações** — tabela (nome, tipo, status); trigger só ADMIN; link para histórico
+3. **Histórico** — paginação; filtros `status`, `from`, `to`
 
-## API base
+## API
 
 ```typescript
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
 ```
 
+Contrato: `docs/spec/05-api.md`.
+
 ## Convenções
 
-- Componentes funcionais
-- Tipagem estrita (sem `any`)
+- Componentes funcionais, tipagem estrita (sem `any`)
 - Loading e error states básicos
-- Não usar biblioteca de UI pesada — HTML/CSS simples ou Tailwind se já configurado
+- HTML/CSS simples — sem biblioteca UI pesada

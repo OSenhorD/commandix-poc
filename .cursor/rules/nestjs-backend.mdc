@@ -6,75 +6,106 @@ alwaysApply: false
 
 # NestJS Backend
 
+Decisões completas: `AGENTS.md`. API: `docs/spec/05-api.md`.
+
 ## Módulos
 
-Um módulo por domínio: `auth`, `tenants`, `integrations`, `executions`, `prisma`, `common`.
+`auth`, `tenants`, `integrations`, `executions`, `database`, `common`.
 
 ```
 feature/
 ├── feature.module.ts
 ├── feature.controller.ts
 ├── feature.service.ts
-├── dto/
-└── entities/ (se necessário)
+└── dto/
 ```
 
 ## Imports ESM
 
 ```typescript
-// ✅ Correto (projeto usa "type": "module")
-import { AppService } from './app.service.js';
-
-// ❌ Errado
-import { AppService } from './app.service';
+import { AppService } from './app.service.ts';  // ✅
+import { AppService } from './app.service';     // ❌
 ```
 
-## DTOs e validação
-
-```typescript
-export class CreateIntegrationDto {
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @IsEnum(IntegrationType)
-  type: IntegrationType;
-
-  @IsUrl()
-  targetUrl: string;
-}
-```
-
-Global pipe em `main.ts`:
+## Bootstrap (`main.ts`)
 
 ```typescript
 app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 app.setGlobalPrefix('api/v1');
+app.enableCors({ origin: 'http://localhost:5173' });
 ```
 
-## Guards e decorators
+## Auth
 
-- `JwtAuthGuard` — rotas autenticadas
-- `RolesGuard` + `@Roles(Role.ADMIN)` — controle de papel
-- `@CurrentUser()` — extrai `{ id, tenantId, role, email }` do request
+- Guards: `JwtAuthGuard` → `RolesGuard`
+- `@CurrentUser()` → `{ id, tenantId, role, email }`
+- JWT payload: `{ sub: userId, tenantId, role, email }`
+- Tenant scoping no **service** (filtro explícito com `tenantId` do JWT)
 
 ## Services
 
-- Lógica de negócio nos services, controllers finos
-- Tenant scoping no service, não no controller:
-
 ```typescript
 async findOne(id: string, tenantId: string) {
-  const item = await this.prisma.integration.findFirst({
-    where: { id, tenantId },
-  });
+  const item = await this.database.integration
+    .where({ id, tenantId })
+    .first();
   if (!item) throw new NotFoundException();
   return item;
 }
 ```
 
-## HTTP trigger
+- Lógica de negócio nos services; controllers finos
+- Cross-tenant → `NotFoundException` (404)
+- Role insuficiente → `ForbiddenException` (403)
+- Injetar `DatabaseService` (wrapper de `db` Prisma Next)
 
-- Usar `@nestjs/axios` ou `fetch` nativo
-- Timeout configurável (default 30s)
-- Capturar erros de rede como `FAILURE` com `httpStatusCode: null`
+## DTOs
+
+`class-validator` + enums do domínio. Exemplo mínimo:
+
+```typescript
+export class CreateIntegrationDto {
+  @IsString() @IsNotEmpty() name: string;
+  @IsEnum(IntegrationType) type: IntegrationType;
+  @IsUrl() targetUrl: string;
+}
+```
+
+## Integrações
+
+| Ação | Comportamento |
+|------|---------------|
+| Desativar | `PATCH { isActive: false }` |
+| DELETE | Hard delete + cascade execuções |
+| Resposta | Mascarar `authKey` (ex.: `****-key`) |
+| PATCH | Omitir `authKey` = manter valor anterior |
+
+`IntegrationType` é metadado — disparo idêntico para todos os tipos.
+
+## HTTP trigger (`POST /integrations/:id/trigger`)
+
+- POST, timeout 30s (`HTTP_TRIGGER_TIMEOUT_MS`), sem retry
+- Requer `isActive: true`
+- Payload: shallow merge `{ ...defaultPayload, ...payload }`
+- Headers: `customHeaders` primeiro; `authKey` → `Authorization: Bearer {authKey}` (sobrescreve)
+- `fetch` nativo ou `@nestjs/axios`
+
+| Resultado | status | httpStatusCode |
+|-----------|--------|----------------|
+| HTTP 2xx | SUCCESS | código recebido |
+| HTTP não-2xx | FAILURE | código recebido |
+| Timeout / rede | FAILURE | null |
+
+Persistir: `requestPayload` (pós-merge), `responseTimeMs`, `responseBody` truncado em 10 KB.
+
+## Execuções
+
+- `GET /integrations/:id/executions` — integração deve pertencer ao tenant
+- `GET /executions/:id` — validar via `integration.tenantId`
+- Ordenação: `executedAt DESC`
+- Filtros: `status`, `from`, `to` (ISO 8601, inclusive)
+- Paginação: `page`, `limit` (default 20, max 100)
+
+## Health
+
+`GET /api/v1/health` — healthcheck Docker.
