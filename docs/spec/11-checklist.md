@@ -34,10 +34,13 @@
 
 ## Fase 5 — Frontend
 
-- [ ] Login + token storage (`localStorage`)
-- [ ] Lista de integrações
-- [ ] Trigger manual (admin)
-- [ ] Histórico com filtros
+- [ ] Login + logout + token storage (`localStorage`) + interceptor refresh
+- [ ] Bootstrap (cadastro tenant + admin)
+- [ ] Integrações — listar (ADMIN + VIEWER)
+- [ ] Integrações — criar / editar / desativar / excluir (ADMIN)
+- [ ] Trigger manual (ADMIN)
+- [ ] Histórico — listagem, filtros, detalhe execução
+- [ ] Controle de UI por role (ocultar ações de escrita para VIEWER)
 
 ## Fase 6 — Polish
 

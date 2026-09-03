@@ -18,7 +18,7 @@ Desenvolver um módulo de **gestão de integrações multi-tenant**: cada empres
 ## Entregáveis obrigatórios
 
 - API NestJS funcional com autenticação JWT e isolamento por tenant
-- Frontend React mínimo (login, integrações, histórico)
+- Frontend React com **fluxo completo** (login, integrações, histórico — cadastros e ações na UI)
 - `docker compose up` sobe API + frontend + PostgreSQL
 - `.env.example` documentado
 - README com setup, seed, decisões técnicas e pontos em aberto

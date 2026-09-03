@@ -138,19 +138,6 @@ Para role insuficiente (VIEWER em rota ADMIN) → **403**. Consistente em [05-ap
 
 ## 5. Brechas de frontend
 
-### Escopo UI vs escopo backend
-
-| Backend (obrigatório) | Frontend (checklist Fase 5) |
-|-----------------------|----------------------------|
-| CRUD integrações (ADMIN) | Lista + trigger |
-| PATCH / DELETE | Não mencionados |
-| Logout | Não mencionado |
-| Bootstrap | Não mencionado (aceitável se só seed) |
-
-**Ambiguidade:** o critério "funcionamento geral" ([10-criterios](./10-criterios.md)) sugere fluxo completo via `docker compose up`, mas não está claro se CRUD de integrações deve existir na UI ou basta API/curl.
-
-**Sugestão:** definir explicitamente — ex.: UI mínima = login + lista + trigger + histórico; CRUD via API documentada no README.
-
 ### Infra frontend
 
 - `VITE_API_URL=http://localhost:3000/api/v1` é **build-time**; quebra se acessar frontend por IP/hostname diferente.
@@ -217,18 +204,6 @@ Além das fases 1–6 em [11-checklist](./11-checklist.md), considerar:
 
 ---
 
-## 9. Pontos fortes do planejamento
-
-- Multi-tenancy com 404 em cross-tenant — claro e seguro.
-- Contrato de API com exemplos JSON request/response.
-- Separação ADMIN/VIEWER consistente entre escopo, API e modelo.
-- Ordem backend-first (auth → integrações → execuções → frontend).
-- Decisões em aberto listadas em `AGENTS.md` — transparente.
-- Monorepo e Docker com um comando — bom para avaliação.
-- Rules Cursor por domínio reduzem erro de implementação (quando alinhadas ao ORM).
-
----
-
 ## 10. Recomendações prioritárias
 
 | # | Ação | Bloqueia |
@@ -237,7 +212,7 @@ Além das fases 1–6 em [11-checklist](./11-checklist.md), considerar:
 | 2 | ADR/README: `authKey`, merge payload | Fase 3 |
 | 3 | Spec: tenant scoping em execuções | Fase 4 |
 | 4 | Spec: soft delete / desativar / DELETE | Fase 3 |
-| 5 | Definir escopo UI (CRUD forms sim/não) | Fase 5 |
+| 5 | ~~Definir escopo UI~~ — resolvido: escopo completo na UI | — |
 | 6 | Completar [05-api](./05-api.md): health, datas, ordenação, PATCH | Fase 2–4 |
 | 7 | Clarificar `IntegrationType` como metadado | Fase 3 |
 
@@ -258,7 +233,7 @@ Além das fases 1–6 em [11-checklist](./11-checklist.md), considerar:
 | Execuções | Sempre filtrar via `integration.tenantId` |
 | Ordenação | `executedAt DESC` |
 | Truncamento | 10 KB em `responseBody` |
-| Frontend CRUD | Só lista + trigger; CRUD via API |
+| Frontend | Escopo completo — cadastros e ações na UI (paridade com API) |
 | Seed Docker | Idempotente; roda sempre na PoC |
 | CORS | `origin: true` ou `http://localhost:5173` em dev |
 

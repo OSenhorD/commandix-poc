@@ -71,7 +71,7 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 | Ordenação execuções | `executedAt DESC` |
 | Truncamento | `responseBody` limitado a 10 KB |
 | Filtros de data | ISO 8601; `from`/`to` inclusive |
-| Frontend UI | Login + lista integrações + trigger (admin) + histórico; **CRUD via API** (sem forms create/edit na UI) |
+| Frontend UI | **Escopo completo do protótipo** — login, logout, bootstrap, CRUD integrações (admin), trigger, histórico + detalhe; viewer somente leitura |
 | Tokens frontend | `localStorage` |
 | CORS (dev) | `http://localhost:5173` |
 | Seed Docker | Idempotente; pula se tenant `acme` existir |
@@ -122,7 +122,7 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 - React Router v6+ — rotas protegidas com redirect para login
 - Tokens em `localStorage`
 - Interceptor: em 401, tenta refresh; se falhar, logout
-- UI funcional, sem foco em design; HTML/CSS simples (sem biblioteca UI pesada)
+- UI funcional com **todas as telas/ações do protótipo**; sem foco em design; HTML/CSS simples
 
 ### Testes
 

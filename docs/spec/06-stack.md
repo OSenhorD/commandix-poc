@@ -26,11 +26,14 @@
 | React Router | Rotas protegidas | Pendente |
 | Fetch/axios | Cliente HTTP com interceptor JWT | Pendente |
 
-**Telas mínimas (spec):**
+**Telas (escopo completo do protótipo):**
 
-1. **Login** — email/senha, armazena tokens
-2. **Integrações** — tabela com nome, tipo, status, ações (trigger para admin)
-3. **Histórico** — execuções de uma integração com filtros
+1. **Login / logout** — email/senha, tokens, refresh
+2. **Bootstrap** — cadastro de tenant + admin (rota pública)
+3. **Integrações** — listar; criar/editar/desativar/excluir (ADMIN); trigger (ADMIN); link para histórico
+4. **Histórico** — execuções por integração; filtros; detalhe de execução
+
+VIEWER: leitura em integrações e histórico. ADMIN: todas as ações de escrita.
 
 ## 6.3 Infraestrutura (obrigatório)
 

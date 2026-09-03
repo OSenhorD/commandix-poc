@@ -6,9 +6,7 @@ alwaysApply: false
 
 # React Frontend
 
-Mínimo funcional — sem foco em design.
-
-**Escopo UI:** login + lista de integrações + trigger (admin) + histórico. CRUD de integrações **somente via API** (sem forms create/edit/delete na UI).
+Mínimo funcional — sem foco em design. **Escopo completo do protótipo:** todas as telas e ações expostas pela API necessárias ao fluxo end-to-end (via UI, não curl).
 
 ## Stack
 
@@ -20,9 +18,9 @@ Mínimo funcional — sem foco em design.
 
 ```
 src/
-├── api/          # client, auth, integrations, executions
-├── pages/        # Login, Integrations, Executions
-├── components/   # Layout, ProtectedRoute, tabelas
+├── api/          # client, auth, tenants, integrations, executions
+├── pages/        # Login, Bootstrap, Integrations, IntegrationForm, Executions, ExecutionDetail
+├── components/   # Layout, ProtectedRoute, tabelas, forms
 ├── hooks/        # useAuth, useIntegrations
 └── types/        # DTOs espelhando docs/spec/05-api.md
 ```
@@ -32,12 +30,22 @@ src/
 - Tokens em **`localStorage`** (`accessToken`, `refreshToken`)
 - `ProtectedRoute` → redirect `/login` se não autenticado
 - 401 → tentar `POST /auth/refresh` → logout se falhar
+- **Logout** na UI
 
-## Telas
+## Telas e ações
 
-1. **Login** — email/senha
-2. **Integrações** — tabela (nome, tipo, status); trigger só ADMIN; link para histórico
-3. **Histórico** — paginação; filtros `status`, `from`, `to`
+| Tela | ADMIN | VIEWER |
+|------|-------|--------|
+| Login | ✅ | ✅ |
+| Bootstrap (tenant + admin) | ✅ rota pública | — |
+| Integrações — listar | ✅ | ✅ |
+| Integrações — criar / editar | ✅ | — |
+| Integrações — desativar / excluir | ✅ | — |
+| Integrações — trigger | ✅ | — |
+| Histórico — listar + filtros | ✅ | ✅ |
+| Histórico — detalhe execução | ✅ | ✅ |
+
+Forms de integração: `name`, `type`, `targetUrl`, `authKey`, `customHeaders`, `defaultPayload`, `isActive`.
 
 ## API
 
@@ -52,3 +60,4 @@ Contrato: `docs/spec/05-api.md`.
 - Componentes funcionais, tipagem estrita (sem `any`)
 - Loading e error states básicos
 - HTML/CSS simples — sem biblioteca UI pesada
+- Ocultar/desabilitar ações conforme `role` do usuário logado

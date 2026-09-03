@@ -77,7 +77,7 @@ Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
 | Infra local | Docker Compose com um comando (`docker compose up --build`) |
 | Trigger HTTP | POST, timeout 30s, `authKey` como Bearer, merge shallow de payload |
 | Integrações | Desativar via PATCH; DELETE hard + cascade execuções |
-| Frontend UI | Login + lista + trigger + histórico (CRUD via API) |
+| Frontend UI | Escopo completo — cadastros e ações via UI (CRUD integrações, trigger, histórico) |
 | API prefix | `/api/v1` (global prefix no NestJS) |
 
 ## Licença
