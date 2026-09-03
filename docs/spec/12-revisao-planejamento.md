@@ -13,19 +13,6 @@
 
 ## 2. Ambiguidades de negócio
 
-### 2.1 Unicidade do tenant
-
-| Fonte | Afirmação |
-|-------|-----------|
-| [02-escopo-funcional](./02-escopo-funcional.md) | "Tenant slug" |
-| [04-modelo-dados](./04-modelo-dados.md) § Tenant | `name`: "Nome **único** do tenant" |
-| Schema Prisma de referência | Apenas `slug` com `@unique` |
-| [05-api](./05-api.md) § erros | 409 para "email/slug duplicado" — **não** menciona `name` |
-
-**Risco:** implementação com `name` duplicado permitido ou rejeitado de formas inconsistentes.
-
-**Sugestão:** definir explicitamente — ex.: `slug` único globalmente (UK); `name` apenas descritivo (sem UK).
-
 ### 2.2 `IntegrationType` — enum sem comportamento
 
 Valores: `WEBHOOK`, `REST_API`, `N8N`.

@@ -54,7 +54,7 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 | Multi-tenancy | `tenantId` no JWT + filtro explícito no **service** (não confiar em body/query) |
 | Cross-tenant | `NotFoundException` (404), nunca 403 |
 | Role insuficiente | 403 |
-| Tenant UK | Apenas `slug` único; `name` é descritivo |
+| Tenant | `slug` UK global; `name` descritivo (sem UK) |
 | Email UK | Global (um email = um tenant) |
 | `IntegrationType` | Metadado; disparo HTTP idêntico para `WEBHOOK`, `REST_API`, `N8N` |
 | Desativar integração | `PATCH { isActive: false }` |

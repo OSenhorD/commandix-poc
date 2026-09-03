@@ -17,6 +17,8 @@ Base URL: `/api/v1`
 
 ### POST /tenants/bootstrap
 
+`tenantSlug` deve ser único globalmente; `tenantName` é descritivo (pode repetir entre tenants).
+
 Request:
 
 ```json
@@ -196,4 +198,4 @@ Response `200` (detalhe — inclui `requestPayload` e `responseBody`):
 | 401 | Token ausente/inválido |
 | 403 | Role insuficiente |
 | 404 | Recurso não encontrado (inclui cross-tenant) |
-| 409 | Conflito (email/slug duplicado) |
+| 409 | Conflito (`email` ou `tenantSlug` duplicado) |
