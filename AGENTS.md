@@ -78,7 +78,8 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 | CORS (dev) | `http://localhost:5173` |
 | Seed Docker | Idempotente; pula se tenant `acme` existir |
 | Seed no startup | **Sempre** no entrypoint Docker (`db migrate` → seed → start); idempotente — não re-insere se `acme` já existir; **decisão consciente da PoC**, não padrão de produção |
-| Node | 24.x (ver `engines` em `nexus-backend/package.json`) |
+| Node | **24.16.0** — `engines` em `nexus-backend/package.json`; imagem Docker `node:24.16.0-alpine` |
+| PostgreSQL | **16** (`postgres:16-alpine`) — alvo da app; atende mínimo Prisma Next 15+ |
 
 ## Convenções
 

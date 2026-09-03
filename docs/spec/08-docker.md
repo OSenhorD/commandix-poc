@@ -4,10 +4,12 @@
 
 ## 8.1 Serviços
 
+Versões pinadas — ver `nexus-backend/package.json` (`engines.node`) e imagens abaixo.
+
 | Serviço | Porta (host) | Imagem / build |
 |---------|--------------|----------------|
 | postgres | 5432 | `postgres:16-alpine` |
-| api | 3000 | build `nexus-backend/Dockerfile` |
+| api | 3000 | build `nexus-backend/Dockerfile` (`node:24.16.0-alpine`) |
 | frontend | 5173 → 80 | build `nexus-frontend/Dockerfile` (nginx) |
 
 ## 8.2 Variáveis de ambiente

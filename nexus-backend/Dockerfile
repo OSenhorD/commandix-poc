@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
+# Pin aligned with package.json engines.node (24.16.0)
 
-FROM node:24-alpine AS build
+FROM node:24.16.0-alpine AS build
 
 WORKDIR /app
 
@@ -11,7 +12,7 @@ COPY nest-cli.json tsconfig.json tsconfig.build.json ./
 COPY src ./src
 RUN npm run build
 
-FROM node:24-alpine AS production
+FROM node:24.16.0-alpine AS production
 
 WORKDIR /app
 

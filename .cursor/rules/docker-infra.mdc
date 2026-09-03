@@ -19,7 +19,13 @@ docker compose up --build
 | `api` | `nexus-backend/Dockerfile` | 3000 |
 | `frontend` | `nexus-frontend/Dockerfile` (nginx) | 5173 |
 
-Versões mais recentes compatíveis; backend: `node:24-alpine` (ver `engines`).
+Versões pinadas — alinhar com `engines` e imagens Docker:
+
+| Componente | Fonte | Versão |
+|------------|-------|--------|
+| Node (local) | `nexus-backend/package.json` → `engines.node` | `24.16.0` |
+| Node (Docker) | `nexus-backend/Dockerfile` | `node:24.16.0-alpine` |
+| PostgreSQL | Compose / spec | `postgres:16-alpine` (app); mínimo PN 15+ |
 
 ## Startup
 

@@ -8,10 +8,10 @@
 
 | Tecnologia | Versão / nota | Status |
 |------------|---------------|--------|
-| Node.js | 24.x (`engines` em `nexus-backend/package.json`) | Configurado |
+| Node.js | **24.16.0** (`engines` + `node:24.16.0-alpine` no Dockerfile) | Configurado |
 | NestJS | 12.x (`nexus-backend/`) | Starter |
 | TypeScript | 6.x, ESM (`"type": "module"`) | Configurado |
-| PostgreSQL | 16+ | Via Docker |
+| PostgreSQL | **16** (`postgres:16-alpine`; mínimo Prisma Next 15+) | Via Docker |
 | Prisma 8 | v8 RC — `@prisma/orm-postgres`, contract em `src/prisma/` | Inicializado |
 | class-validator | DTOs + `ValidationPipe` global | Pendente |
 | @nestjs/jwt + passport | Guards de autenticação | Pendente |

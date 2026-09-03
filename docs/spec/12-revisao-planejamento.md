@@ -136,24 +136,6 @@ Para role insuficiente (VIEWER em rota ADMIN) → **403**. Consistente em [05-ap
 
 ---
 
-## 6. Brechas de infra / Docker
-
-### 6.1 Ordem de startup
-
-Documentada corretamente em [08-docker](./08-docker.md): Postgres → API (migrate + seed + start) → Frontend.
-
-### 6.3 Versões não alinhadas
-
-| Componente | Documento | Versão |
-|------------|-----------|--------|
-| Node | `nexus-backend/package.json` | 24.16.0 |
-| Node (Docker) | `.cursor/rules/docker-infra.mdc` | 24-alpine |
-| PostgreSQL | Spec / skill Prisma 8 | 16+ (app), 15+ (mínimo PN) |
-
-**Sugestão:** alinhar Node no Dockerfile com `engines` do `package.json`.
-
----
-
 ## 7. Inconsistências entre documentos
 
 | Tema | Documento A | Documento B |
