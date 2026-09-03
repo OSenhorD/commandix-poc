@@ -7,7 +7,7 @@
 
 ## Resumo executivo
 
-**Prioridade máxima:** fechar regras de disparo HTTP (`authKey`, merge de payload, SUCCESS/FAILURE) antes da Fase 3.
+**Prioridade máxima:** fechar regras de disparo HTTP (`authKey`, merge de payload) antes da Fase 3.
 
 ---
 
@@ -55,23 +55,6 @@ Não especifica:
 O exemplo em [05-api](./05-api.md) sugere merge raso com chaves do default preservadas, mas não é normativo.
 
 **Sugestão:** shallow merge; `{ ...defaultPayload, ...payload }`; se ambos ausentes, body `{}` ou omitido — definir um.
-
-### 2.5 Critério `SUCCESS` vs `FAILURE`
-
-Enum: `SUCCESS | FAILURE`.
-
-Não define:
-
-| Cenário | Status esperado? |
-|---------|------------------|
-| HTTP 4xx/5xx | `FAILURE` (presumível) |
-| Timeout | `FAILURE` + `httpStatusCode: null`? |
-| Erro de rede (DNS, connection refused) | `FAILURE` |
-| HTTP 200 com body indicando erro | `SUCCESS` ou `FAILURE`? |
-
-A rule `.cursor/rules/nestjs-backend.mdc` sugere `FAILURE` com `httpStatusCode: null` para erros de rede, mas a spec funcional não confirma.
-
-**Sugestão:** `SUCCESS` iff resposta HTTP recebida com status 2xx; demais casos `FAILURE`.
 
 ### 2.6 `authKey` — armazenamento e uso no HTTP outbound
 
@@ -221,12 +204,10 @@ Seed idempotente (tenant `acme`) mitiga duplicação, mas:
 
 Além das fases 1–6 em [11-checklist](./11-checklist.md), considerar:
 
-- [ ] ~~Decisão Prisma~~ — Prisma 8 adotado; seguir skill `prisma-8/`
 - [ ] CORS na API
 - [ ] `GET /api/v1/health` (contrato + implementação)
 - [ ] Política de `authKey` no disparo HTTP
 - [ ] Regras de merge de payload (shallow/deep)
-- [ ] Critérios SUCCESS/FAILURE (incl. timeout e erros de rede)
 - [ ] Soft delete vs hard delete + efeito em execuções
 - [ ] Tenant scoping em **execuções** (via join com Integration)
 - [ ] Truncamento de `responseBody` (limite em bytes/chars)
@@ -253,7 +234,7 @@ Além das fases 1–6 em [11-checklist](./11-checklist.md), considerar:
 | # | Ação | Bloqueia |
 |---|------|----------|
 | 1 | Implementar domínio em `contract.prisma` + migration inicial | Fase 1 |
-| 2 | ADR/README: `authKey`, merge payload, SUCCESS/FAILURE | Fase 3 |
+| 2 | ADR/README: `authKey`, merge payload | Fase 3 |
 | 3 | Spec: tenant scoping em execuções | Fase 4 |
 | 4 | Spec: soft delete / desativar / DELETE | Fase 3 |
 | 5 | Definir escopo UI (CRUD forms sim/não) | Fase 5 |
@@ -268,15 +249,10 @@ Além das fases 1–6 em [11-checklist](./11-checklist.md), considerar:
 
 | Tópico | Default sugerido |
 |--------|------------------|
-| Versões | **Sempre as mais recentes** (runtime, frameworks, ORM, Docker) |
-| ORM | **Prisma 8** — skill `nexus-backend/.cursor/skills/prisma-8/` |
-| `name` do tenant | Não único; só `slug` UK |
 | `IntegrationType` | Metadado; disparo idêntico para todos |
 | Desativar | `PATCH { isActive: false }` |
 | DELETE | Hard delete + cascade em execuções |
 | Merge payload | Shallow: `{ ...defaultPayload, ...payload }` |
-| SUCCESS | HTTP 2xx recebido |
-| FAILURE | Timeout, erro de rede, HTTP não-2xx |
 | `authKey` | `Authorization: Bearer {authKey}` |
 | PATCH `authKey` | Omitido = mantém valor anterior |
 | Execuções | Sempre filtrar via `integration.tenantId` |

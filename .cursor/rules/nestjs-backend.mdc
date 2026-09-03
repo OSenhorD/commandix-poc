@@ -76,6 +76,8 @@ async findOne(id: string, tenantId: string) {
 
 POST, timeout 30s, sem retry, `isActive: true`, shallow merge de payload, `authKey` como Bearer.
 
+**Status:** API externa retornou sucesso (HTTP 2xx) → `SUCCESS`; senão → `FAILURE`. Body da resposta não altera o status.
+
 | Resultado | status | httpStatusCode |
 |-----------|--------|----------------|
 | HTTP 2xx | SUCCESS | código |

@@ -37,7 +37,7 @@
 2. Valida integração ativa
 3. Monta request (method POST por padrão, headers + auth)
 4. Executa com timeout (ex.: 30s)
-5. Persiste `IntegrationExecution`
+5. Persiste `IntegrationExecution` — `SUCCESS` se a API externa retornar sucesso (HTTP 2xx); `FAILURE` caso contrário (não-2xx, timeout ou erro de rede)
 6. Retorna resultado da execução
 
 ## 2.4 Histórico de execuções

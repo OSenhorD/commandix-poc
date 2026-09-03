@@ -197,8 +197,9 @@ model RefreshToken {
 |-------|------|-------------|-------|
 | `id` | UUID | sim (PK) | Gerado automaticamente |
 | `integrationId` | UUID | sim (FK) | Referência a `Integration` |
-| `status` | enum | sim | `SUCCESS` \| `FAILURE` |
-| `httpStatusCode` | int | não | Código HTTP da resposta externa |
+| `status` | enum | sim | `SUCCESS` \| `FAILURE` — ver critério abaixo |
+| `httpStatusCode` | int | não | Código HTTP da resposta externa (`null` se timeout/erro de rede) |
+**Critério `SUCCESS` / `FAILURE`:** se a API da integração retornar sucesso (HTTP 2xx), `SUCCESS`; senão, `FAILURE`. Não interpretar o body — apenas o status HTTP (ou ausência de resposta).
 | `responseTimeMs` | int | sim | Tempo de resposta em ms |
 | `requestPayload` | JSON | não | Payload enviado ao serviço externo |
 | `responseBody` | text | não | Corpo da resposta (truncar se necessário) |

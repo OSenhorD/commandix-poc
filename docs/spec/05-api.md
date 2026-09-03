@@ -127,7 +127,9 @@ Response `201` (representação da integração):
 
 ### POST /integrations/:id/trigger
 
-Request (payload opcional; faz merge com `defaultPayload`):
+Request (payload opcional; merge shallow com `defaultPayload`):
+
+> **Status da execução:** `SUCCESS` se a API externa responder com HTTP 2xx; `FAILURE` em qualquer outro caso (não-2xx, timeout, erro de rede). Body da resposta não altera o status.
 
 ```json
 { "payload": { "event": "order.created", "orderId": "123" } }

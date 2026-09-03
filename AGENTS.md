@@ -65,8 +65,8 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 | `authKey` outbound | `Authorization: Bearer {authKey}` se presente |
 | `authKey` PATCH | Omitido = mantém valor anterior |
 | `customHeaders` vs auth | `customHeaders` aplicados primeiro; `Authorization` de `authKey` sobrescreve se ambos existirem |
-| SUCCESS / FAILURE | SUCCESS = HTTP 2xx recebido; FAILURE = timeout, erro de rede ou HTTP não-2xx |
-| Erro de rede | `FAILURE`, `httpStatusCode: null` |
+| SUCCESS / FAILURE | API externa retornou sucesso (HTTP 2xx) → `SUCCESS`; senão → `FAILURE` |
+| Erro de rede / timeout | `FAILURE`, `httpStatusCode: null` |
 | Execuções — tenant | Sempre validar via join/relação com `Integration.tenantId` (tabela não tem `tenantId`) |
 | Ordenação execuções | `executedAt DESC` |
 | Truncamento | `responseBody` limitado a 10 KB |
