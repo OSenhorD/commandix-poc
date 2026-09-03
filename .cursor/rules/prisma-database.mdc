@@ -1,91 +1,88 @@
 ---
-description: Prisma Next — contract, client, seed e queries multi-tenant
-globs: "{nexus-backend/src/prisma/**,nexus-backend/prisma.config.ts,nexus-backend/**/seed.ts}"
+description: Prisma 8 — contract, migrations, queries e multi-tenant
+globs: "{nexus-backend/src/prisma/**,nexus-backend/prisma.config.ts,nexus-backend/migrations/**,nexus-backend/**/seed.ts}"
 alwaysApply: false
 ---
 
-# Prisma Next & PostgreSQL
+# Prisma 8 & PostgreSQL
 
-ORM: **Prisma Next v8 RC** (`@prisma/orm-postgres`).
+**Skill oficial (ler antes de codar):** `nexus-backend/.cursor/skills/prisma-8/SKILL.md` — usar a routing table; não responder de memória.
 
-Modelo de domínio (campos, enums, relações): `docs/spec/04-modelo-dados.md` §4.1–4.3 — implementar em `src/prisma/contract.prisma`.
+Domínio (campos, enums, relações): `docs/spec/04-modelo-dados.md` §4.1–4.3 → implementar em `src/prisma/contract.prisma`.
 
-## Layout
+## Layout canônico
 
 ```
 nexus-backend/
 ├── prisma.config.ts
+├── migrations/
+│   ├── snapshots/
+│   └── app/                    # migrations versionadas deste app
+│       ├── refs/db.json
+│       └── <timestamp>_<slug>/
 └── src/prisma/
-    ├── contract.prisma   # editar modelos aqui
-    ├── contract.json     # gerado — commitar
-    ├── contract.d.ts     # gerado — commitar
-    ├── db.ts             # client exportado
-    └── seed.ts           # seed idempotente (recomendado)
+    ├── contract.prisma         # fonte — editar aqui
+    ├── contract.json           # gerado — commitar
+    ├── contract.d.ts           # gerado — commitar
+    ├── db.ts                   # runtime entry point
+    └── seed.ts                 # seed idempotente
 ```
 
 ## Workflow
 
-```bash
-npm run contract:emit   # após editar contract.prisma
-npx prisma db init      # sincronizar tabelas (dev)
+| Situação | Comandos |
+|----------|----------|
+| Após editar contract | `npm run contract:emit` |
+| Primeira vez (DB vazio) | `npx prisma db init` |
+| Dev local (schema em fluxo) | `npx prisma db update` |
+| Mudança versionada (branch/CI/Docker) | `npx prisma migration plan --name <slug>` → `npx prisma db migrate` |
+| Verificar drift | `npx prisma db verify` |
+
+**Docker / produção:** `contract emit` (build) → `db migrate` → seed → start. Não usar `db update` em ambientes compartilhados.
+
+## NestJS
+
+`DatabaseModule` / `DatabaseService` injectable — wrapper de `db` de `src/prisma/db.ts`. Controllers não importam `db` diretamente.
+
+## Queries (ORM — Postgres)
+
+Lane padrão: `db.orm.<Model>` (PascalCase). Ver `nexus-backend/.cursor/skills/prisma-8/references/queries-postgres.md`.
+
+```typescript
+import { db } from '../prisma/db.js';
+
+// Multi-tenant
+const integration = await db.orm.Integration
+  .where({ id, tenantId })
+  .first();
+
+// Execução — validar tenant via relação
+const execution = await db.orm.IntegrationExecution
+  .where({ id })
+  .include('integration', (i) => i.select('tenantId'))
+  .first();
+if (!execution || execution.integration.tenantId !== tenantId) {
+  throw new NotFoundException();
+}
 ```
 
-Docker: entrypoint da API executa `db init` → seed → `node dist/main.js` (ver `docker-infra.mdc`).
-
-## Schema
+## Schema (domínio Commandix)
 
 - PKs: UUID (`@id @default(uuid())`)
 - Índices: `tenantId`, `integrationId`, `(integrationId, executedAt)`, `status`
 - Enums: `Role`, `IntegrationType`, `ExecutionStatus`
 - JSON: `customHeaders`, `defaultPayload`, `requestPayload`
 - `Tenant.slug` — `@unique`; `Tenant.name` — sem unique
-- `Integration` DELETE — cascade em `IntegrationExecution`
+- DELETE `Integration` — cascade em `IntegrationExecution`
 
-## NestJS
-
-Expor `db` via `DatabaseModule` / `DatabaseService` injectable global. Controllers não importam `db` diretamente.
-
-```typescript
-import { db } from '../prisma/db.js';
-
-const integration = await db.orm.public.Integration
-  .where({ id, tenantId })
-  .first();
-```
+Tipos temporais e atributos PSL: `nexus-backend/.cursor/skills/prisma-8/references/contract.md`.
 
 ## Seed
 
-Idempotente — pular se tenant `acme` existir:
+`src/prisma/seed.ts` — idempotente; pular se tenant `acme` existir. Scripts one-off: `await db.close()` ao final (`references/runtime.md` na skill prisma-8).
 
-- Tenant `Acme Corp` (slug `acme`)
-- Admin `admin@acme.com` / Viewer `viewer@acme.com` — senha `Admin123!`
-- 1 integração WEBHOOK demo
+## Proibições
 
-## Multi-tenant
-
-Entidades com `tenantId` — sempre filtrar:
-
-```typescript
-// ❌ Vulnerável
-db.orm.public.Integration.where({ id }).first();
-
-// ✅ Seguro
-db.orm.public.Integration.where({ id, tenantId }).first();
-```
-
-### Execuções
-
-`IntegrationExecution` não tem `tenantId`. Validar via relação:
-
-```typescript
-const execution = await db.orm.public.IntegrationExecution
-  .where({ id })
-  .include({ integration: true })
-  .first();
-
-if (!execution || execution.integration.tenantId !== tenantId) {
-  throw new NotFoundException();
-}
-```
-
-Adaptar encadeamentos (`.include`, `.where`) à API gerada pelo contract.
+- Não editar `contract.json` / `contract.d.ts` manualmente
+- Não colocar `DATABASE_URL` em `prisma.config.ts` (usar `.env`)
+- Não usar Prisma ORM 7 (`schema.prisma`, `@prisma/client`, `migrate deploy`)

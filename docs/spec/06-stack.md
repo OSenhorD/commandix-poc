@@ -2,7 +2,7 @@
 
 [← Índice](./README.md)
 
-> **Política de versões:** usar sempre as versões mais recentes de runtime, frameworks, ORM e imagens Docker. Detalhes normativos em [`AGENTS.md`](../../AGENTS.md).
+> Política de versões e skill Prisma 8: ver [`AGENTS.md`](../../AGENTS.md) e `nexus-backend/.cursor/skills/prisma-8/SKILL.md`.
 
 ## 6.1 Backend (obrigatório)
 
@@ -12,7 +12,7 @@
 | NestJS | 12.x (`nexus-backend/`) | Starter |
 | TypeScript | 6.x, ESM (`"type": "module"`) | Configurado |
 | PostgreSQL | 16+ | Via Docker |
-| Prisma Next | v8 RC — `@prisma/orm-postgres`, contract em `src/prisma/` | Inicializado |
+| Prisma 8 | v8 RC — `@prisma/orm-postgres`, contract em `src/prisma/` | Inicializado |
 | class-validator | DTOs + `ValidationPipe` global | Pendente |
 | @nestjs/jwt + passport | Guards de autenticação | Pendente |
 | bcrypt | Hash de senhas | Pendente |
@@ -38,7 +38,7 @@
 |-----------|--------|
 | Docker Compose: `api`, `frontend`, `postgres` | Pendente |
 | Healthcheck no PostgreSQL antes da API subir | Pendente |
-| Migrations automáticas no entrypoint da API | Pendente (`prisma db init` — Prisma Next) |
+| Migrations no Docker | `db migrate` no entrypoint (migrations em `migrations/app/`) |
 | `.env.example` com todas as variáveis | Pendente |
 
 Detalhes em [Infraestrutura (Docker)](./08-docker.md).

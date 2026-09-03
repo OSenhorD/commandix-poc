@@ -21,7 +21,7 @@ Fonte de verdade: `AGENTS.md`. Spec funcional: `docs/spec/`. Domínio (campos, A
 | Camada | Tecnologia |
 |--------|------------|
 | API | NestJS 12, Node 24, TypeScript 6 (ESM) |
-| ORM | Prisma Next v8 RC — `src/prisma/contract.prisma` |
+| ORM | Prisma 8 (`@prisma/orm-postgres`) — `src/prisma/contract.prisma` |
 | DB | PostgreSQL 16+ |
 | Frontend | React 19, Vite, TypeScript |
 | Testes | Vitest 4, supertest (E2E) |
@@ -31,7 +31,7 @@ Fonte de verdade: `AGENTS.md`. Spec funcional: `docs/spec/`. Domínio (campos, A
 
 ```
 commandix-poc/
-├── nexus-backend/     # API NestJS + Prisma Next
+├── nexus-backend/     # API NestJS + Prisma 8
 ├── nexus-frontend/    # React + Vite
 ├── docker-compose.yml
 └── docs/spec/
@@ -42,6 +42,8 @@ commandix-poc/
 `auth`, `tenants`, `integrations`, `executions`, `database`, `common`.
 
 Fora de escopo: módulo `users/` (bootstrap cria o admin).
+
+Prisma 8: skill em `nexus-backend/.cursor/skills/prisma-8/SKILL.md`.
 
 ## Antes de implementar
 

@@ -4,30 +4,41 @@
 
 ```
 commandix-poc/
-├── docs/
-│   └── spec/                 # Spec técnica (este diretório)
+├── docs/spec/
 ├── AGENTS.md
 ├── readme.md
 ├── docker-compose.yml
 ├── .env.example
+├── .cursor/rules/                  # regras Cursor (monorepo)
 ├── nexus-backend/
+│   ├── prisma.config.ts            # config Prisma 8
 │   ├── Dockerfile
-│   ├── docker-entrypoint.sh  # migrate deploy → seed → node dist/main.js
-│   ├── prisma/
-│   │   ├── schema.prisma
-│   │   ├── migrations/
-│   │   └── seed.ts
+│   ├── docker-entrypoint.sh        # db migrate → seed → node dist/main.js
+│   ├── migrations/app/             # migrations versionadas
+│   ├── .cursor/skills/prisma-8/    # skill oficial Prisma 8 (não editar)
 │   └── src/
 │       ├── main.ts
 │       ├── app.module.ts
-│       ├── app.controller.ts   # inclui GET /health
-│       ├── app.service.ts
-│       └── prisma/
-│           ├── prisma.module.ts
-│           └── prisma.service.ts
-│       # (futuro) auth/, tenants/, integrations/, executions/, common/
+│       ├── app.controller.ts       # GET /health
+│       ├── database/               # DatabaseModule (wrapper de db)
+│       ├── prisma/
+│       │   ├── contract.prisma
+│       │   ├── contract.json
+│       │   ├── contract.d.ts
+│       │   ├── db.ts
+│       │   └── seed.ts
+│       # auth/, tenants/, integrations/, executions/, common/
 ├── nexus-frontend/
 │   └── src/
-│       # (futuro) pages/, components/, hooks/, api/
-└── .cursor/rules/
+└── ...
 ```
+
+## Referências Prisma 8
+
+| Recurso | Caminho |
+|---------|---------|
+| Skill (routing) | `nexus-backend/.cursor/skills/prisma-8/SKILL.md` |
+| Contract | `nexus-backend/src/prisma/contract.prisma` |
+| Runtime | `nexus-backend/src/prisma/db.ts` |
+| Migrations | `nexus-backend/migrations/app/` |
+| Config | `nexus-backend/prisma.config.ts` |

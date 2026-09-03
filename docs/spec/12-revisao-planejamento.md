@@ -7,47 +7,7 @@
 
 ## Resumo executivo
 
-O planejamento está bem estruturado para um desafio técnico, com boa separação de domínios, contrato de API exemplificado e ordem de implementação sensata (backend first). Porém existem **decisões em aberto demais para implementação segura**, **ambiguidades de negócio** que geram interpretações divergentes e **uma divergência crítica** entre a spec (Prisma clássico) e o código inicial (Prisma Next).
-
-**Prioridade máxima:** escolher um único caminho de ORM e fechar regras de disparo HTTP (`authKey`, merge de payload, SUCCESS/FAILURE) antes da Fase 3.
-
----
-
-## 1. Divergência crítica: Prisma clássico vs Prisma Next
-
-### O que a spec assume
-
-| Item | Referência |
-|------|------------|
-| Schema | `nexus-backend/prisma/schema.prisma` |
-| Migrations | `prisma migrate deploy` no entrypoint Docker |
-| Client | `PrismaService` estendendo `PrismaClient` |
-| Seed | `prisma/seed.ts` |
-| Queries | Exemplos com `prisma.integration.findFirst(...)` |
-
-Documentos afetados: [04-modelo-dados](./04-modelo-dados.md), [07-repositorio](./07-repositorio.md), [08-docker](./08-docker.md), [11-checklist](./11-checklist.md), `.cursor/rules/prisma-database.mdc`, `AGENTS.md`.
-
-### O que o repositório contém hoje
-
-| Item | Estado atual |
-|------|--------------|
-| ORM | Prisma Next (v8 RC) — `@prisma/orm-postgres` |
-| Schema | `src/prisma/contract.prisma` (modelos demo `User`/`Post`) |
-| Client | `src/prisma/db.ts` com `postgres<Contract>(...)` |
-| Scripts | `contract:emit`; sem pasta `prisma/` |
-| Migrations | Fluxo `prisma db init` / contract emit — **não** `migrate deploy` |
-
-### Impacto
-
-- Checklist Fase 1 e entrypoint Docker **não funcionam** como documentado sem refatoração.
-- Agentes de IA seguindo a spec vão reimplementar por cima do starter existente (ou vice-versa).
-- Exemplos de query, seed e testes precisam de sintaxe diferente conforme a escolha.
-
-### Decisão adotada
-
-**Prisma Next** — regra geral do projeto é usar **sempre as versões mais recentes**; Prisma Next (v8 RC) é a linha atual do ORM e está alinhada ao starter em `nexus-backend/`. Prisma clássico (`PrismaClient`, `migrate deploy`) **não** será adotado.
-
-Documentos legados ([04-modelo-dados](./04-modelo-dados.md), [07-repositorio](./07-repositorio.md), [08-docker](./08-docker.md)) ainda citam Prisma clássico — adaptar durante a implementação; fonte de verdade: `AGENTS.md` e `.cursor/rules/prisma-database.mdc`.
+**Prioridade máxima:** fechar regras de disparo HTTP (`authKey`, merge de payload, SUCCESS/FAILURE) antes da Fase 3.
 
 ---
 
@@ -236,7 +196,7 @@ Documentada corretamente em [08-docker](./08-docker.md): Postgres → API (migra
 
 ### 6.2 Seed a cada startup
 
-Entrypoint: `prisma migrate deploy` → `prisma db seed` → `node dist/main.js`.
+Entrypoint: `contract emit` (build) → `db migrate` → seed → `node dist/main.js`.
 
 Seed idempotente (tenant `acme`) mitiga duplicação, mas:
 
@@ -250,9 +210,8 @@ Seed idempotente (tenant `acme`) mitiga duplicação, mas:
 | Componente | Documento | Versão |
 |------------|-----------|--------|
 | Node | `nexus-backend/package.json` | 24.16.0 |
-| Node (Docker rule) | `.cursor/rules/docker-infra.mdc` | 22-alpine |
-| PostgreSQL | Spec | 16+ |
-| PostgreSQL | Prisma Next (`prisma-next.md`) | 15+ |
+| Node (Docker) | `.cursor/rules/docker-infra.mdc` | 24-alpine |
+| PostgreSQL | Spec / skill Prisma 8 | 16+ (app), 15+ (mínimo PN) |
 
 **Sugestão:** alinhar Node no Dockerfile com `engines` do `package.json`.
 
@@ -275,7 +234,7 @@ Seed idempotente (tenant `acme`) mitiga duplicação, mas:
 
 Além das fases 1–6 em [11-checklist](./11-checklist.md), considerar:
 
-- [ ] **Decisão Prisma** (Classic vs Next) + atualização da spec
+- [ ] ~~Decisão Prisma~~ — Prisma 8 adotado; seguir skill `prisma-8/`
 - [ ] CORS na API
 - [ ] `GET /api/v1/health` (contrato + implementação)
 - [ ] Política de `authKey` no disparo HTTP
@@ -306,14 +265,13 @@ Além das fases 1–6 em [11-checklist](./11-checklist.md), considerar:
 
 | # | Ação | Bloqueia |
 |---|------|----------|
-| 1 | Escolher Prisma Classic **ou** Prisma Next; atualizar spec, rules, repo layout | Fase 1 |
+| 1 | Implementar domínio em `contract.prisma` + migration inicial | Fase 1 |
 | 2 | ADR/README: `authKey`, merge payload, SUCCESS/FAILURE | Fase 3 |
 | 3 | Spec: tenant scoping em execuções | Fase 4 |
 | 4 | Spec: soft delete / desativar / DELETE | Fase 3 |
 | 5 | Definir escopo UI (CRUD forms sim/não) | Fase 5 |
 | 6 | Completar [05-api](./05-api.md): health, datas, ordenação, PATCH | Fase 2–4 |
 | 7 | Clarificar `IntegrationType` como metadado | Fase 3 |
-| 8 | Alinhar versões Node/Docker/engines | Fase 1 |
 
 ---
 
@@ -324,7 +282,7 @@ Além das fases 1–6 em [11-checklist](./11-checklist.md), considerar:
 | Tópico | Default sugerido |
 |--------|------------------|
 | Versões | **Sempre as mais recentes** (runtime, frameworks, ORM, Docker) |
-| ORM | **Prisma Next** (v8 RC) — alinhado ao starter e à política de versões |
+| ORM | **Prisma 8** — skill `nexus-backend/.cursor/skills/prisma-8/` |
 | `name` do tenant | Não único; só `slug` UK |
 | `IntegrationType` | Metadado; disparo idêntico para todos |
 | Desativar | `PATCH { isActive: false }` |

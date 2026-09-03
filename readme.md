@@ -17,7 +17,7 @@ Plataforma de automação B2B — módulo de gestão de integrações multi-tena
 |------------|-----------|--------|
 | API NestJS | `nexus-backend/` | Starter — implementação pendente |
 | Frontend React | `nexus-frontend/` | A criar |
-| PostgreSQL + Prisma Next | `nexus-backend/src/prisma/` | Contract demo — domínio pendente |
+| PostgreSQL + Prisma 8 | `nexus-backend/src/prisma/` | Contract demo — domínio pendente |
 | Docker Compose | raiz | A criar |
 
 ## Setup (local)
@@ -47,7 +47,7 @@ Serviços após subir:
 
 ## Stack
 
-- **Backend:** NestJS 12, Node 24, TypeScript 6 (ESM), Prisma Next, PostgreSQL, JWT
+- **Backend:** NestJS 12, Node 24, TypeScript 6 (ESM), Prisma 8, PostgreSQL, JWT
 - **Frontend:** React 19, TypeScript, Vite
 - **Infra:** Docker Compose (Postgres 16, nginx)
 - **Testes:** Vitest (+ supertest E2E planejado)
@@ -69,10 +69,11 @@ Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
 | Tópico | Decisão |
 |--------|---------|
 | Versões | Sempre as mais recentes (runtime, frameworks, ORM, Docker) |
-| ORM | Prisma Next — `src/prisma/contract.prisma` + `db.ts` |
+| ORM | Prisma 8 — skill em `nexus-backend/.cursor/skills/prisma-8/` |
+| Migrations | `migrations/app/` + `db migrate` no Docker |
+| Schema no Docker | `contract emit` (build) → `db migrate` → seed idempotente |
 | Multi-tenancy | `tenantId` no JWT + filtro no service; cross-tenant → 404 |
 | Infra local | Docker Compose com um comando (`docker compose up --build`) |
-| Schema no Docker | `prisma db init` + seed idempotente no entrypoint da API |
 | Trigger HTTP | POST, timeout 30s, `authKey` como Bearer, merge shallow de payload |
 | Integrações | Desativar via PATCH; DELETE hard + cascade execuções |
 | Frontend UI | Login + lista + trigger + histórico (CRUD via API) |

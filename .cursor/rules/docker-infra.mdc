@@ -6,8 +6,6 @@ alwaysApply: false
 
 # Docker & Infra
 
-Um comando sobe tudo:
-
 ```bash
 cp .env.example .env
 docker compose up --build
@@ -15,60 +13,48 @@ docker compose up --build
 
 ## Serviços
 
-| Nome | Imagem / build | Porta (host) |
-|------|----------------|--------------|
+| Nome | Build / imagem | Porta |
+|------|----------------|-------|
 | `postgres` | `postgres:16-alpine` | 5432 |
 | `api` | `nexus-backend/Dockerfile` | 3000 |
-| `frontend` | `nexus-frontend/Dockerfile` (nginx) | 5173 → 80 |
+| `frontend` | `nexus-frontend/Dockerfile` (nginx) | 5173 |
 
-Usar **versões mais recentes** das imagens base (Node 24-alpine no backend, Postgres 16+).
+Versões mais recentes compatíveis; backend: `node:24-alpine` (ver `engines`).
 
 ## Startup
 
-1. **postgres** — healthcheck `pg_isready`
-2. **api** — `npm run contract:emit` (build) → entrypoint: `prisma db init` → seed idempotente → `node dist/main.js`
-3. **frontend** — após API healthy (`GET /api/v1/health`)
+1. `postgres` — `pg_isready`
+2. `api` — `db migrate` (migrations em `migrations/app/`) → seed → `node dist/main.js`
+3. `frontend` — após `GET /api/v1/health`
+
+Build da API inclui `npm run contract:emit`. Migrations versionadas commitadas em `nexus-backend/migrations/app/`.
 
 ## Entrypoint API (referência)
 
 ```bash
-npx prisma db init
-npx tsx src/prisma/seed.ts   # ou script equivalente
+npx prisma db migrate
+npx tsx src/prisma/seed.ts
 node dist/main.js
 ```
 
-## Variáveis (`.env.example` na raiz)
+Primeira bootstrap local (antes de existir migration): `migration plan --name initial` → commit → `db migrate`.
+
+## Variáveis (`.env.example`)
 
 ```env
-DB_DATABASE=commandix-db
-DB_USERNAME=commandix-user
-DB_PASSWORD=commandix-pass
-
-POSTGRES_PORT=5432
-
+DATABASE_URL=postgresql://commandix:commandix@postgres:5432/commandix
 JWT_ACCESS_SECRET=change-me-access
 JWT_REFRESH_SECRET=change-me-refresh
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
-
 PORT=3000
 NODE_ENV=development
-
 VITE_API_URL=http://localhost:3000/api/v1
 HTTP_TRIGGER_TIMEOUT_MS=30000
 ```
 
-`VITE_API_URL` é **build-time** — usar `http://localhost:3000/api/v1` para acesso via browser no host.
-
-## Dockerfiles
-
-- **Backend**: multi-stage, `node:24-alpine` (alinhar com `engines` em `package.json`)
-- **Frontend**: build Vite → nginx servindo estático
-
-## Volume
-
-`postgres_data` persistente para dados do PostgreSQL.
+`VITE_API_URL` é build-time.
 
 ## CORS
 
-API aceita `http://localhost:5173` em desenvolvimento.
+`http://localhost:5173` em dev.

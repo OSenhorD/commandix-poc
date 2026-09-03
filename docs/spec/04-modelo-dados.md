@@ -61,7 +61,11 @@ erDiagram
     }
 ```
 
-## 4.2 Schema Prisma (referência)
+## 4.2 Modelo de domínio (referência PSL)
+
+> **Implementação:** `nexus-backend/src/prisma/contract.prisma`. Sintaxe e tipos: skill Prisma 8 (`nexus-backend/.cursor/skills/prisma-8/references/contract.md`). Após editar: `npm run contract:emit`. Mudanças versionadas: `migration plan` + `db migrate`.
+
+Bloco abaixo descreve **entidades, campos e relações** do domínio Commandix (PSL de referência):
 
 ```prisma
 enum Role {
@@ -212,7 +216,7 @@ model RefreshToken {
 
 ## 4.4 Seed sugerido
 
-Implementado em `nexus-backend/prisma/seed.ts` (idempotente). Senha padrão: `Admin123!` (ver [`readme.md`](../../readme.md)).
+Implementado em `nexus-backend/src/prisma/seed.ts` (idempotente). Senha padrão: `Admin123!` (ver [`readme.md`](../../readme.md)).
 
 | Entidade | Dados |
 |----------|-------|

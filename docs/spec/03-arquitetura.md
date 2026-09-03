@@ -15,7 +15,7 @@ flowchart TB
         TEN[Tenants Module]
         INT[Integrations Module]
         EXEC[Executions Module]
-        PRISMA[Prisma Service]
+        DB[Database Module]
     end
 
     subgraph infra [Infra]
@@ -26,12 +26,12 @@ flowchart TB
     FE -->|JWT| AUTH
     FE --> INT
     FE --> EXEC
-    AUTH --> PRISMA
-    TEN --> PRISMA
-    INT --> PRISMA
-    EXEC --> PRISMA
+    AUTH --> DB
+    TEN --> DB
+    INT --> DB
+    EXEC --> DB
     INT -->|HTTP| EXT
-    PRISMA --> PG
+    DB -->|Prisma 8| PG
 ```
 
 ## 3.2 Módulos NestJS
@@ -40,31 +40,31 @@ flowchart TB
 src/
 ├── auth/           # login, refresh, JWT strategy, guards
 ├── tenants/        # bootstrap de tenant + admin
-├── users/          # perfil, listagem (opcional)
 ├── integrations/   # CRUD + trigger
 ├── executions/     # listagem e detalhe
-├── prisma/         # PrismaService global
-└── common/         # decorators, filters, pipes, guards compartilhados
+├── database/       # DatabaseModule — wrapper de db (Prisma 8)
+├── prisma/         # contract.prisma, db.ts, seed.ts (não é módulo Nest)
+└── common/         # decorators, filters, guards
     ├── decorators/ # @CurrentUser(), @Roles()
-    ├── guards/     # JwtAuthGuard, RolesGuard, TenantGuard
-    └── interceptors/
+    └── guards/     # JwtAuthGuard, RolesGuard
 ```
 
 ## 3.3 Multi-tenancy — estratégia
 
-**Abordagem recomendada:** tenant ID no JWT + filtro explícito em todas as queries.
+Tenant ID no JWT + filtro explícito em todas as queries no **service**.
 
 ```typescript
-// Exemplo: nunca confiar em tenantId vindo do body
-const integration = await prisma.integration.findFirst({
-  where: { id, tenantId: user.tenantId },
-});
+const integration = await db.orm.Integration
+  .where({ id, tenantId: user.tenantId })
+  .first();
 if (!integration) throw new NotFoundException();
 ```
 
-**Alternativa aceitável:** middleware que injeta `tenantId` no contexto da request via decorator customizado.
+Execuções: validar tenant via relação com `Integration` (tabela não tem `tenantId`).
 
-**Proibido:** retornar recurso de outro tenant mesmo que o ID exista (usar 404, não 403, para não vazar existência).
+**Proibido:** retornar recurso de outro tenant (404, não 403).
+
+Prisma 8: `nexus-backend/.cursor/skills/prisma-8/SKILL.md`.
 
 ## 3.4 Fluxo de autenticação
 

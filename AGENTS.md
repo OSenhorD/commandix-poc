@@ -13,9 +13,9 @@ Contexto para agentes de IA trabalhando neste repositório.
 
 | Componente | Status |
 |------------|--------|
-| `nexus-backend/` | NestJS 12 starter (ESM, Vitest) — **Prisma Next inicializado**; sem módulos de negócio |
+| `nexus-backend/` | NestJS 12 starter — **Prisma 8 inicializado**; sem módulos de negócio |
 | `nexus-frontend/` | **Não criado** |
-| Prisma Next | `src/prisma/contract.prisma` + `db.ts` — modelos demo a substituir pelo domínio |
+| Prisma 8 | `src/prisma/contract.prisma` + `db.ts` — modelos demo a substituir |
 | Docker Compose | **Não criado** |
 
 ## Arquitetura alvo
@@ -23,7 +23,7 @@ Contexto para agentes de IA trabalhando neste repositório.
 Monorepo com API NestJS + React (Vite) + PostgreSQL via Docker Compose.
 
 ```
-Frontend (React) → API (NestJS) → PostgreSQL (Prisma Next)
+Frontend (React) → API (NestJS) → PostgreSQL (Prisma 8)
                         ↓
                  Serviços externos (webhook, REST, n8n)
 ```
@@ -39,7 +39,7 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 | Tópico | Decisão |
 |--------|---------|
 | Versões | **Sempre as mais recentes** — runtime, frameworks, ORM e imagens Docker; ver `engines`/`package.json` |
-| ORM | **Prisma Next** (v8 RC) — contract em `src/prisma/contract.prisma`, client em `src/prisma/db.ts` |
+| ORM | **Prisma 8** — contract em `src/prisma/contract.prisma`, client em `src/prisma/db.ts` |
 | Multi-tenancy | `tenantId` no JWT + filtro explícito no **service** (não confiar em body/query) |
 | Cross-tenant | `NotFoundException` (404), nunca 403 |
 | Role insuficiente | 403 |
@@ -91,18 +91,19 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 - CORS habilitado para frontend local
 - `GET /api/v1/health` — healthcheck para Docker
 
-### Banco (Prisma Next)
+### Banco (Prisma 8)
 
+- **Skill (obrigatória em tarefas Prisma):** `nexus-backend/.cursor/skills/prisma-8/SKILL.md` — abrir a routing table antes de codar
 - Contract: `nexus-backend/src/prisma/contract.prisma`
-- Client: `import { db } from './prisma/db.js'` (wrapper NestJS injectable recomendado)
-- Após alterar contract: `npm run contract:emit`
-- Schema de domínio: [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md) §4.2 (adaptar sintaxe Prisma Next)
-- PKs: UUID (`@default(uuid())`)
-- Índices em FKs (`tenantId`, `integrationId`) e campos de filtro (`executedAt`, `status`)
-- Seed: script idempotente com tenant + admin + viewer + integração demo
-- Senha seed: `Admin123!` (documentada no readme)
-
-> **Nota:** docs `04`, `07`, `08` ainda referenciam Prisma clássico (`prisma/schema.prisma`, `migrate deploy`). Seguir **este arquivo** e `.cursor/rules/prisma-database.mdc` como fonte de verdade para ORM.
+- Client: `src/prisma/db.ts` → wrapper NestJS `DatabaseModule` / `DatabaseService`
+- Após editar contract: `npm run contract:emit`
+- Dev local (schema em fluxo): `npx prisma db update`
+- Mudanças versionadas (branch/Docker): `npx prisma migration plan --name <slug>` → `npx prisma db migrate`
+- Primeira bootstrap (DB vazio): `npx prisma db init`
+- Migrations: `nexus-backend/migrations/app/` (commitar)
+- Domínio: [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md) §4.1–4.3
+- Seed: `src/prisma/seed.ts` idempotente; senha `Admin123!`
+- Scripts one-off: `await db.close()` ao final (ver skill `references/runtime.md`)
 
 ### Frontend (React)
 
@@ -124,16 +125,20 @@ Padrões normativos para implementação. Detalhes e rationale em [`12-revisao-p
 # Docker — sobe postgres + api + frontend (após implementação)
 docker compose up --build
 
-# Prisma Next — backend
+# Prisma 8 — backend (ver skill prisma-8/SKILL.md)
 cd nexus-backend
-npm run contract:emit    # após editar contract.prisma
-npx prisma db init       # criar/atualizar tabelas (dev)
+npm run contract:emit              # após editar contract.prisma
+npx prisma db update               # dev: sync rápido
+npx prisma migration plan --name x # versionado: gera migration
+npx prisma db migrate              # aplica migrations pendentes
 ```
 
 ## O que NÃO fazer
 
 - Não fixar versões antigas quando existe release mais recente compatível — exceto se o usuário pedir pin explícito
-- Não usar Prisma clássico (`PrismaClient`, `prisma/schema.prisma`) — projeto adotou Prisma Next
+- Não usar Prisma ORM 7 (`PrismaClient`, `schema.prisma`, `migrate deploy`)
+- Não editar `contract.json` / `contract.d.ts` manualmente
+- Não colocar `DATABASE_URL` em `prisma.config.ts`
 - Não criar abstrações prematuras (repositórios genéricos, CQRS)
 - Não adicionar features fora da spec (OAuth social, 2FA, rate limiting avançado, CRUD de usuários)
 - Não usar GraphQL
@@ -149,6 +154,7 @@ npx prisma db init       # criar/atualizar tabelas (dev)
 | `docs/spec/` | Spec funcional, API, schema, checklist |
 | `docs/spec/12-revisao-planejamento.md` | Brechas, ambiguidades, decisões |
 | `.cursor/rules/*.mdc` | Regras por domínio para o Cursor |
+| `nexus-backend/.cursor/skills/prisma-8/` | Skill oficial Prisma 8 |
 | `readme.md` | Setup, seed, decisões do candidato |
 
 ## Fluxo de trabalho sugerido para IA
@@ -156,7 +162,8 @@ npx prisma db init       # criar/atualizar tabelas (dev)
 1. Ler o arquivo relevante em `docs/spec/`
 2. Consultar **decisões adotadas** neste arquivo antes de implementar
 3. Verificar [checklist](./docs/spec/11-checklist.md) antes e depois da tarefa
-4. Seguir regras em `.cursor/rules/`
-5. Implementar com diff mínimo
-6. Rodar testes/lint antes de declarar concluído
-7. Atualizar README apenas quando pedido ou ao finalizar fase
+4. Tarefas Prisma → ler `nexus-backend/.cursor/skills/prisma-8/SKILL.md` primeiro
+5. Seguir regras em `.cursor/rules/`
+6. Implementar com diff mínimo
+7. Rodar testes/lint antes de declarar concluído
+8. Atualizar README apenas quando pedido ou ao finalizar fase
