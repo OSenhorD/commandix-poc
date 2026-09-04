@@ -6,7 +6,6 @@
 
 ## Fase 1 — Fundação
 
-- [ ] CORS em dev — `enableCors({ origin: 'http://localhost:5173' })` em `main.ts`
 - [ ] Docker Compose (postgres + api ✅; frontend pendente — `nexus-frontend/` a criar)
 
 ## Fase 2 — Auth

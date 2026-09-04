@@ -26,7 +26,7 @@
 | `GET /api/v1/health` | ✅ |
 | Módulos de negócio | ❌ |
 | `DatabaseModule` | ✅ |
-| `ValidationPipe` / CORS | ❌ |
+| `ValidationPipe` / CORS | ✅ |
 | Docker Compose | ⚠️ postgres + api (frontend pendente) |
 | Testes críticos | ❌ |
 
@@ -80,29 +80,6 @@ flowchart TD
 ---
 
 ## Entregas
-
-### E03 — Bootstrap da aplicação (pipes, CORS, health)
-
-**Objetivo:** preparar `main.ts` e endpoint público de healthcheck.
-
-**Escopo:**
-- `ValidationPipe` global: `{ whitelist: true, transform: true }`
-- CORS dev: `enableCors({ origin: 'http://localhost:5173' })`
-- `GET /api/v1/health` → `{ "status": "ok" }` (público)
-- Remover ou adaptar `AppController` demo se conflitar
-
-**Arquivos:**
-- Modificar: `src/main.ts`
-- Criar/modificar: controller de health (pode ser módulo `health/` mínimo ou rota em `common/`)
-- Teste: ajustar `src/app.controller.spec.ts` ou criar `health.controller.spec.ts`
-
-**Critério de done:**
-- [ ] `curl localhost:3000/api/v1/health` → 200
-- [ ] DTO inválido em rota futura retorna 400 (pipe ativo)
-
-**Dependências:** nenhuma (paralelo a E01/E02)
-
----
 
 ### E04 — Seed idempotente
 
@@ -464,7 +441,7 @@ flowchart TD
 
 | Fase checklist | Entregas |
 |----------------|----------|
-| Fase 1 — Fundação | E01 ✅, E02 ✅, E04 ✅, E18 ⚠️ (postgres+api), E03 |
+| Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
 | Fase 2 — Auth | E06, E07, E08, E09, E10 |
 | Fase 3 — Integrações | E05, E11, E12, E13, E14, E15 |
 | Fase 4 — Histórico | E16, E17 |
