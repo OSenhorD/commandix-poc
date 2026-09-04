@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildMeta, buildPaginatedResponse } from './pagination.util.js';
+
+import { buildMeta, buildPaginatedResponse } from '@/common/utils/pagination.util.js';
 
 describe('buildMeta', () => {
   it('returns zero totalPages when total is 0', () => {

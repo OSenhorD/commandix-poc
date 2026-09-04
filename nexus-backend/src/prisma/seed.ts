@@ -1,10 +1,9 @@
 import 'dotenv/config';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-
 import bcrypt from 'bcrypt';
 
-import { db } from './db.js';
+import { db } from '@/prisma/db.js';
 
 const SEED_PASSWORD = 'Admin123!';
 const TENANT_SLUG = 'acme';

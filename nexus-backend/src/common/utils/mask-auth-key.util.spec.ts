@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { maskAuthKey } from './mask-auth-key.util.js';
+
+import { maskAuthKey } from '@/common/utils/mask-auth-key.util.js';
 
 describe('maskAuthKey', () => {
   it('masks secret-key as ****-key per API spec', () => {

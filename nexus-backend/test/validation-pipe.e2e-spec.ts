@@ -10,7 +10,7 @@ import { IsEmail } from 'class-validator';
 import request from 'supertest';
 import { App } from 'supertest/types';
 
-import { configureApp } from '../src/configure-app.js';
+import { configureApp } from '@/configure-app.js';
 
 class SampleDto {
   @IsEmail()

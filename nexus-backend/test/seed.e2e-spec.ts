@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from 'vitest';
 
-import { db } from '../src/prisma/db.js';
-import { runSeed } from '../src/prisma/seed.js';
+import { db } from '@/prisma/db.js';
+import { runSeed } from '@/prisma/seed.js';
 
 const hasDatabase = Boolean(process.env['DATABASE_URL']);
 

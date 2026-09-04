@@ -2,7 +2,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { describe, expect, it } from 'vitest';
 
-import { PaginationQueryDto } from './pagination-query.dto.js';
+import { PaginationQueryDto } from '@/common/dto/pagination-query.dto.js';
 
 async function validateDto(plain: Record<string, unknown>) {
   const dto = plainToInstance(PaginationQueryDto, plain);
