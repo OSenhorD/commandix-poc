@@ -11,39 +11,182 @@ Plataforma de automação B2B — módulo de gestão de integrações multi-tena
 | [`.cursor/skills/`](./.cursor/skills/README.md) | Skills do monorepo (Prisma 8) |
 | [`.cursor/rules/`](./.cursor/rules/) | Regras Cursor por domínio |
 
-## Status
+## Pré-requisitos
 
-| Componente | Diretório | Status |
-|------------|-----------|--------|
-| API NestJS | `nexus-backend/` | Starter — implementação pendente |
-| Frontend React | `nexus-frontend/` | A criar |
-| PostgreSQL + Prisma 8 | `nexus-backend/src/prisma/` | Contract demo — domínio pendente |
-| Docker Compose | raiz | A criar |
+| Ferramenta | Versão |
+|------------|--------|
+| Node.js | **24.16.0** (`nexus-backend/package.json` → `engines.node`) |
+| npm | **12.x** |
+| Docker + Docker Compose | Para subir Postgres e API com um comando |
 
-## Setup (local)
-
-> Disponível após implementação das fases 1–6 do [checklist](./docs/spec/11-checklist.md).
+## Início rápido (Docker)
 
 ```bash
-# Docker — sobe postgres + api + frontend
 cp .env.example .env
 docker compose up --build
 ```
 
-Serviços após subir:
+Aguarde os healthchecks. A API sobe automaticamente com:
 
-| Serviço | URL |
-|---------|-----|
-| Frontend | http://localhost:5173 |
-| API | http://localhost:3000/api/v1 |
-| Health | http://localhost:3000/api/v1/health |
-| PostgreSQL | localhost:5432 |
+1. `prisma db migrate`
+2. seed idempotente (pula se tenant `acme` já existir)
+3. `node dist/main.js`
 
-**Seed (primeira execução):**
+### Serviços
 
-- Tenant: `Acme Corp` (slug `acme`)
-- Admin: `admin@acme.com` / `Admin123!`
-- Viewer: `viewer@acme.com` / `Admin123!`
+| Serviço | URL / porta | Observação |
+|---------|-------------|------------|
+| API | http://localhost:3000/api/v1 | prefixo global NestJS |
+| Health | http://localhost:3000/api/v1/health | `{ "status": "ok" }` |
+| PostgreSQL | `localhost:5432` | user/senha/db default: `commandix` |
+| Frontend | — | **Pendente** (`nexus-frontend/` ainda não existe; serviço comentado no Compose) |
+
+### Credenciais demo (seed)
+
+| Campo | Valor |
+|-------|-------|
+| Tenant | `Acme Corp` (slug `acme`) |
+| Admin | `admin@acme.com` / `Admin123!` |
+| Viewer | `viewer@acme.com` / `Admin123!` |
+
+### Comandos Docker úteis
+
+```bash
+# Subir em background
+docker compose up --build -d
+
+# Ver logs da API
+docker compose logs -f api
+
+# Parar serviços
+docker compose down
+
+# Parar e apagar volume do Postgres (reset completo do banco)
+docker compose down -v
+
+# Subir só o banco (útil para dev local da API)
+docker compose up database -d
+```
+
+### Variáveis de ambiente
+
+Copie `.env.example` → `.env` na **raiz** do monorepo. Principais variáveis:
+
+| Variável | Default | Uso |
+|----------|---------|-----|
+| `JWT_ACCESS_SECRET` | — | Assinatura do access token |
+| `JWT_REFRESH_SECRET` | — | Assinatura do refresh token |
+| `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` | `commandix` | Postgres no Compose |
+| `DB_PORT` | `5432` | Porta exposta do Postgres |
+| `API_PORT` | `3000` | Porta exposta da API |
+
+No Compose, a API recebe `DATABASE_URL` montada internamente (`database:5432`). Ver [`.env.example`](./.env.example) e [`docs/spec/08-docker.md`](./docs/spec/08-docker.md).
+
+## Desenvolvimento local (sem rebuild da API)
+
+Com Postgres rodando (via Docker ou local):
+
+```bash
+cd nexus-backend
+npm ci
+```
+
+Crie `nexus-backend/.env` (ou exporte as variáveis) apontando para o banco:
+
+```env
+DATABASE_URL=postgresql://commandix:commandix@localhost:5432/commandix
+JWT_ACCESS_SECRET=dev-access-secret
+JWT_REFRESH_SECRET=dev-refresh-secret
+PORT=3000
+```
+
+Sincronize o banco e rode o seed:
+
+```bash
+npx prisma db migrate    # aplica migrations versionadas
+npm run seed             # idempotente
+```
+
+Inicie a API em modo watch:
+
+```bash
+npm run start:dev
+```
+
+A API fica em http://localhost:3000/api/v1. CORS habilitado para `http://localhost:5173` (frontend Vite, quando existir).
+
+## Build
+
+```bash
+cd nexus-backend
+
+# Após editar contract.prisma
+npm run contract:emit
+
+# Compilar TypeScript (NestJS + tsc-alias)
+npm run build
+
+# Rodar build de produção localmente
+npm run start:prod
+```
+
+O **Dockerfile** da API já executa `contract:emit` e `build` na etapa de build; o entrypoint (`docker-entrypoint.sh`) cuida de migrate + seed + start.
+
+## Testes
+
+Todos os comandos abaixo em `nexus-backend/`:
+
+```bash
+npm test              # unitários (*.spec.ts)
+npm run test:e2e      # e2e (*.e2e-spec.ts)
+npm run test:watch    # watch mode
+npm run test:cov      # com cobertura
+```
+
+| Tipo | Arquivos | Banco necessário? |
+|------|----------|-------------------|
+| Unitários | `src/**/*.spec.ts` | Não |
+| E2E (app, validation) | `test/*.e2e-spec.ts` | Não |
+| E2E (seed) | `test/seed.e2e-spec.ts` | **Sim** — requer `DATABASE_URL`; teste é ignorado se ausente |
+
+Para rodar o teste de seed com banco:
+
+```bash
+# Postgres no ar (ex.: docker compose up database -d)
+export DATABASE_URL=postgresql://commandix:commandix@localhost:5432/commandix
+npm run test:e2e
+```
+
+## Prisma 8
+
+Comandos em `nexus-backend/` (skill: [`nexus-backend/.cursor/skills/prisma-8/SKILL.md`](./nexus-backend/.cursor/skills/prisma-8/SKILL.md)):
+
+| Situação | Comando |
+|----------|---------|
+| Após editar `contract.prisma` | `npm run contract:emit` |
+| Dev local (schema em fluxo) | `npx prisma db update` |
+| Nova migration versionada | `npx prisma migration plan --name <slug>` → `npx prisma db migrate` |
+| DB vazio (primeira vez) | `npx prisma db init` |
+| Seed manual | `npm run seed` |
+
+**Docker / CI:** usar `db migrate` (não `db update`).
+
+## Lint e formatação
+
+```bash
+cd nexus-backend
+npm run lint      # oxlint
+npm run format    # prettier
+```
+
+## Status
+
+| Componente | Diretório | Status |
+|------------|-----------|--------|
+| API NestJS | `nexus-backend/` | Em implementação |
+| Frontend React | `nexus-frontend/` | A criar |
+| PostgreSQL + Prisma 8 | `nexus-backend/src/prisma/` | Contract + migrations + seed |
+| Docker Compose | raiz | **Postgres + API** (frontend pendente) |
 
 ## Stack
 
@@ -77,7 +220,7 @@ Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
 | Multi-tenancy | `tenantId` no JWT + filtro no service; cross-tenant → 404 |
 | Infra local | Docker Compose com um comando (`docker compose up --build`) |
 | Trigger HTTP | Sempre POST, timeout 30s, sem retry, `authKey` como Bearer |
-| `authKey` at-rest | Texto ou criptografia — documentar no README final |
+| `authKey` at-rest | Texto plano na PoC (sem criptografia) |
 | Execuções | `responseBody` truncado em 10 240 bytes UTF-8 |
 | Integrações | PATCH parcial; desativar via PATCH; DELETE hard + cascade |
 | Frontend API | URL relativa `/api/v1` + proxy nginx/Vite |
