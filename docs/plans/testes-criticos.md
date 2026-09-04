@@ -202,7 +202,7 @@ nexus-backend/test/
 | Banco | PostgreSQL separado (`DATABASE_URL` em `.env.test.local`, gitignored) |
 | Isolamento | `beforeEach` limpa dados de teste ou transação com rollback |
 | HTTP externo | Mock de `fetch` / `undici` — sem webhook real |
-| CI | `npm test && npm run test:e2e` no pipeline |
+| CI | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) — lint, test, build, Docker Compose |
 
 ### Critério de done E19
 

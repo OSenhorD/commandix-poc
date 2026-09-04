@@ -5,7 +5,7 @@ echo "Running database migrations..."
 ./node_modules/.bin/prisma db migrate
 
 echo "Running seed..."
-./node_modules/.bin/tsx src/prisma/seed.ts
+node dist/prisma/seed.js
 
 echo "Starting API..."
 exec node dist/main.js

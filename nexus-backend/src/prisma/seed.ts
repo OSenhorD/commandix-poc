@@ -11,7 +11,9 @@ const TENANT_SLUG = 'acme';
 export type SeedResult = 'skipped' | 'completed';
 
 export async function runSeed(): Promise<SeedResult> {
-  const existingTenant = await db.orm.public.Tenant.where({ slug: TENANT_SLUG }).first();
+  const existingTenant = await db.orm.public.Tenant.where({
+    slug: TENANT_SLUG,
+  }).first();
 
   if (existingTenant) {
     return 'skipped';
@@ -58,7 +60,9 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.log('Seed completed: tenant acme with admin, viewer and Echo Webhook.');
+  console.log(
+    'Seed completed: tenant acme with admin, viewer and Echo Webhook.',
+  );
 }
 
 const isDirectRun =

@@ -5,10 +5,14 @@ FROM node:24.16.0-alpine AS build
 
 WORKDIR /app
 
+ENV PRISMA_DISABLE_TELEMETRY=1
+
 COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY nest-cli.json tsconfig.json tsconfig.build.json prisma.config.ts ./
+RUN ./node_modules/.bin/prisma skills sync --disable
+
 COPY migrations ./migrations
 COPY src ./src
 
@@ -26,9 +30,11 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 ENV NODE_ENV=production
+ENV PRISMA_DISABLE_TELEMETRY=1
 
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma.config.ts ./
+COPY --from=build /app/.prisma ./.prisma
 COPY --from=build /app/migrations ./migrations
 COPY --from=build /app/src/prisma ./src/prisma
 COPY docker-entrypoint.sh ./
