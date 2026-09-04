@@ -16,6 +16,7 @@ commandix-poc/
 │       └── prisma-8/               # symlink → nexus-backend/.cursor/skills/prisma-8
 ├── nexus-backend/
 │   ├── prisma.config.ts
+│   ├── tsconfig.json               # paths: "@/*" → "./src/*"
 │   ├── Dockerfile
 │   ├── docker-entrypoint.sh        # db migrate → seed → node dist/main.js
 │   ├── migrations/app/
@@ -42,6 +43,8 @@ commandix-poc/
 | `.cursor/skills/prisma-8/` | Symlink para descoberta na raiz do workspace |
 
 Comandos Prisma: `cwd` em `nexus-backend/`.
+
+**Imports TypeScript:** alias `@/` → `src/`; build (`npm run build`) usa `tsc-alias` para reescrever no `dist/`. Detalhes em [`AGENTS.md`](../../AGENTS.md).
 
 ## Referências
 

@@ -11,6 +11,7 @@ Fonte de verdade: `AGENTS.md`. Spec funcional: `docs/spec/`. Domínio (campos, A
 
 - **Versões mais recentes**: runtime, frameworks, ORM e imagens Docker
 - **Sempre TypeScript**: `.ts`/`.tsx` para código de aplicação
+- **Imports backend**: alias `@/` → `src/`; sufixo `.js` (ver `AGENTS.md`)
 - **Multi-tenancy é crítico**: filtrar por `tenantId` do JWT em toda query de negócio — **incluindo execuções** (via `Integration`)
 - **Escopo mínimo**: implementar só o que a spec pede
 - **Backend first**: auth → integrações → execuções → frontend

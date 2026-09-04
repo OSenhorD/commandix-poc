@@ -49,7 +49,7 @@ nexus-backend/
 Lane padrão: `db.orm.<Model>` (PascalCase). Ver `nexus-backend/.cursor/skills/prisma-8/references/queries-postgres.md`.
 
 ```typescript
-import { db } from '../prisma/db.js';
+import { db } from '@/prisma/db.js';
 
 // Multi-tenant
 const integration = await db.orm.Integration

@@ -22,15 +22,17 @@ feature/
 
 ## Imports ESM
 
-Alias `@/` → `src/` (configurado em `tsconfig.json`; build reescreve via `tsc-alias`).
+Alias **`@/`** → `src/` (`tsconfig.json`; build reescreve via `tsc-alias`). Preferir `@/` para imports entre módulos/pastas.
 
 ```typescript
-import { AppService } from './app.service.js';           // ✅ relativo
-import { maskAuthKey } from '@/common/utils/mask-auth-key.util.js'; // ✅ alias
-import { AppService } from './app.service';               // ❌ sem .js
+import { maskAuthKey } from '@/common/utils/mask-auth-key.util.js'; // ✅ alias (preferido)
+import { AppService } from './app.service.js';                      // ✅ mesmo diretório
+import { db } from '@/prisma/db.js';                                // ✅ prisma / cross-module
+import { AppService } from './app.service';                         // ❌ sem .js
+import { X } from '../common/x.js';                                 // ❌ preferir @/common/x.js
 ```
 
-Sempre manter sufixo `.js` nos imports relativos e em `@/`.
+Sempre manter sufixo `.js` em `@/` e em relativos.
 
 ## Bootstrap (`main.ts`)
 

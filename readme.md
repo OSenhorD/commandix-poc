@@ -214,6 +214,7 @@ Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
 | Tópico | Decisão |
 |--------|---------|
 | Versões | Sempre as mais recentes (runtime, frameworks, ORM, Docker) |
+| Imports backend | Alias `@/` → `src/`; sufixo `.js`; `tsc-alias` no build |
 | ORM | Prisma 8 — skill em `nexus-backend/.cursor/skills/prisma-8/` |
 | Migrations | `migrations/app/` + `db migrate` no Docker |
 | Schema no Docker | `contract emit` (build) → `db migrate` → seed idempotente (sempre no entrypoint) |

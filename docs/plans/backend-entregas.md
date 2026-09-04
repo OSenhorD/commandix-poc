@@ -12,6 +12,7 @@
 3. **Testável ao final de cada slice** — curl, Vitest ou ambos; não avançar sem critério de done atendido.
 4. **Escopo mínimo** — só o que a spec pede; sem módulo `users/`, sem features bônus.
 5. **Multi-tenancy desde o primeiro service de negócio** — `tenantId` do JWT, nunca do body.
+6. **Imports** — alias `@/` → `src/`; sufixo `.js` (ver `AGENTS.md` § Convenções).
 
 ---
 

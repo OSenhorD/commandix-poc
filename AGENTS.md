@@ -87,6 +87,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Seed no startup | **Sempre** no entrypoint Docker (`db migrate` → seed → start); idempotente — não re-insere se `acme` já existir; **decisão consciente da PoC**, não padrão de produção |
 | Node | **24.16.0** — `engines` em `nexus-backend/package.json`; imagem Docker `node:24.16.0-alpine` |
 | PostgreSQL | **16** (`postgres:16-alpine`) — alvo da app; atende mínimo Prisma Next 15+ |
+| Imports backend | Alias **`@/`** → `src/`; sufixo **`.js`** obrigatório; build com **`tsc-alias`** |
 
 ## Convenções
 
@@ -101,7 +102,9 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 
 ### Backend (NestJS)
 
-- ESM com sufixo `.js` nos imports relativos (`import { X } from './x.js'`)
+- **Imports ESM:** alias `@/` → `src/` (`tsconfig.json` → `paths: { "@/*": ["./src/*"] }`); sufixo `.js` obrigatório (`import { X } from '@/common/x.js'`)
+- **Build:** `nest build && tsc-alias` reescreve `@/` em caminhos relativos no `dist/` (Node ESM não resolve aliases nativamente)
+- **Relativos (`./`):** permitidos apenas entre arquivos do **mesmo diretório** (ex.: `auth.controller.ts` → `./auth.service.js`)
 - Um módulo por domínio (`auth.module.ts`, `integrations.module.ts`)
 - DTOs com `class-validator`; `ValidationPipe` global com `whitelist: true, transform: true`
 - Global prefix: `api/v1`

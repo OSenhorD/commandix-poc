@@ -25,7 +25,7 @@ model User {
 Every model you define in your contract can be queried from your app. Your editor will autocomplete the query methods and show you what type each model field is:
 
 ```typescript
-import { db } from './src/prisma/db';
+import { db } from '@/prisma/db.js';
 
 const user = await db.orm.public.User
   .where({ email: 'alice@example.com' })
@@ -87,7 +87,7 @@ npx prisma migration status    # Show migration status
 |---|---|
 | [`src/prisma/contract.prisma`](src/prisma/contract.prisma) | Your data contract — define your models here |
 | [`prisma.config.ts`](prisma.config.ts) | CLI configuration |
-| [`src/prisma/db.ts`](src/prisma/db.ts) | Database client — `import { db } from './src/prisma/db'` |
+| [`src/prisma/db.ts`](src/prisma/db.ts) | Database client — `import { db } from '@/prisma/db.js'` |
 | `src/prisma/contract.json` | Compiled contract (generated) |
 | `src/prisma/contract.d.ts` | Contract types (generated) |
 

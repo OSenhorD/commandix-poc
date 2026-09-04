@@ -10,7 +10,7 @@
 |------------|---------------|--------|
 | Node.js | **24.16.0** (`engines` + `node:24.16.0-alpine` no Dockerfile) | Configurado |
 | NestJS | 12.x (`nexus-backend/`) | Starter |
-| TypeScript | 6.x, ESM (`"type": "module"`) | Configurado |
+| TypeScript | 6.x, ESM (`"type": "module"`), alias `@/` → `src/` | Configurado |
 | PostgreSQL | **16** (`postgres:16-alpine`; mínimo Prisma Next 15+) | Via Docker |
 | Prisma 8 | v8 RC — `@prisma/orm-postgres`, contract em `src/prisma/` | Inicializado |
 | class-validator | DTOs + `ValidationPipe` global | Pendente |
@@ -18,6 +18,9 @@
 | @nestjs/jwt + passport | Guards de autenticação | Pendente |
 | bcrypt | Hash de senhas | Pendente |
 | Vitest + supertest | 4.x — **testes críticos obrigatórios** (ver [10-criterios § Testes](./10-criterios.md)) | Starter |
+| tsc-alias | Pós-build — reescreve `@/` em paths relativos no `dist/` | Configurado |
+
+**Imports (backend):** preferir `@/…/arquivo.js` (mapeia para `src/`); sufixo `.js` obrigatório. Ver [`AGENTS.md`](../../AGENTS.md) § Convenções.
 
 ## 6.2 Frontend (mínimo funcional)
 

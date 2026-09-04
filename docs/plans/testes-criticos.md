@@ -29,6 +29,7 @@
 3. **Escopo mínimo** — cobrir comportamento de negócio e segurança; evitar testes triviais de boilerplate.
 4. **Multi-tenancy desde E11** — cross-tenant → 404 em todo teste de integração/execução.
 5. **Mock HTTP externo** — trigger e outbound nunca dependem de webhook real.
+6. **Imports nos testes** — `@/` funciona via Vitest (`resolve.tsconfigPaths`); preferir `@/` em imports de `src/`.
 
 ---
 
