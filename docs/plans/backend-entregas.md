@@ -106,32 +106,6 @@ flowchart TD
 
 ---
 
-### E06 — Bootstrap de tenant
-
-**Objetivo:** única rota pública de criação de tenant + admin.
-
-**Escopo:**
-- Módulo `tenants/`: `POST /tenants/bootstrap`
-- DTO: `tenantName`, `tenantSlug`, `adminEmail`, `adminPassword`
-- Transação: criar `Tenant` + `User` role `ADMIN`
-- Conflitos: slug ou email duplicado → `409`
-- Resposta `201` conforme [05-api §5.2](../spec/05-api.md#post-tenantsbootstrap)
-- **Sem rate limit nesta entrega** (E10)
-
-**Arquivos:**
-- Criar: `src/tenants/tenants.module.ts`, `tenants.controller.ts`, `tenants.service.ts`, `dto/bootstrap-tenant.dto.ts`
-- Modificar: `src/app.module.ts`
-- Deps: `bcrypt`, `class-validator`, `class-transformer`
-
-**Critério de done:**
-- [ ] Bootstrap cria tenant + admin
-- [ ] Segundo bootstrap com mesmo slug → 409
-- [ ] Resposta não expõe `passwordHash`
-
-**Dependências:** E02, E03
-
----
-
 ### E07 — Login
 
 **Objetivo:** autenticação com access + refresh tokens.
@@ -422,7 +396,7 @@ flowchart TD
 | Fase checklist | Entregas |
 |----------------|----------|
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
-| Fase 2 — Auth | E06, E07, E08, E09, E10 |
+| Fase 2 — Auth | E06 ✅, E07, E08, E09, E10 |
 | Fase 3 — Integrações | E05 ✅, E11, E12, E13, E14, E15 |
 | Fase 4 — Histórico | E16, E17 |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |

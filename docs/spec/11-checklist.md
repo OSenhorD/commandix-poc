@@ -10,7 +10,7 @@
 
 ## Fase 2 — Auth
 
-- [ ] Bootstrap de tenant + rate limit básico (`@nestjs/throttler`, 5 req / 60s por IP)
+- [x] Bootstrap de tenant (`POST /tenants/bootstrap`) — rate limit pendente (E10)
 - [ ] Login / refresh / logout (access `15m`, refresh `7d`; claims §5.2 de [05-api](./05-api.md))
 - [ ] JwtAuthGuard + RolesGuard
 - [ ] Decorator @CurrentUser()
