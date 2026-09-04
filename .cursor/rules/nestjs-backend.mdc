@@ -6,75 +6,103 @@ alwaysApply: false
 
 # NestJS Backend
 
+Decisões: `AGENTS.md`. API: `docs/spec/05-api.md`. Prisma 8: `nexus-backend/.cursor/skills/prisma-8/SKILL.md`.
+
 ## Módulos
 
-Um módulo por domínio: `auth`, `tenants`, `integrations`, `executions`, `prisma`, `common`.
+`auth`, `tenants`, `integrations`, `executions`, `database`, `common`.
 
 ```
 feature/
 ├── feature.module.ts
 ├── feature.controller.ts
 ├── feature.service.ts
-├── dto/
-└── entities/ (se necessário)
+└── dto/
 ```
 
 ## Imports ESM
 
-```typescript
-// ✅ Correto (projeto usa "type": "module")
-import { AppService } from './app.service.js';
-
-// ❌ Errado
-import { AppService } from './app.service';
-```
-
-## DTOs e validação
+Alias **`@/`** → `src/` (`tsconfig.json`; build reescreve via `tsc-alias`). Preferir `@/` para imports entre módulos/pastas.
 
 ```typescript
-export class CreateIntegrationDto {
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @IsEnum(IntegrationType)
-  type: IntegrationType;
-
-  @IsUrl()
-  targetUrl: string;
-}
+import { maskAuthKey } from '@/common/utils/mask-auth-key.util.js'; // ✅ alias (preferido)
+import { AppService } from './app.service.js';                      // ✅ mesmo diretório
+import { db } from '@/prisma/db.js';                                // ✅ prisma / cross-module
+import { AppService } from './app.service';                         // ❌ sem .js
+import { X } from '../common/x.js';                                 // ❌ preferir @/common/x.js
 ```
 
-Global pipe em `main.ts`:
+Sempre manter sufixo `.js` em `@/` e em relativos.
+
+## Bootstrap (`main.ts`)
 
 ```typescript
 app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 app.setGlobalPrefix('api/v1');
+app.enableCors({ origin: 'http://localhost:5173' }); // dev: Vite :5173 → API :3000; Docker nginx: CORS desnecessário
 ```
 
-## Guards e decorators
+## Auth
 
-- `JwtAuthGuard` — rotas autenticadas
-- `RolesGuard` + `@Roles(Role.ADMIN)` — controle de papel
-- `@CurrentUser()` — extrai `{ id, tenantId, role, email }` do request
+- Guards: `JwtAuthGuard` → `RolesGuard`
+- `@CurrentUser()` → `{ id, tenantId, role, email }`
+- JWT payload: `{ sub: userId, tenantId, role, email }`
+- Tenant scoping no **service**
+- Bootstrap: `@nestjs/throttler` — `ThrottlerGuard` só em `POST /tenants/bootstrap` (default 5 req / 60s por IP)
 
-## Services
+## Services (Prisma 8 ORM)
 
-- Lógica de negócio nos services, controllers finos
-- Tenant scoping no service, não no controller:
+Injetar `DatabaseService` (expõe `db.orm`).
 
 ```typescript
 async findOne(id: string, tenantId: string) {
-  const item = await this.prisma.integration.findFirst({
-    where: { id, tenantId },
-  });
+  const item = await this.database.orm.Integration
+    .where({ id, tenantId })
+    .first();
   if (!item) throw new NotFoundException();
   return item;
 }
 ```
 
-## HTTP trigger
+- Cross-tenant → `NotFoundException` (404)
+- Role insuficiente → `ForbiddenException` (403)
 
-- Usar `@nestjs/axios` ou `fetch` nativo
-- Timeout configurável (default 30s)
-- Capturar erros de rede como `FAILURE` com `httpStatusCode: null`
+## DTOs
+
+`class-validator` + enums do domínio.
+
+## Paginação
+
+Todas as listagens seguem [05-api §5.0](../../docs/spec/05-api.md#50-paginação-listagens): `{ data, meta }` com `total`, `totalPages`, `hasNextPage`, `hasPreviousPage`. Prisma: `.offset((page - 1) * limit).limit(limit)` + count.
+
+## Integrações
+
+| Ação | Comportamento |
+|------|---------------|
+| Listagem | Paginação §5.0; filtro `isActive` opcional; `updatedAt DESC` |
+| Desativar | `PATCH { isActive: false }` |
+| PATCH | Parcial — ver [05-api §5.3](../../docs/spec/05-api.md#patch-integrationsid); `authKey` omitido = mantém; JSON = substitui |
+| DELETE | Hard delete + cascade execuções |
+| Resposta | Mascarar `authKey` (ex.: `****-key`) |
+
+## HTTP trigger (`POST /integrations/:id/trigger`)
+
+POST, timeout 30s, **sem retry**, **sempre POST** (sem `httpMethod` no modelo), `isActive: true`, shallow merge, `authKey` como Bearer.
+
+**Status:** API externa retornou sucesso (HTTP 2xx) → `SUCCESS`; senão → `FAILURE`. Body da resposta não altera o status.
+
+| Resultado | status | httpStatusCode |
+|-----------|--------|----------------|
+| HTTP 2xx | SUCCESS | código |
+| HTTP não-2xx | FAILURE | código |
+| Timeout / rede | FAILURE | null |
+
+Truncar `responseBody` em **10 240 bytes** UTF-8 (+ sufixo `… [truncated]` se cortado).
+
+## Execuções
+
+Validar tenant via `Integration`. Ordenação `executedAt DESC`. Paginação §5.0; filtros `from`/`to` ISO 8601 inclusive.
+
+## Health
+
+`GET /api/v1/health`

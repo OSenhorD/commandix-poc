@@ -1,72 +1,85 @@
 services:
-  postgres:
+  database:
     image: postgres:16-alpine
     restart: unless-stopped
-    user: postgres
-    networks:
-      - commandix-production
     environment:
-      - POSTGRES_DB=${DB_DATABASE:-commandix}
-      - POSTGRES_USER=${DB_USERNAME:-commandix}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-commandix}
+      POSTGRES_DB: ${DB_DATABASE:-commandix}
+      POSTGRES_USER: ${DB_USERNAME:-commandix}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-commandix}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - database_data:/var/lib/postgresql/data
+    networks:
+      - commandix-development
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      test:
+        [
+          "CMD-SHELL",
+          'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"',
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 10s
 
   api:
     build:
       context: ./nexus-backend
       dockerfile: Dockerfile
+      network: host
     restart: unless-stopped
-    networks:
-      - commandix-production
     ports:
       - "${API_PORT:-3000}:3000"
+
     environment:
-      DATABASE_URL: postgresql://${DB_USERNAME:-commandix}:${DB_PASSWORD:-commandix}@postgres:${POSTGRES_PORT:-5432}/${DB_DATABASE:-commandix}
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-access}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh}
+      NODE_ENV: development
+      PORT: 3000
+
+      DATABASE_URL: postgresql://${DB_USERNAME:-commandix}:${DB_PASSWORD:-commandix}@database:5432/${DB_DATABASE:-commandix}
+
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-access-secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret}
       JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
-      PORT: ${API_PORT:-3000}
-      NODE_ENV: production
+
+      HTTP_TRIGGER_TIMEOUT_MS: ${HTTP_TRIGGER_TIMEOUT_MS:-30000}
+
     depends_on:
-      postgres:
+      database:
         condition: service_healthy
+    networks:
+      - commandix-development
     healthcheck:
       test:
         [
-          'CMD-SHELL',
-          "node -e \"fetch('http://127.0.0.1:${API_PORT:-3000}/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/v1/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
         ]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 40s
+      start_period: 30s
 
-  frontend:
-    build:
-      context: ./nexus-frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:${API_PORT:-3000}/api/v1}
-    networks:
-      - commandix-production
-    ports:
-      - "${FRONTEND_PORT:-5173}:80"
-    depends_on:
-      api:
-        condition: service_healthy
+  # frontend:
+  #   build:
+  #     context: ./nexus-frontend
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     - commandix-production
+  #   ports:
+  #     - "${FRONTEND_PORT:-5173}:80"
+  #   depends_on:
+  #     api:
+  #       condition: service_healthy
+
 
 networks:
-  commandix-production:
+  commandix-development:
+    driver: bridge
+
 
 volumes:
-  postgres_data:
+  database_data:

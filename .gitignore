@@ -1,2 +1,19 @@
 .env
-node_modules
+.env.local
+.env.*.local
+
+# Dependencies & build
+node_modules/
+dist/
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+
+# OS
+.DS_Store
+
+# Logs
+*.log

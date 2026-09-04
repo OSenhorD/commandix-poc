@@ -61,7 +61,11 @@ erDiagram
     }
 ```
 
-## 4.2 Schema Prisma (referência)
+## 4.2 Modelo de domínio (referência PSL)
+
+> **Implementação:** `nexus-backend/src/prisma/contract.prisma`. Sintaxe e tipos: skill Prisma 8 (`nexus-backend/.cursor/skills/prisma-8/references/contract.md`). Após editar: `npm run contract:emit`. Mudanças versionadas: `migration plan` + `db migrate`.
+
+Bloco abaixo descreve **entidades, campos e relações** do domínio Commandix (PSL de referência):
 
 ```prisma
 enum Role {
@@ -156,7 +160,7 @@ model RefreshToken {
 | Campo | Tipo | Obrigatório | Notas |
 |-------|------|-------------|-------|
 | `id` | UUID | sim (PK) | Gerado automaticamente |
-| `name` | string | sim | Nome único do tenant |
+| `name` | string | sim | Nome descritivo (sem UK) |
 | `slug` | string | sim (UK) | Identificador URL-friendly |
 | `createdAt` | datetime | sim | Default: now |
 
@@ -180,7 +184,7 @@ model RefreshToken {
 | `name` | string | sim | |
 | `type` | enum | sim | `WEBHOOK` \| `REST_API` \| `N8N` |
 | `targetUrl` | string | sim | URL de destino |
-| `authKey` | string | não | Armazenada criptografada ou em texto; **mascarada na API** |
+| `authKey` | string | não | At-rest: texto ou criptografia — **documentar escolha no README final**; **mascarada na API** |
 | `customHeaders` | JSON | não | Objeto chave-valor |
 | `defaultPayload` | JSON | não | Payload padrão para disparos |
 | `isActive` | boolean | sim | Default: `true` |
@@ -193,11 +197,12 @@ model RefreshToken {
 |-------|------|-------------|-------|
 | `id` | UUID | sim (PK) | Gerado automaticamente |
 | `integrationId` | UUID | sim (FK) | Referência a `Integration` |
-| `status` | enum | sim | `SUCCESS` \| `FAILURE` |
-| `httpStatusCode` | int | não | Código HTTP da resposta externa |
+| `status` | enum | sim | `SUCCESS` \| `FAILURE` — ver critério abaixo |
+| `httpStatusCode` | int | não | Código HTTP da resposta externa (`null` se timeout/erro de rede) |
+**Critério `SUCCESS` / `FAILURE`:** se a API da integração retornar sucesso (HTTP 2xx), `SUCCESS`; senão, `FAILURE`. Não interpretar o body — apenas o status HTTP (ou ausência de resposta).
 | `responseTimeMs` | int | sim | Tempo de resposta em ms |
 | `requestPayload` | JSON | não | Payload enviado ao serviço externo |
-| `responseBody` | text | não | Corpo da resposta (truncar se necessário) |
+| `responseBody` | text | não | Corpo da resposta externa; **máx. 10 240 bytes UTF-8** na persistência ([05-api §5.4](./05-api.md#truncamento-de-responsebody)) |
 | `executedAt` | datetime | sim | Default: now |
 
 ### RefreshToken
@@ -208,11 +213,15 @@ model RefreshToken {
 | `userId` | UUID | sim (FK) | Referência a `User` |
 | `tokenHash` | string | sim | Hash do refresh token; **nunca expor na API** |
 | `expiresAt` | datetime | sim | |
-| `revokedAt` | datetime | não | Preenchido no logout |
+| `revokedAt` | datetime | não | Preenchido no logout **deste** refresh token (dispositivo atual) |
 
 ## 4.4 Seed sugerido
 
-Implementado em `nexus-backend/prisma/seed.ts` (idempotente). Senha padrão: `Admin123!` (ver [`readme.md`](../../readme.md)).
+Implementado em `nexus-backend/src/prisma/seed.ts` (idempotente). Senha padrão: `Admin123!` (ver [`readme.md`](../../readme.md)).
+
+Entrypoint Docker **sempre** executa seed após migrate; pula inserção se tenant `acme` já existir ([08-docker](./08-docker.md) §8.5).
+
+O `VIEWER` abaixo é **dado demo** inserido pelo seed — não há API de convite/criação de usuários ([02-escopo §2.1](./02-escopo-funcional.md)).
 
 | Entidade | Dados |
 |----------|-------|

@@ -1,0 +1,86 @@
+// use prisma-next
+
+enum Role {
+  @@type("pg/text@1")
+  ADMIN  = "ADMIN"
+  VIEWER = "VIEWER"
+}
+
+enum IntegrationType {
+  @@type("pg/text@1")
+  WEBHOOK  = "WEBHOOK"
+  REST_API = "REST_API"
+  N8N      = "N8N"
+}
+
+enum ExecutionStatus {
+  @@type("pg/text@1")
+  SUCCESS = "SUCCESS"
+  FAILURE = "FAILURE"
+}
+
+model Tenant {
+  id           Uuid              @id @default(uuid())
+  slug         String            @unique
+  name         String
+  createdAt    TimestamptzString @default(now())
+  users        User[]
+  integrations Integration[]
+}
+
+model User {
+  id            Uuid              @id @default(uuid())
+  tenantId      Uuid
+  tenant        Tenant            @relation(fields: [tenantId], references: [id])
+  email         String            @unique
+  passwordHash  String
+  role          Role              @default(VIEWER)
+  createdAt     TimestamptzString @default(now())
+  refreshTokens RefreshToken[]
+
+  @@index([tenantId])
+}
+
+model Integration {
+  id             Uuid                   @id @default(uuid())
+  tenantId       Uuid
+  tenant         Tenant                 @relation(fields: [tenantId], references: [id])
+  name           String
+  type           IntegrationType
+  targetUrl      String
+  authKey        String?
+  customHeaders  Json?
+  defaultPayload Json?
+  isActive       Boolean                @default(true)
+  createdAt      TimestamptzString      @default(now())
+  updatedAt      temporal.updatedAtString()
+  executions     IntegrationExecution[]
+
+  @@index([tenantId])
+}
+
+model IntegrationExecution {
+  id              Uuid              @id @default(uuid())
+  integrationId   Uuid
+  integration     Integration       @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  status          ExecutionStatus
+  httpStatusCode  Int?
+  responseTimeMs  Int
+  requestPayload  Json?
+  responseBody    String?
+  executedAt      TimestamptzString @default(now())
+
+  @@index([integrationId, executedAt])
+  @@index([status])
+}
+
+model RefreshToken {
+  id        Uuid               @id @default(uuid())
+  userId    Uuid
+  user      User               @relation(fields: [userId], references: [id])
+  tokenHash String
+  expiresAt TimestamptzString
+  revokedAt TimestamptzString?
+
+  @@index([userId])
+}

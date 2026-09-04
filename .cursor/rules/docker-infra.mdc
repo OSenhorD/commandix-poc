@@ -1,44 +1,74 @@
 ---
 description: Docker Compose e variáveis de ambiente
-globs: "{docker-compose*.yml,Dockerfile*,.env.example}"
+globs: "{docker-compose*.yml,Dockerfile*,.env.example,nexus-backend/docker-entrypoint.sh,nexus-frontend/nginx.conf}"
 alwaysApply: false
 ---
 
 # Docker & Infra
 
-## Requisito
-
-Um comando sobe tudo:
-
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
 
 ## Serviços
 
-| Nome | Função |
-|------|--------|
-| `postgres` | PostgreSQL 16, volume persistente |
-| `api` | NestJS — migrations + seed no entrypoint |
-| `frontend` | React — proxy ou env `VITE_API_URL` |
+| Nome | Build / imagem | Porta |
+|------|----------------|-------|
+| `postgres` | `postgres:16-alpine` | 5432 |
+| `api` | `nexus-backend/Dockerfile` | 3000 |
+| `frontend` | `nexus-frontend/Dockerfile` (nginx) | 5173 |
 
-## Ordem de startup
+Versões pinadas — alinhar com `engines` e imagens Docker:
 
-1. Postgres healthy
-2. API: `prisma migrate deploy` → `prisma db seed` → `node dist/main`
-3. Frontend
+| Componente | Fonte | Versão |
+|------------|-------|--------|
+| Node (local) | `nexus-backend/package.json` → `engines.node` | `24.16.0` |
+| Node (Docker) | `nexus-backend/Dockerfile` | `node:24.16.0-alpine` |
+| PostgreSQL | Compose / spec | `postgres:16-alpine` (app); mínimo PN 15+ |
 
-## .env.example
+## Startup
 
-Documentar todas as variáveis (ver `docs/spec/08-docker.md` §8.2):
+1. `postgres` — `pg_isready`
+2. `api` — `db migrate` → seed (sempre; idempotente) → `node dist/main.js`
+3. `frontend` — após `GET /api/v1/health`
 
-- `DATABASE_URL`
-- `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`
-- `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`
-- `PORT`, `NODE_ENV`
-- `VITE_API_URL`
+## Seed
 
-## Dockerfiles
+Entrypoint **sempre** executa seed após migrate (qualquer `NODE_ENV`). Idempotente: pula se tenant `acme` existir. Decisão consciente da PoC — ver [08-docker](../../docs/spec/08-docker.md) §8.5.
 
-- Backend: multi-stage (build → production com node:22-alpine)
-- Frontend: build estático servido por nginx ou dev server conforme ambiente
+## Frontend → API (nginx)
+
+Frontend usa URL relativa `/api/v1`. No `nginx.conf`:
+
+```nginx
+location /api/ {
+  proxy_pass http://api:3000/api/;
+}
+```
+
+Sem `VITE_API_URL` absoluto no build Docker.
+
+## Variáveis (`.env.example`)
+
+```env
+DATABASE_URL=postgresql://commandix:commandix@postgres:5432/commandix
+
+JWT_ACCESS_SECRET=change-me-access
+JWT_REFRESH_SECRET=change-me-refresh
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+PORT=3000
+NODE_ENV=development
+HTTP_TRIGGER_TIMEOUT_MS=30000
+```
+
+## CORS
+
+| Ambiente | Configuração |
+|----------|--------------|
+| Dev Vite (`:5173`) + API (`:3000`) | `app.enableCors({ origin: 'http://localhost:5173' })` em `main.ts` |
+| Docker (nginx proxy `/api/`) | CORS **desnecessário** — mesma origem |
+
+Detalhes: [08-docker §8.8](../../docs/spec/08-docker.md#88-cors).

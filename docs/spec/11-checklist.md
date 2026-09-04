@@ -2,41 +2,49 @@
 
 [← Índice](./README.md)
 
+> Prisma 8: seguir `nexus-backend/.cursor/skills/prisma-8/SKILL.md` em tarefas de contract, migration e query.
+
 ## Fase 1 — Fundação
 
-- [ ] Prisma schema + migration inicial
-- [ ] Docker Compose (postgres + api + frontend)
-- [ ] Módulo Prisma global
-- [ ] Seed com tenant e usuários
+- [ ] Docker Compose (postgres + api ✅; frontend pendente — `nexus-frontend/` a criar)
 
 ## Fase 2 — Auth
 
-- [ ] Bootstrap de tenant
-- [ ] Login / refresh / logout
+- [ ] Bootstrap de tenant + rate limit básico (`@nestjs/throttler`, 5 req / 60s por IP)
+- [ ] Login / refresh / logout (access `15m`, refresh `7d`; claims §5.2 de [05-api](./05-api.md))
 - [ ] JwtAuthGuard + RolesGuard
 - [ ] Decorator @CurrentUser()
 
 ## Fase 3 — Integrações
 
-- [ ] CRUD de integrações com tenant scoping
+- [ ] CRUD de integrações com tenant scoping (PATCH parcial — [05-api §5.3](./05-api.md#patch-integrationsid))
+- [ ] Listagem paginada ([05-api §5.0](./05-api.md#50-paginação-listagens) + filtro `isActive` — [§5.3](./05-api.md#get-integrations))
 - [ ] Serviço HTTP para disparo
-- [ ] Registro de execuções
+- [ ] Registro de execuções (`responseBody` truncado em 10 240 bytes)
 
 ## Fase 4 — Histórico
 
-- [ ] Listagem paginada com filtros
-- [ ] Detalhe de execução
+- [ ] Ordenação execuções (`executedAt DESC`)
+- [ ] Listagem paginada com filtros ([05-api §5.0](./05-api.md#50-paginação-listagens) + `status`, `from`/`to`)
+- [ ] Detalhe de execução (tenant via `Integration`)
 
 ## Fase 5 — Frontend
 
-- [ ] Login + token storage
-- [ ] Lista de integrações
-- [ ] Trigger manual
-- [ ] Histórico com filtros
+- [ ] Cliente HTTP (`src/api/client.ts`) com base `/api/v1`
+- [ ] Interceptor 401 → refresh → logout
+- [ ] Proxy Vite dev (`/api` → localhost:3000)
+- [ ] Login + logout + token storage (`localStorage`)
+- [ ] Bootstrap (cadastro tenant + admin)
+- [ ] Integrações — listar (ADMIN + VIEWER)
+- [ ] Integrações — criar / editar / desativar / excluir (ADMIN)
+- [ ] Trigger manual (ADMIN)
+- [ ] Histórico — listagem, filtros, detalhe execução
+- [ ] Controle de UI por role (ocultar ações de escrita para VIEWER)
 
 ## Fase 6 — Polish
 
 - [ ] `.env.example` completo
 - [ ] README com decisões
-- [ ] Testes críticos (auth, tenant isolation)
+- [ ] Testes críticos (auth, tenant isolation, execuções) — **obrigatório**
+- [ ] (Bônus) cobertura E2E/unitária extra
 - [ ] (Bônus) n8n workflow

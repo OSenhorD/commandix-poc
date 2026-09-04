@@ -1,51 +1,88 @@
 ---
-description: Prisma schema, migrations e seed
-globs: nexus-backend/prisma/**/*
+description: Prisma 8 — contract, migrations, queries e multi-tenant
+globs: "{nexus-backend/src/prisma/**,nexus-backend/prisma.config.ts,nexus-backend/migrations/**,nexus-backend/**/seed.ts}"
 alwaysApply: false
 ---
 
-# Prisma & PostgreSQL
+# Prisma 8 & PostgreSQL
 
-Schema de referência em `docs/spec/04-modelo-dados.md` §4.2.
+**Skill oficial (ler antes de codar):** `.cursor/skills/prisma-8/SKILL.md` (symlink) ou `nexus-backend/.cursor/skills/prisma-8/SKILL.md` (fonte).
 
-## Regras
+Domínio (campos, enums, relações): `docs/spec/04-modelo-dados.md` §4.1–4.3 → implementar em `src/prisma/contract.prisma`.
 
-- PKs: `@id @default(uuid())`
-- Índices em FKs (`tenantId`, `integrationId`) e campos de filtro
-- Enums Prisma para `Role`, `IntegrationType`, `ExecutionStatus`
-- Campos JSON: `customHeaders`, `defaultPayload`, `requestPayload`
+## Layout canônico
 
-## Migrations
-
-```bash
-npx prisma migrate dev --name descriptive_name   # dev
-npx prisma migrate deploy                         # prod/docker
+```
+nexus-backend/
+├── prisma.config.ts
+├── migrations/
+│   ├── snapshots/
+│   └── app/                    # migrations versionadas deste app
+│       ├── refs/db.json
+│       └── <timestamp>_<slug>/
+└── src/prisma/
+    ├── contract.prisma         # fonte — editar aqui
+    ├── contract.json           # gerado — commitar
+    ├── contract.d.ts           # gerado — commitar
+    ├── db.ts                   # runtime entry point
+    └── seed.ts                 # seed idempotente
 ```
 
-Nunca editar migration já aplicada — criar nova migration.
+## Workflow
+
+| Situação | Comandos |
+|----------|----------|
+| Após editar contract | `npm run contract:emit` |
+| Primeira vez (DB vazio) | `npx prisma db init` |
+| Dev local (schema em fluxo) | `npx prisma db update` |
+| Mudança versionada (branch/CI/Docker) | `npx prisma migration plan --name <slug>` → `npx prisma db migrate` |
+| Verificar drift | `npx prisma db verify` |
+
+**Docker / PoC:** `contract emit` (build) → `db migrate` → seed (sempre; idempotente) → start. Não usar `db update` em ambientes compartilhados.
+
+## NestJS
+
+`DatabaseModule` / `DatabaseService` injectable — wrapper de `db` de `src/prisma/db.ts`. Controllers não importam `db` diretamente.
+
+## Queries (ORM — Postgres)
+
+Lane padrão: `db.orm.<Model>` (PascalCase). Ver `nexus-backend/.cursor/skills/prisma-8/references/queries-postgres.md`.
+
+```typescript
+import { db } from '@/prisma/db.js';
+
+// Multi-tenant
+const integration = await db.orm.Integration
+  .where({ id, tenantId })
+  .first();
+
+// Execução — validar tenant via relação
+const execution = await db.orm.IntegrationExecution
+  .where({ id })
+  .include('integration', (i) => i.select('tenantId'))
+  .first();
+if (!execution || execution.integration.tenantId !== tenantId) {
+  throw new NotFoundException();
+}
+```
+
+## Schema (domínio Commandix)
+
+- PKs: UUID (`@id @default(uuid())`)
+- Índices: `tenantId`, `integrationId`, `(integrationId, executedAt)`, `status`
+- Enums: `Role`, `IntegrationType`, `ExecutionStatus`
+- JSON: `customHeaders`, `defaultPayload`, `requestPayload`
+- `Tenant.slug` — `@unique`; `Tenant.name` — sem unique
+- DELETE `Integration` — cascade em `IntegrationExecution`
+
+Tipos temporais e atributos PSL: `nexus-backend/.cursor/skills/prisma-8/references/contract.md`.
 
 ## Seed
 
-`prisma/seed.ts` deve criar:
+`src/prisma/seed.ts` — idempotente; pular se tenant `acme` existir. Entrypoint Docker **sempre** invoca seed (não condicional a `NODE_ENV`); ver `docs/spec/08-docker.md` §8.5. Scripts one-off: `await db.close()` ao final (`references/runtime.md` na skill prisma-8).
 
-- 1 tenant (`Acme Corp`)
-- 1 admin + 1 viewer
-- 1 integração demo (tipo WEBHOOK)
+## Proibições
 
-Senhas do seed documentadas no [`readme.md`](../../readme.md) (ex.: `Admin123!`).
-
-## PrismaService
-
-Módulo global exportando `PrismaService` que estende `PrismaClient` com `onModuleInit` conectando ao banco.
-
-## Queries multi-tenant
-
-Sempre incluir `tenantId` no `where`:
-
-```typescript
-// ❌ Vulnerável
-prisma.integration.findUnique({ where: { id } });
-
-// ✅ Seguro
-prisma.integration.findFirst({ where: { id, tenantId } });
-```
+- Não editar `contract.json` / `contract.d.ts` manualmente
+- Não colocar `DATABASE_URL` em `prisma.config.ts` (usar `.env`)
+- Não usar Prisma ORM 7 (`schema.prisma`, `@prisma/client`, `migrate deploy`)

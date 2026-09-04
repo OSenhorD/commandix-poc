@@ -6,46 +6,62 @@ alwaysApply: false
 
 # React Frontend
 
-Mínimo funcional — sem foco em design.
+Mínimo funcional — **HTML/CSS simples** (sem Tailwind ou UI library obrigatória). **Escopo completo do protótipo:** todas as telas e ações expostas pela API necessárias ao fluxo end-to-end (via UI, não curl).
 
 ## Stack
 
-- Vite + React + TypeScript
-- React Router v6+
-- Cliente HTTP (fetch ou axios)
+- React 19 + TypeScript + Vite (versões mais recentes)
+- React Router v7+ (ou última estável)
+- fetch ou axios com interceptor JWT
 
 ## Estrutura
 
 ```
 src/
-├── api/          # client, auth, integrations, executions
-├── pages/        # Login, Integrations, Executions
-├── components/   # Layout, ProtectedRoute, tabelas
+├── api/          # client, auth, tenants, integrations, executions
+├── pages/        # Login, Bootstrap, Integrations, IntegrationForm, Executions, ExecutionDetail
+├── components/   # Layout, ProtectedRoute, tabelas, forms
 ├── hooks/        # useAuth, useIntegrations
-└── types/        # interfaces espelhando DTOs da API
+└── types/        # DTOs espelhando docs/spec/05-api.md
 ```
 
 ## Auth
 
-- Login → armazena `accessToken` + `refreshToken`
-- `ProtectedRoute` redireciona para `/login` se não autenticado
-- Interceptor: em 401, tenta refresh; se falhar, logout
+- Tokens em **`localStorage`** (`accessToken`, `refreshToken`)
+- `ProtectedRoute` → redirect `/login` se não autenticado
+- 401 → tentar `POST /auth/refresh` → logout se falhar
+- Cliente HTTP centralizado (`src/api/client.ts`) com interceptor de refresh
+- **Logout** na UI
 
-## Telas mínimas
+## Telas e ações
 
-1. **Login** — form email/senha
-2. **Integrações** — lista, botão trigger (só admin), link para histórico
-3. **Histórico** — tabela paginada, filtros status e datas
+| Tela | ADMIN | VIEWER |
+|------|-------|--------|
+| Login | ✅ | ✅ |
+| Bootstrap (tenant + admin) | ✅ rota pública | — |
+| Integrações — listar | ✅ | ✅ |
+| Integrações — criar / editar | ✅ | — |
+| Integrações — desativar / excluir | ✅ | — |
+| Integrações — trigger | ✅ | — |
+| Histórico — listar + filtros | ✅ | ✅ |
+| Histórico — detalhe execução | ✅ | ✅ |
 
-## API base
+Forms de integração: `name`, `type`, `targetUrl`, `authKey`, `customHeaders`, `defaultPayload`, `isActive`.
+
+## API
 
 ```typescript
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
+// Relativo — nginx (Docker) ou proxy Vite (dev) encaminham /api → backend
+const API_URL = import.meta.env.VITE_API_URL ?? '/api/v1';
 ```
+
+**Dev:** configurar proxy em `vite.config.ts` (`/api` → `http://localhost:3000`).
+
+Contrato: `docs/spec/05-api.md`.
 
 ## Convenções
 
-- Componentes funcionais
-- Tipagem estrita (sem `any`)
+- Componentes funcionais, tipagem estrita (sem `any`)
 - Loading e error states básicos
-- Não usar biblioteca de UI pesada — HTML/CSS simples ou Tailwind se já configurado
+- HTML/CSS simples — sem biblioteca UI pesada
+- Ocultar/desabilitar ações conforme `role` do usuário logado

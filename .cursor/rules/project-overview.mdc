@@ -5,31 +5,60 @@ alwaysApply: true
 
 # Commandix PoC — Regras Gerais
 
-Spec completa em `docs/spec/`. Contexto para agentes em `AGENTS.md`.
+Fonte de verdade: `AGENTS.md`. Spec funcional: `docs/spec/`. Domínio (campos, API, checklist): `docs/spec/04-modelo-dados.md`, `05-api.md`, `11-checklist.md`.
 
 ## Princípios
 
-- **Sempre TypeScript**: código de aplicação em `.ts`/`.tsx`; sem JavaScript puro (exceto configs mínimas de tooling se inevitável)
-- **Multi-tenancy é crítico**: toda query de negócio filtra por `tenantId` do JWT
+- **Versões mais recentes**: runtime, frameworks, ORM e imagens Docker
+- **Sempre TypeScript**: `.ts`/`.tsx` para código de aplicação
+- **Imports backend**: alias `@/` → `src/`; sufixo `.js` (ver `AGENTS.md`)
+- **Multi-tenancy é crítico**: filtrar por `tenantId` do JWT em toda query de negócio — **incluindo execuções** (via `Integration`)
 - **Escopo mínimo**: implementar só o que a spec pede
 - **Backend first**: auth → integrações → execuções → frontend
 - **Código em inglês**, docs em português
 
+## Stack
+
+| Camada | Tecnologia |
+|--------|------------|
+| API | NestJS 12, Node 24, TypeScript 6 (ESM) |
+| ORM | Prisma 8 (`@prisma/orm-postgres`) — `src/prisma/contract.prisma` |
+| DB | PostgreSQL 16+ |
+| Frontend | React 19, Vite, TypeScript |
+| Testes | Vitest 4 + supertest — **críticos obrigatórios**; extra = bônus |
+| Infra | Docker Compose |
+
 ## Estrutura do monorepo
 
-- `nexus-backend/` — API NestJS 12 (ESM)
-- `nexus-frontend/` — React + Vite (a criar)
-- `docker-compose.yml` na raiz — `docker compose up --build`
+```
+commandix-poc/
+├── .cursor/rules/          # regras (monorepo)
+├── .cursor/skills/         # symlink prisma-8 → backend
+├── nexus-backend/          # API + Prisma 8
+├── nexus-frontend/         # React (a criar)
+├── docker-compose.yml
+└── docs/spec/
+```
+
+Comandos Prisma: `cd nexus-backend` antes de CLI. Skill: `.cursor/skills/prisma-8/SKILL.md` ou `nexus-backend/.cursor/skills/prisma-8/SKILL.md`.
+
+## Módulos backend
+
+`auth`, `tenants`, `integrations`, `executions`, `database`, `common`.
+
+Fora de escopo: módulo `users/` — criação de usuários **somente** via `POST /tenants/bootstrap` (tenant + `ADMIN`).
 
 ## Antes de implementar
 
-1. Consultar checklist em `docs/spec/11-checklist.md`
-2. Verificar módulo/domínio correto
-3. Não duplicar lógica entre services e controllers
+1. Decisões adotadas em `AGENTS.md`
+2. Checklist em `docs/spec/11-checklist.md`
+3. Regra de domínio em `.cursor/rules/*.mdc`
+4. Controllers finos; lógica nos services
 
 ## Segurança
 
-- Hash de senha com bcrypt
-- Refresh token com hash no banco
-- Cross-tenant → 404 (NotFoundException)
-- DTOs validados; nunca confiar em `tenantId` do body
+- Senha: bcrypt; refresh token com hash no banco
+- Cross-tenant → 404 (`NotFoundException`)
+- Role insuficiente → 403
+- Nunca confiar em `tenantId` do body
+- `authKey` mascarada na API; `Authorization: Bearer` no disparo HTTP
