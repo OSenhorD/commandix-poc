@@ -175,9 +175,21 @@ Comandos em `nexus-backend/` (skill: [`nexus-backend/.cursor/skills/prisma-8/SKI
 
 ```bash
 cd nexus-backend
-npm run lint      # oxlint
-npm run format    # prettier
+npm run lint           # oxlint
+npm run format         # prettier (write)
+npm run format:check   # prettier (CI — só verifica)
 ```
+
+## CI (GitHub Actions)
+
+Workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — push/PR em `main` ou `master`:
+
+| Job | O que valida |
+|-----|----------------|
+| **validate** | `npm ci`, `contract:emit` (+ contract commitado), `prisma db migrate`, lint, Prettier, testes unit/e2e, build |
+| **docker** | `docker compose up --build`, healthcheck da API, testes unit/e2e via `docker compose exec api` |
+
+Jobs em paralelo. Node **24.16.0** + Postgres **16** no job `validate`.
 
 ## Status
 

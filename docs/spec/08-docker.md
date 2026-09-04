@@ -136,6 +136,18 @@ nginx faz proxy `/api/` → `api:3000`. Browser só fala com o host do frontend 
 | Item | Arquivo |
 |------|---------|
 | Compose | `docker-compose.yml` |
+| CI | `.github/workflows/ci.yml` |
 | API | `nexus-backend/Dockerfile`, `docker-entrypoint.sh` |
 | Frontend | `nexus-frontend/Dockerfile`, `nginx.conf` |
 | Volume | `postgres_data` |
+
+## 8.10 CI (GitHub Actions)
+
+Arquivo: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
+
+| Job | Validações |
+|-----|------------|
+| `validate` | Node 24.16.0 + Postgres 16 service — `contract:emit`, diff do contract, migrate, lint, Prettier, test/e2e, build |
+| `docker` | `docker compose up --build`, healthcheck, test/e2e no container `api` |
+
+Dispara em push/PR para `main`.
