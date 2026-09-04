@@ -3,6 +3,10 @@
   "compilerOptions": {
     "rootDir": "./src"
   },
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "resolveFullExtension": ".js"
+  },
   "include": ["src"],
   "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
 }
