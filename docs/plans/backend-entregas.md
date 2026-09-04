@@ -25,7 +25,7 @@
 | Seed idempotente | ✅ (`src/prisma/seed.ts`) |
 | `GET /api/v1/health` | ✅ |
 | Módulos de negócio | ❌ |
-| `DatabaseModule` | ❌ |
+| `DatabaseModule` | ✅ |
 | `ValidationPipe` / CORS | ❌ |
 | Docker Compose | ⚠️ postgres + api (frontend pendente) |
 | Testes críticos | ❌ |
@@ -80,51 +80,6 @@ flowchart TD
 ---
 
 ## Entregas
-
-### E01 — Domínio Prisma + migration inicial
-
-**Objetivo:** substituir modelos demo pelo domínio Commandix no PostgreSQL.
-
-**Escopo:**
-- Reescrever `nexus-backend/src/prisma/contract.prisma` conforme [04-modelo-dados §4.2](../spec/04-modelo-dados.md): `Tenant`, `User`, `Integration`, `IntegrationExecution`, `RefreshToken` + enums.
-- `npm run contract:emit`
-- Gerar e commitar migration: `npx prisma migration plan --name initial` → `npx prisma db migrate` (ou `db init` em DB vazio).
-- Seguir skill Prisma 8: `nexus-backend/.cursor/skills/prisma-8/SKILL.md`.
-
-**Arquivos:**
-- Modificar: `src/prisma/contract.prisma`
-- Gerar: `src/prisma/contract.json`, `contract.d.ts`, `migrations/app/*`
-
-**Critério de done:**
-- [x] Tabelas criadas no Postgres local
-- [x] `db.orm.public.Tenant`, `db.orm.public.Integration`, etc. tipados no client
-
-**Dependências:** nenhuma
-
-**Status:** ✅ concluída
-
----
-
-### E02 — DatabaseModule
-
-**Objetivo:** expor `db` como provider NestJS injectable.
-
-**Escopo:**
-- `src/database/database.module.ts` — `@Global()`, exporta `DatabaseService`
-- `src/database/database.service.ts` — wrapper com getter `orm` → `db.orm`; `onModuleDestroy` chama `db.close()` se aplicável
-- Registrar em `AppModule`
-
-**Arquivos:**
-- Criar: `src/database/database.module.ts`, `database.service.ts`
-- Modificar: `src/app.module.ts`
-
-**Critério de done:**
-- [ ] Service injectável em qualquer módulo
-- [ ] App sobe sem erro com `DATABASE_URL` válida
-
-**Dependências:** E01
-
----
 
 ### E03 — Bootstrap da aplicação (pipes, CORS, health)
 
@@ -509,7 +464,7 @@ flowchart TD
 
 | Fase checklist | Entregas |
 |----------------|----------|
-| Fase 1 — Fundação | E01 ✅, E04 ✅, E18 ⚠️ (postgres+api), E02, E03 |
+| Fase 1 — Fundação | E01 ✅, E02 ✅, E04 ✅, E18 ⚠️ (postgres+api), E03 |
 | Fase 2 — Auth | E06, E07, E08, E09, E10 |
 | Fase 3 — Integrações | E05, E11, E12, E13, E14, E15 |
 | Fase 4 — Histórico | E16, E17 |

@@ -12,7 +12,7 @@ Contexto para agentes de IA trabalhando neste repositório.
 
 | Componente | Status |
 |------------|--------|
-| `nexus-backend/` | Domínio Prisma 8 + migration + seed; Docker (Dockerfile + entrypoint); sem módulos de negócio |
+| `nexus-backend/` | Domínio Prisma 8 + migration + seed + `DatabaseModule`; Docker (Dockerfile + entrypoint); sem módulos de negócio |
 | `nexus-frontend/` | **Não criado** |
 | Prisma 8 | `contract.prisma` — domínio Commandix; migration `20260903T0509_initial` |
 | Docker Compose | **postgres + api** (`docker compose up --build`); frontend pendente |
