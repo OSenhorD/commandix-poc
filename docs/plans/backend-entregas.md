@@ -105,27 +105,6 @@ flowchart TD
 
 ---
 
-### E05 — Utilitários comuns (paginação + mascaramento)
-
-**Objetivo:** código compartilhado reutilizado por listagens e integrações.
-
-**Escopo:**
-- `src/common/dto/pagination-query.dto.ts` — `page` (default 1, min 1), `limit` (default 20, min 1, max 100)
-- `src/common/utils/pagination.util.ts` — `buildMeta(page, limit, total)` → envelope `meta` conforme [05-api §5.0](../spec/05-api.md#50-paginação-listagens)
-- `src/common/utils/mask-auth-key.util.ts` — ex.: `****-key` (últimos 4 chars ou padrão fixo da spec)
-- Módulo `common/` exportando o necessário
-
-**Arquivos:**
-- Criar: `src/common/dto/`, `src/common/utils/`, `src/common/common.module.ts`
-
-**Critério de done:**
-- [ ] Unit test leve em `pagination.util` (totalPages, hasNextPage, page além do fim)
-- [ ] `maskAuthKey('secret-key')` nunca retorna valor completo
-
-**Dependências:** E03 (ValidationPipe)
-
----
-
 ### E06 — Bootstrap de tenant
 
 **Objetivo:** única rota pública de criação de tenant + admin.
@@ -443,7 +422,7 @@ flowchart TD
 |----------------|----------|
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
 | Fase 2 — Auth | E06, E07, E08, E09, E10 |
-| Fase 3 — Integrações | E05, E11, E12, E13, E14, E15 |
+| Fase 3 — Integrações | E05 ✅, E11, E12, E13, E14, E15 |
 | Fase 4 — Histórico | E16, E17 |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
 
