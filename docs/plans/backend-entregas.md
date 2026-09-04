@@ -82,54 +82,6 @@ flowchart TD
 
 ## Entregas
 
-### E04 — Seed idempotente
-
-**Objetivo:** dados demo para desenvolvimento e Docker.
-
-**Escopo:**
-- `src/prisma/seed.ts`: tenant `acme`, admin `admin@acme.com`, viewer `viewer@acme.com`, 1 integração webhook
-- Senha: `Admin123!` (bcrypt)
-- Idempotência: se slug `acme` existir → exit 0 sem inserir
-- Script npm: `"seed": "tsx src/prisma/seed.ts"`
-
-**Arquivos:**
-- Criar: `src/prisma/seed.ts`
-- Modificar: `package.json` (script + dep `bcrypt` se ainda não houver)
-
-**Critério de done:**
-- [x] Segunda execução do seed não duplica dados
-- [ ] Credenciais do seed funcionam após E07
-
-**Dependências:** E01, E02
-
-**Status:** ✅ concluída (login pendente E07)
-
----
-
-### E07 — Login
-
-**Objetivo:** autenticação com access + refresh tokens.
-
-**Escopo:**
-- Módulo `auth/`: `POST /auth/login`
-- Validar email/senha (bcrypt)
-- Gerar access JWT (`sub`, `tenantId`, `role`, `email`) — exp `15m` via env
-- Gerar refresh opaco (random), hash no banco (`RefreshToken`)
-- Resposta `200` conforme spec
-- Credenciais inválidas → `401`
-
-**Arquivos:**
-- Criar: `src/auth/auth.module.ts`, `auth.controller.ts`, `auth.service.ts`, `dto/login.dto.ts`
-- Deps: `@nestjs/jwt`, `@nestjs/passport`, `passport-jwt` (prepara E08)
-
-**Critério de done:**
-- [ ] Login com seed admin retorna tokens + user
-- [ ] Senha errada → 401
-
-**Dependências:** E04 (dados de teste) ou bootstrap manual
-
----
-
 ### E08 — JWT strategy + guards + @CurrentUser
 
 **Objetivo:** proteger rotas autenticadas e por role.
@@ -396,7 +348,7 @@ flowchart TD
 | Fase checklist | Entregas |
 |----------------|----------|
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
-| Fase 2 — Auth | E06 ✅, E07, E08, E09, E10 |
+| Fase 2 — Auth | E06 ✅, E07 ✅, E08, E09, E10 |
 | Fase 3 — Integrações | E05 ✅, E11, E12, E13, E14, E15 |
 | Fase 4 — Histórico | E16, E17 |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
