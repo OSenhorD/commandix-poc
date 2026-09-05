@@ -82,30 +82,6 @@ flowchart TD
 
 ## Entregas
 
-### E08 — JWT strategy + guards + @CurrentUser
-
-**Objetivo:** proteger rotas autenticadas e por role.
-
-**Escopo:**
-- `JwtStrategy` — valida access token, popula `{ id: sub, tenantId, role, email }`
-- `JwtAuthGuard`, `RolesGuard`
-- Decorators: `@CurrentUser()`, `@Roles('ADMIN')`
-- `@Public()` ou equivalente para rotas abertas (health, login, bootstrap)
-- Config JWT via env: `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`
-
-**Arquivos:**
-- Criar: `src/common/decorators/`, `src/common/guards/`, `src/auth/jwt.strategy.ts`, `src/auth/auth.constants.ts`
-- Modificar: `auth.module.ts`, `app.module.ts` (guards globais opcionais)
-
-**Critério de done:**
-- [ ] Rota protegida sem token → 401
-- [ ] Token válido → `@CurrentUser()` disponível no controller
-- [ ] `@Roles('ADMIN')` com VIEWER → 403
-
-**Dependências:** E07
-
----
-
 ### E09 — Refresh + logout
 
 **Objetivo:** ciclo completo de sessão.
@@ -348,7 +324,7 @@ flowchart TD
 | Fase checklist | Entregas |
 |----------------|----------|
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
-| Fase 2 — Auth | E06 ✅, E07 ✅, E08, E09, E10 |
+| Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09, E10 |
 | Fase 3 — Integrações | E05 ✅, E11, E12, E13, E14, E15 |
 | Fase 4 — Histórico | E16, E17 |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
