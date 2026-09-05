@@ -37,6 +37,22 @@ describe('OpenAPI + Scalar (e2e)', () => {
 
     expect(response.body.openapi).toMatch(/^3\./);
     expect(response.body.paths['/api/v1/health']).toBeDefined();
+    expect(response.body.paths['/api/v1/auth/login']).toBeDefined();
+    expect(response.body.paths['/api/v1/tenants/bootstrap']).toBeDefined();
+  });
+
+  it('documents MVP request and response schemas', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/openapi.json')
+      .expect(200);
+
+    const schemas = response.body.components.schemas;
+
+    expect(schemas.LoginDto).toBeDefined();
+    expect(schemas.LoginResponseDto).toBeDefined();
+    expect(schemas.BootstrapTenantDto).toBeDefined();
+    expect(schemas.BootstrapTenantResponseDto).toBeDefined();
+    expect(schemas.Role).toBeDefined();
   });
 
   it('GET /api/docs serves Scalar UI', async () => {

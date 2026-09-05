@@ -37,7 +37,7 @@
 |--------|------|------------|---------|
 | **E20a** | Infra OpenAPI + Scalar | E03 | ✅ JSON + Scalar UI |
 | **E20a-plugin** | CLI Plugin Swagger | E20a | ✅ |
-| **E20b** | Docs MVP | E06, E07 | health, bootstrap, login |
+| **E20b** | Docs MVP | E06, E07 | ✅ health, bootstrap, login |
 | **E20c** | Bearer + rotas públicas | E08 | Try-it JWT no Scalar |
 | **E20d** | Docs por módulo | E09–E17 | refresh, integrations, executions |
 | **E20e** | Docker + README | E18 | docs via Compose |

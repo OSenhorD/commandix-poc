@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
@@ -7,10 +8,12 @@ import {
 } from 'class-validator';
 
 export class BootstrapTenantDto {
+  @ApiProperty({ example: 'Acme Corp' })
   @IsString()
   @IsNotEmpty()
   tenantName!: string;
 
+  @ApiProperty({ example: 'acme' })
   @IsString()
   @IsNotEmpty()
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
@@ -18,9 +21,11 @@ export class BootstrapTenantDto {
   })
   tenantSlug!: string;
 
+  @ApiProperty({ example: 'admin@acme.com' })
   @IsEmail()
   adminEmail!: string;
 
+  @ApiProperty({ example: 'Admin123!', minLength: 8 })
   @IsString()
   @MinLength(8)
   adminPassword!: string;
