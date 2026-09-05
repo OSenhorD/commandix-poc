@@ -63,7 +63,7 @@ erDiagram
 
 ## 4.2 Modelo de domínio (referência PSL)
 
-> **Implementação:** `nexus-backend/src/prisma/contract.prisma`. Sintaxe e tipos: skill Prisma 8 (`nexus-backend/.cursor/skills/prisma-8/references/contract.md`). Após editar: `npm run contract:emit`. Mudanças versionadas: `migration plan` + `db migrate`.
+> **Implementação:** `nexus-backend/src/prisma/contract.prisma`. Sintaxe e tipos: skill Prisma 8 (`nexus-backend/.agents/skills/prisma-8/references/contract.md`). Após editar: `npm run contract:emit`. Mudanças versionadas: `migration plan` + `db migrate`.
 
 Bloco abaixo descreve **entidades, campos e relações** do domínio Commandix (PSL de referência):
 

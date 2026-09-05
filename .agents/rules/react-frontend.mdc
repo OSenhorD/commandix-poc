@@ -1,6 +1,6 @@
 ---
 description: Padrões React para nexus-frontend
-globs: nexus-frontend/**/*.{ts,tsx}
+globs: nexus-frontend/**/*.ts,nexus-frontend/**/*.tsx
 alwaysApply: false
 ---
 

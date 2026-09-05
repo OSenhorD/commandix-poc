@@ -1,6 +1,6 @@
 ---
 description: Docker Compose e variáveis de ambiente
-globs: "{docker-compose*.yml,Dockerfile*,.env.example,nexus-backend/docker-entrypoint.sh,nexus-frontend/nginx.conf}"
+globs: docker-compose*.yml,Dockerfile*,.env.example,nexus-backend/docker-entrypoint.sh,nexus-frontend/nginx.conf
 alwaysApply: false
 ---
 

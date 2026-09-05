@@ -51,7 +51,7 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
   - **In the TS builder's `defineContract` (only when authoring `contract.ts`):** `extensions: { pgvector }` — record of *pack* descriptors imported from `@internal/extension-<name>/pack`.
 - **Contract space.** Every package that emits a contract owns its own *contract space* — a `prisma.config.ts` at package root, a contract source, the colocated emitted artefacts, and a `migrations/` directory. **There are two intentional on-disk layouts**, picked by whether the contract space is the consuming application or a contract-space package (an extension, an internal aggregate-root package, etc.):
   - **Application layout** (what you use when building an *app*). `prisma.config.ts` at repo root; `src/prisma/contract.{prisma,ts}`; `src/prisma/contract.{json,d.ts}` colocated; `src/prisma/db.ts` colocated; migrations under `migrations/app/<timestamp>_<slug>/`. The `app/` segment is the consuming application's space-id; extension space-ids land in sibling `migrations/<extension-space-id>/` directories that the extension packages manage. This is what `examples/prisma-8-demo` uses. `prisma orm init` currently scaffolds something different (`prisma/...` at repo root) — that's a defect (TML-2532); the canonical layout is what every command actually expects to see.
-  - **Contract-space-package layout** (what you use when *publishing* a contract-space package — extensions, internal monorepo packages). `prisma.config.ts` at package root; `src/contract.{prisma,ts}` directly (no `prisma/` subdir); `src/contract.{json,d.ts}` colocated; `migrations/<timestamp>_<slug>/` directly under `migrations/` (no `<space-id>` segment — the package *is* a single space). Documented in `.cursor/rules/contract-space-package-layout.mdc` and ADR 212.
+  - **Contract-space-package layout** (what you use when *publishing* a contract-space package — extensions, internal monorepo packages). `prisma.config.ts` at package root; `src/contract.{prisma,ts}` directly (no `prisma/` subdir); `src/contract.{json,d.ts}` colocated; `migrations/<timestamp>_<slug>/` directly under `migrations/` (no `<space-id>` segment — the package *is* a single space). Documented in `.agents/rules/contract-space-package-layout.mdc` and ADR 212.
 
   Both layouts let `defineConfig`'s `contract:` path point at the source; the framework derives everything else (emit output, migration root) from there. Pick the layout that matches what you're building and stick with it — don't mix.
 
@@ -402,7 +402,7 @@ Infer captures indexes at full fidelity — expression, partial (`where:`), uniq
 - TS builder surface and the callback-helper vocabulary: `packages/2-sql/2-authoring/contract-ts/README.md`.
 - Layouts (where `contract.prisma`, `contract.json`, `contract.d.ts`, and `migrations/` live):
   - **App layout** (`src/prisma/...` + `migrations/app/...`) — what `examples/prisma-8-demo` demonstrates; the canonical shape consuming applications use.
-  - **Contract-space-package layout** (`src/contract.{prisma,ts}` directly, `migrations/<timestamp>_<slug>/` without a space-id segment) — for extensions and aggregate-root packages, documented in `.cursor/rules/contract-space-package-layout.mdc` and ADR 212.
+  - **Contract-space-package layout** (`src/contract.{prisma,ts}` directly, `migrations/<timestamp>_<slug>/` without a space-id segment) — for extensions and aggregate-root packages, documented in `.agents/rules/contract-space-package-layout.mdc` and ADR 212.
 
 ## Checklist
 

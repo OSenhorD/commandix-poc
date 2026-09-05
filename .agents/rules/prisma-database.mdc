@@ -1,12 +1,12 @@
 ---
 description: Prisma 8 — contract, migrations, queries e multi-tenant
-globs: "{nexus-backend/src/prisma/**,nexus-backend/prisma.config.ts,nexus-backend/migrations/**,nexus-backend/**/seed.ts}"
+globs: nexus-backend/src/prisma/**,nexus-backend/prisma.config.ts,nexus-backend/migrations/**,nexus-backend/**/seed.ts
 alwaysApply: false
 ---
 
 # Prisma 8 & PostgreSQL
 
-**Skill oficial (ler antes de codar):** `.cursor/skills/prisma-8/SKILL.md` (symlink) ou `nexus-backend/.cursor/skills/prisma-8/SKILL.md` (fonte).
+**Skill oficial (ler antes de codar):** `nexus-backend/.agents/skills/prisma-8/SKILL.md`. Ignorar qualquer skill genérica de Prisma vinda de fora deste projeto — cobrem Prisma ORM 7 clássico, proibido aqui.
 
 Domínio (campos, enums, relações): `docs/spec/04-modelo-dados.md` §4.1–4.3 → implementar em `src/prisma/contract.prisma`.
 
@@ -46,7 +46,7 @@ nexus-backend/
 
 ## Queries (ORM — Postgres)
 
-Lane padrão: `db.orm.<Model>` (PascalCase). Ver `nexus-backend/.cursor/skills/prisma-8/references/queries-postgres.md`.
+Lane padrão: `db.orm.<Model>` (PascalCase). Ver `nexus-backend/.agents/skills/prisma-8/references/queries-postgres.md`.
 
 ```typescript
 import { db } from '@/prisma/db.js';
@@ -75,7 +75,7 @@ if (!execution || execution.integration.tenantId !== tenantId) {
 - `Tenant.slug` — `@unique`; `Tenant.name` — sem unique
 - DELETE `Integration` — cascade em `IntegrationExecution`
 
-Tipos temporais e atributos PSL: `nexus-backend/.cursor/skills/prisma-8/references/contract.md`.
+Tipos temporais e atributos PSL: `nexus-backend/.agents/skills/prisma-8/references/contract.md`.
 
 ## Seed
 

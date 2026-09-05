@@ -2,7 +2,7 @@
 
 [← Índice](./README.md)
 
-> Prisma 8: seguir `nexus-backend/.cursor/skills/prisma-8/SKILL.md` em tarefas de contract, migration e query.
+> Prisma 8: seguir `nexus-backend/.agents/skills/prisma-8/SKILL.md` em tarefas de contract, migration e query.
 
 ## Fase 1 — Fundação
 

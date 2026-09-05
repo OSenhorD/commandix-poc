@@ -252,4 +252,4 @@ Fase C (E19 consolidado)     →  após E17; refatorar helpers se necessário
 | Checklist | [11-checklist.md](../spec/11-checklist.md) |
 | Entregas backend | [backend-entregas.md](./backend-entregas.md) |
 | API | [05-api.md](../spec/05-api.md) |
-| Regras NestJS | [.cursor/rules/nestjs-backend.mdc](../../.cursor/rules/nestjs-backend.mdc) |
+| Regras NestJS | [.agents/rules/nestjs-backend.mdc](../../.agents/rules/nestjs-backend.mdc) |

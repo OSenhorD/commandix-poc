@@ -6,7 +6,7 @@ alwaysApply: false
 
 # NestJS Backend
 
-Decisões: `AGENTS.md`. API: `docs/spec/05-api.md`. Prisma 8: `nexus-backend/.cursor/skills/prisma-8/SKILL.md`.
+Decisões: `AGENTS.md`. API: `docs/spec/05-api.md`. Prisma 8 (skill obrigatória para tarefas Prisma): `nexus-backend/.agents/skills/prisma-8/SKILL.md`.
 
 ## Módulos
 

@@ -247,5 +247,5 @@ E01 → E02 → E03 → E04 → E05 → E06 → E07 → E08 → E09 → E10
 | Contrato API | [05-api.md](../spec/05-api.md) |
 | Docker / env | [08-docker.md](../spec/08-docker.md) |
 | Checklist completo | [11-checklist.md](../spec/11-checklist.md) |
-| Regras NestJS | [.cursor/rules/nestjs-backend.mdc](../../.cursor/rules/nestjs-backend.mdc) |
-| Prisma 8 | [nexus-backend/.cursor/skills/prisma-8/SKILL.md](../../nexus-backend/.cursor/skills/prisma-8/SKILL.md) |
+| Regras NestJS | [.agents/rules/nestjs-backend.mdc](../../.agents/rules/nestjs-backend.mdc) |
+| Prisma 8 | [nexus-backend/.agents/skills/prisma-8/SKILL.md](../../nexus-backend/.agents/skills/prisma-8/SKILL.md) |

@@ -8,8 +8,8 @@ Plataforma de automação B2B — módulo de gestão de integrações multi-tena
 |---------|-----------|
 | [`docs/spec/`](./docs/spec/README.md) | Spec técnica (funcionalidades, API, schema, checklist) |
 | [`AGENTS.md`](./AGENTS.md) | Contexto para agentes de IA |
-| [`.cursor/skills/`](./.cursor/skills/README.md) | Skills do monorepo (Prisma 8) |
-| [`.cursor/rules/`](./.cursor/rules/) | Regras Cursor por domínio |
+| [`.agents/README.md`](./.agents/README.md) | Skills do monorepo (Prisma 8) |
+| [`.agents/rules/`](./.agents/rules/) | Regras por domínio |
 
 ## Pré-requisitos
 
@@ -159,7 +159,7 @@ npm run test:e2e
 
 ## Prisma 8
 
-Comandos em `nexus-backend/` (skill: [`nexus-backend/.cursor/skills/prisma-8/SKILL.md`](./nexus-backend/.cursor/skills/prisma-8/SKILL.md)):
+Comandos em `nexus-backend/` (skill: [`nexus-backend/.agents/skills/prisma-8/SKILL.md`](./nexus-backend/.agents/skills/prisma-8/SKILL.md)):
 
 | Situação | Comando |
 |----------|---------|
@@ -182,7 +182,7 @@ npm run format:check   # prettier (CI — só verifica)
 
 ## CI (GitHub Actions)
 
-Workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — push/PR em `main` ou `master`:
+Workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — push/PR em `main`:
 
 | Job | O que valida |
 |-----|----------------|
@@ -227,7 +227,7 @@ Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
 |--------|---------|
 | Versões | Sempre as mais recentes (runtime, frameworks, ORM, Docker) |
 | Imports backend | Alias `@/` → `src/`; sufixo `.js`; `tsc-alias` no build |
-| ORM | Prisma 8 — skill em `nexus-backend/.cursor/skills/prisma-8/` |
+| ORM | Prisma 8 — skill em [`nexus-backend/.agents/skills/prisma-8/`](./nexus-backend/.agents/skills/prisma-8/SKILL.md) |
 | Migrations | `migrations/app/` + `db migrate` no Docker |
 | Schema no Docker | `contract emit` (build) → `db migrate` → seed idempotente (sempre no entrypoint) |
 | Multi-tenancy | `tenantId` no JWT + filtro no service; cross-tenant → 404 |

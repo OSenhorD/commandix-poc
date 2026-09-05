@@ -37,8 +37,8 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 |--------|-----------|-------|
 | API | `nexus-backend/` | NestJS + Prisma 8; `prisma.config.ts` e skills aqui |
 | Frontend | `nexus-frontend/` | A criar |
-| Spec / rules | raiz | `docs/spec/`, `.cursor/rules/` |
-| Skills Prisma | `nexus-backend/.cursor/skills/prisma-8/` | Symlink na raiz: `.cursor/skills/prisma-8/` |
+| Spec / rules | raiz | `docs/spec/`, `.agents/rules/` |
+| Skills Prisma | `nexus-backend/.agents/skills/prisma-8/` | Sem symlink na raiz — ler direto neste caminho |
 
 **Workspace:** abrir `commandix-poc/` (raiz). Comandos Prisma: `cd nexus-backend` antes de `contract emit`, `db migrate`, etc.
 
@@ -119,7 +119,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 
 ### Banco (Prisma 8)
 
-- **Skill (obrigatória em tarefas Prisma):** `nexus-backend/.cursor/skills/prisma-8/SKILL.md` — abrir a routing table antes de codar
+- **Skill (obrigatória em tarefas Prisma):** `nexus-backend/.agents/skills/prisma-8/SKILL.md` — abrir a routing table antes de codar
 - Contract: `nexus-backend/src/prisma/contract.prisma`
 - Client: `src/prisma/db.ts` → wrapper NestJS `DatabaseModule` / `DatabaseService`
 - Após editar contract: `npm run contract:emit`
@@ -188,9 +188,8 @@ npx prisma db migrate              # aplica migrations pendentes
 | Arquivo | Conteúdo |
 |---------|----------|
 | `docs/spec/` | Spec funcional, API, schema, checklist |
-| `.cursor/rules/*.mdc` | Regras por domínio (raiz do monorepo) |
-| `.cursor/skills/prisma-8/` | Symlink → skill Prisma 8 |
-| `nexus-backend/.cursor/skills/prisma-8/` | Fonte da skill (sync via `npm run skills:sync`) |
+| `.agents/rules/*.mdc` | Regras por domínio (raiz do monorepo) |
+| `nexus-backend/.agents/skills/prisma-8/` | Skill Prisma 8 (sync via `npm run skills:sync`) |
 | `readme.md` | Setup, seed, decisões do candidato |
 
 ## Fluxo de trabalho sugerido para IA
@@ -198,8 +197,8 @@ npx prisma db migrate              # aplica migrations pendentes
 1. Ler o arquivo relevante em `docs/spec/`
 2. Consultar **decisões adotadas** neste arquivo antes de implementar
 3. Verificar [checklist](./docs/spec/11-checklist.md) antes e depois da tarefa
-4. Tarefas Prisma → ler `nexus-backend/.cursor/skills/prisma-8/SKILL.md` primeiro
-5. Seguir regras em `.cursor/rules/`
+4. Tarefas Prisma → ler `nexus-backend/.agents/skills/prisma-8/SKILL.md` primeiro
+5. Seguir regras em `.agents/rules/`
 6. Implementar com diff mínimo
 7. Rodar testes/lint antes de declarar concluído
 8. Atualizar README apenas quando pedido ou ao finalizar fase
