@@ -17,7 +17,8 @@ export class BootstrapTenantDto {
   @IsString()
   @IsNotEmpty()
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-    message: 'tenantSlug must be URL-friendly (lowercase letters, numbers, hyphens)',
+    message:
+      'tenantSlug must be URL-friendly (lowercase letters, numbers, hyphens)',
   })
   tenantSlug!: string;
 
