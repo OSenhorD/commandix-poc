@@ -16,6 +16,17 @@ export interface IntegrationRecord {
   updatedAt: string;
 }
 
+export interface IntegrationListItem {
+  id: string;
+  name: string;
+  type: IntegrationTypeEnum | string;
+  targetUrl: string;
+  authKey: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface IntegrationResponse {
   id: string;
   name: string;
@@ -35,6 +46,21 @@ function asJsonObject(value: unknown): JsonObject | null {
   }
 
   return value as JsonObject;
+}
+
+export function toIntegrationListItem(
+  integration: IntegrationListItem,
+): IntegrationListItem {
+  return {
+    id: integration.id,
+    name: integration.name,
+    type: integration.type,
+    targetUrl: integration.targetUrl,
+    authKey: maskAuthKey(integration.authKey),
+    isActive: integration.isActive,
+    createdAt: integration.createdAt,
+    updatedAt: integration.updatedAt,
+  };
 }
 
 export function toIntegrationResponse(

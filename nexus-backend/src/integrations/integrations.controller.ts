@@ -5,6 +5,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
@@ -26,6 +27,8 @@ import type { AuthenticatedUser } from '@/common/interfaces/authenticated-user.i
 
 import { CreateIntegrationDto } from './dto/create-integration.dto.js';
 import { IntegrationResponseDto } from './dto/integration-response.dto.js';
+import { ListIntegrationsQueryDto } from './dto/list-integrations-query.dto.js';
+import { PaginatedIntegrationsResponseDto } from './dto/paginated-integrations-response.dto.js';
 import { IntegrationsService } from './integrations.service.js';
 
 @ApiAuth()
@@ -33,6 +36,20 @@ import { IntegrationsService } from './integrations.service.js';
 @Controller('integrations')
 export class IntegrationsController {
   constructor(private readonly integrationsService: IntegrationsService) {}
+
+  @Get()
+  @Roles(RoleEnum.ADMIN, RoleEnum.VIEWER)
+  @ApiOperation({ summary: 'List integrations for the current tenant' })
+  @ApiOkResponse({ type: PaginatedIntegrationsResponseDto })
+  @ApiBadRequestResponse({ description: 'Validation error' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Insufficient role' })
+  findAll(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: ListIntegrationsQueryDto,
+  ) {
+    return this.integrationsService.findAll(user.tenantId, query);
+  }
 
   @Post()
   @Roles(RoleEnum.ADMIN)

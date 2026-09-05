@@ -82,55 +82,6 @@ flowchart TD
 
 ## Entregas
 
-### E11 — Integrations: criar + detalhe
-
-**Objetivo:** primeiras rotas de integração com tenant scoping.
-
-**Escopo:**
-- Módulo `integrations/`
-- `POST /integrations` — ADMIN; persiste com `tenantId` do JWT
-- `GET /integrations/:id` — ADMIN, VIEWER; filtro `{ id, tenantId }`; cross-tenant → 404
-- DTOs create conforme [05-api §5.3](../spec/05-api.md#post-integrations)
-- Resposta com `authKey` mascarada (E05)
-- Campos JSON opcionais: `customHeaders`, `defaultPayload`
-
-**Arquivos:**
-- Criar: `src/integrations/integrations.module.ts`, `integrations.controller.ts`, `integrations.service.ts`, `dto/create-integration.dto.ts`
-
-**Critério de done:**
-- [x] Admin cria integração; viewer consegue ler
-- [x] ID de outro tenant → 404
-- [x] Viewer em POST → 403
-
-**Dependências:** E08, E05
-
-**Status:** ✅ concluída
-
----
-
-### E12 — Integrations: listagem paginada
-
-**Objetivo:** listar integrações do tenant com paginação e filtro.
-
-**Escopo:**
-- `GET /integrations` — ADMIN, VIEWER
-- Paginação E05; filtro opcional `isActive` (true/false/omitido = todas)
-- Ordenação fixa: `updatedAt DESC`
-- Listagem **resumida** — sem `customHeaders` / `defaultPayload` completos
-- Envelope `{ data, meta }`
-
-**Arquivos:**
-- Modificar: `integrations.controller.ts`, `integrations.service.ts`
-- Criar: `dto/list-integrations-query.dto.ts`
-
-**Critério de done:**
-- [ ] `page`, `limit`, `isActive` validados (400 se inválido)
-- [ ] Meta coerente; página além do fim → 200 com `data: []`
-
-**Dependências:** E11
-
----
-
 ### E13 — Integrations: PATCH + DELETE
 
 **Objetivo:** atualização parcial e remoção com cascade.
@@ -281,7 +232,7 @@ flowchart TD
 |----------------|----------|
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
 | Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 ✅ |
-| Fase 3 — Integrações | E05 ✅, E11 ✅, E12, E13, E14, E15 |
+| Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13, E14, E15 |
 | Fase 4 — Histórico | E16, E17 |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
 
