@@ -82,27 +82,6 @@ flowchart TD
 
 ## Entregas
 
-### E10 — Rate limit no bootstrap
-
-**Objetivo:** proteção básica em `POST /tenants/bootstrap`.
-
-**Escopo:**
-- `@nestjs/throttler` — **somente** na rota bootstrap
-- Default: 5 req / 60s por IP
-- Env: `BOOTSTRAP_THROTTLE_TTL`, `BOOTSTRAP_THROTTLE_LIMIT`
-- Excesso → `429`
-
-**Arquivos:**
-- Modificar: `tenants.controller.ts`, `tenants.module.ts` ou `app.module.ts`
-
-**Critério de done:**
-- [ ] 6ª requisição bootstrap no mesmo IP/minuto → 429
-- [ ] Login e demais rotas **não** afetados
-
-**Dependências:** E06
-
----
-
 ### E11 — Integrations: criar + detalhe
 
 **Objetivo:** primeiras rotas de integração com tenant scoping.
@@ -119,11 +98,13 @@ flowchart TD
 - Criar: `src/integrations/integrations.module.ts`, `integrations.controller.ts`, `integrations.service.ts`, `dto/create-integration.dto.ts`
 
 **Critério de done:**
-- [ ] Admin cria integração; viewer consegue ler
-- [ ] ID de outro tenant → 404
-- [ ] Viewer em POST → 403
+- [x] Admin cria integração; viewer consegue ler
+- [x] ID de outro tenant → 404
+- [x] Viewer em POST → 403
 
 **Dependências:** E08, E05
+
+**Status:** ✅ concluída
 
 ---
 
@@ -299,8 +280,8 @@ flowchart TD
 | Fase checklist | Entregas |
 |----------------|----------|
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
-| Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 |
-| Fase 3 — Integrações | E05 ✅, E11, E12, E13, E14, E15 |
+| Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 ✅ |
+| Fase 3 — Integrações | E05 ✅, E11 ✅, E12, E13, E14, E15 |
 | Fase 4 — Histórico | E16, E17 |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
 
