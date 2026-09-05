@@ -82,99 +82,6 @@ flowchart TD
 
 ## Entregas
 
-### E10 — Rate limit no bootstrap
-
-**Objetivo:** proteção básica em `POST /tenants/bootstrap`.
-
-**Escopo:**
-- `@nestjs/throttler` — **somente** na rota bootstrap
-- Default: 5 req / 60s por IP
-- Env: `BOOTSTRAP_THROTTLE_TTL`, `BOOTSTRAP_THROTTLE_LIMIT`
-- Excesso → `429`
-
-**Arquivos:**
-- Modificar: `tenants.controller.ts`, `tenants.module.ts` ou `app.module.ts`
-
-**Critério de done:**
-- [ ] 6ª requisição bootstrap no mesmo IP/minuto → 429
-- [ ] Login e demais rotas **não** afetados
-
-**Dependências:** E06
-
----
-
-### E11 — Integrations: criar + detalhe
-
-**Objetivo:** primeiras rotas de integração com tenant scoping.
-
-**Escopo:**
-- Módulo `integrations/`
-- `POST /integrations` — ADMIN; persiste com `tenantId` do JWT
-- `GET /integrations/:id` — ADMIN, VIEWER; filtro `{ id, tenantId }`; cross-tenant → 404
-- DTOs create conforme [05-api §5.3](../spec/05-api.md#post-integrations)
-- Resposta com `authKey` mascarada (E05)
-- Campos JSON opcionais: `customHeaders`, `defaultPayload`
-
-**Arquivos:**
-- Criar: `src/integrations/integrations.module.ts`, `integrations.controller.ts`, `integrations.service.ts`, `dto/create-integration.dto.ts`
-
-**Critério de done:**
-- [ ] Admin cria integração; viewer consegue ler
-- [ ] ID de outro tenant → 404
-- [ ] Viewer em POST → 403
-
-**Dependências:** E08, E05
-
----
-
-### E12 — Integrations: listagem paginada
-
-**Objetivo:** listar integrações do tenant com paginação e filtro.
-
-**Escopo:**
-- `GET /integrations` — ADMIN, VIEWER
-- Paginação E05; filtro opcional `isActive` (true/false/omitido = todas)
-- Ordenação fixa: `updatedAt DESC`
-- Listagem **resumida** — sem `customHeaders` / `defaultPayload` completos
-- Envelope `{ data, meta }`
-
-**Arquivos:**
-- Modificar: `integrations.controller.ts`, `integrations.service.ts`
-- Criar: `dto/list-integrations-query.dto.ts`
-
-**Critério de done:**
-- [ ] `page`, `limit`, `isActive` validados (400 se inválido)
-- [ ] Meta coerente; página além do fim → 200 com `data: []`
-
-**Dependências:** E11
-
----
-
-### E13 — Integrations: PATCH + DELETE
-
-**Objetivo:** atualização parcial e remoção com cascade.
-
-**Escopo:**
-- `PATCH /integrations/:id` — ADMIN; parcial conforme [05-api §5.3](../spec/05-api.md#patch-integrationsid)
-  - `authKey` omitido → mantém anterior
-  - `customHeaders` / `defaultPayload` enviados → substituem inteiro
-  - Body `{}` → 400
-- `DELETE /integrations/:id` — ADMIN; hard delete + cascade execuções (FK no contract)
-- Cross-tenant → 404
-
-**Arquivos:**
-- Modificar: `integrations.controller.ts`, `integrations.service.ts`
-- Criar: `dto/update-integration.dto.ts`
-
-**Critério de done:**
-- [ ] PATCH `{ isActive: false }` desativa
-- [ ] DELETE remove integração e execuções associadas
-- [ ] PATCH sem campos → 400
-
-**Dependências:** E11
-
----
-
 ### E14 — Serviço HTTP outbound
 
 **Objetivo:** cliente isolado para disparos externos (sem lógica de domínio).
@@ -299,8 +206,8 @@ flowchart TD
 | Fase checklist | Entregas |
 |----------------|----------|
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
-| Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 |
-| Fase 3 — Integrações | E05 ✅, E11, E12, E13, E14, E15 |
+| Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 ✅ |
+| Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13 ✅, E14, E15 |
 | Fase 4 — Histórico | E16, E17 |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
 

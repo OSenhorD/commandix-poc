@@ -12,7 +12,9 @@ describe('parseDurationMs', () => {
   });
 
   it('throws for invalid duration', () => {
-    expect(() => parseDurationMs('invalid')).toThrow('Invalid duration: invalid');
+    expect(() => parseDurationMs('invalid')).toThrow(
+      'Invalid duration: invalid',
+    );
   });
 });
 
