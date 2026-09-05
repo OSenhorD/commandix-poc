@@ -45,7 +45,7 @@
     "@nestjs/platform-express": "^12.0.1",
     "@nestjs/swagger": "^12.0.1",
     "@nestjs/throttler": "^6.5.0",
-    "@prisma/cli-engine": "^0.2.3",
+    "@prisma/cli-engine": "^0.3.0",
     "@prisma/orm-postgres": "^8.0.0-rc.8",
     "@scalar/nestjs-api-reference": "^1.2.17",
     "bcrypt": "^6.0.0",
@@ -54,9 +54,9 @@
     "dotenv": "^17.4.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
-    "prisma": "^8.0.0-rc.10",
+    "prisma": "^8.0.0-rc.13",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
+    "rxjs": "^7.8.2",
     "tsx": "^4.23.13"
   },
   "devDependencies": {
@@ -79,6 +79,10 @@
     "vitest": "^4.1.2"
   },
   "allowScripts": {
-    "bcrypt@6.0.0": true
+    "bcrypt@6.0.0": true,
+    "esbuild@0.28.2": true,
+    "workerd@1.20260704.1": true,
+    "msgpackr-extract@3.0.4": true,
+    "@scarf/scarf@1.4.0": true
   }
 }
