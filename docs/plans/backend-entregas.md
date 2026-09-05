@@ -82,31 +82,6 @@ flowchart TD
 
 ## Entregas
 
-### E13 — Integrations: PATCH + DELETE
-
-**Objetivo:** atualização parcial e remoção com cascade.
-
-**Escopo:**
-- `PATCH /integrations/:id` — ADMIN; parcial conforme [05-api §5.3](../spec/05-api.md#patch-integrationsid)
-  - `authKey` omitido → mantém anterior
-  - `customHeaders` / `defaultPayload` enviados → substituem inteiro
-  - Body `{}` → 400
-- `DELETE /integrations/:id` — ADMIN; hard delete + cascade execuções (FK no contract)
-- Cross-tenant → 404
-
-**Arquivos:**
-- Modificar: `integrations.controller.ts`, `integrations.service.ts`
-- Criar: `dto/update-integration.dto.ts`
-
-**Critério de done:**
-- [ ] PATCH `{ isActive: false }` desativa
-- [ ] DELETE remove integração e execuções associadas
-- [ ] PATCH sem campos → 400
-
-**Dependências:** E11
-
----
-
 ### E14 — Serviço HTTP outbound
 
 **Objetivo:** cliente isolado para disparos externos (sem lógica de domínio).
@@ -232,7 +207,7 @@ flowchart TD
 |----------------|----------|
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
 | Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 ✅ |
-| Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13, E14, E15 |
+| Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13 ✅, E14, E15 |
 | Fase 4 — Histórico | E16, E17 |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
 
