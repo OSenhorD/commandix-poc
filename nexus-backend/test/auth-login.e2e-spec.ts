@@ -1,5 +1,3 @@
-import { createHash } from 'node:crypto';
-
 import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -11,6 +9,7 @@ import { AppModule } from '@/app.module.js';
 import { configureApp } from '@/configure-app.js';
 import { db } from '@/prisma/db.js';
 import { runSeed } from '@/prisma/seed.js';
+import { hashRefreshToken } from '@/auth/hash-refresh-token.util.js';
 
 const hasDatabase = Boolean(process.env['DATABASE_URL']);
 
@@ -67,9 +66,7 @@ describe.skipIf(!hasDatabase)('POST /auth/login (e2e)', () => {
       email: 'admin@acme.com',
     });
 
-    const tokenHash = createHash('sha256')
-      .update(response.body.refreshToken)
-      .digest('hex');
+    const tokenHash = hashRefreshToken(response.body.refreshToken);
     const storedRefreshToken = await db.orm.public.RefreshToken.where({
       tokenHash,
     }).first();

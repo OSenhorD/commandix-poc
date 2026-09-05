@@ -63,12 +63,14 @@ describe.skipIf(!hasDatabase)('Auth guards (e2e)', () => {
 
     adminAccessToken = adminLogin.body.accessToken;
 
+    const viewerSlug = `viewer-co-${Date.now()}`;
+
     const bootstrap = await request(app.getHttpServer())
       .post('/api/v1/tenants/bootstrap')
       .send({
         tenantName: 'Viewer Tenant',
-        tenantSlug: 'viewer-co',
-        adminEmail: 'viewer@viewer-co.com',
+        tenantSlug: viewerSlug,
+        adminEmail: `viewer@${viewerSlug}.com`,
         adminPassword: 'Viewer123!',
       })
       .expect(201);
@@ -80,7 +82,7 @@ describe.skipIf(!hasDatabase)('Auth guards (e2e)', () => {
     const viewerLogin = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
       .send({
-        email: 'viewer@viewer-co.com',
+        email: `viewer@${viewerSlug}.com`,
         password: 'Viewer123!',
       })
       .expect(200);

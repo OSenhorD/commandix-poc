@@ -82,31 +82,6 @@ flowchart TD
 
 ## Entregas
 
-### E09 — Refresh + logout
-
-**Objetivo:** ciclo completo de sessão.
-
-**Escopo:**
-- `POST /auth/refresh` — body `{ refreshToken }` → `{ accessToken }`
-- Validar hash, `expiresAt`, `revokedAt === null`
-- Token inválido/expirado/revogado → `401`
-- `POST /auth/logout` — JWT required; body `{ refreshToken }` → `204`
-- Revoga **somente** o refresh enviado; idempotente (inexistente/já revogado → `204`)
-- Refresh exp `7d` via `JWT_REFRESH_SECRET` / `JWT_REFRESH_EXPIRES_IN`
-
-**Arquivos:**
-- Modificar: `auth.controller.ts`, `auth.service.ts`
-- Criar: `dto/refresh.dto.ts`, `dto/logout.dto.ts`
-
-**Critério de done:**
-- [ ] Refresh emite novo access
-- [ ] Logout revoga refresh; segundo refresh falha
-- [ ] Outro refresh token do mesmo user continua válido
-
-**Dependências:** E08
-
----
-
 ### E10 — Rate limit no bootstrap
 
 **Objetivo:** proteção básica em `POST /tenants/bootstrap`.
@@ -324,7 +299,7 @@ flowchart TD
 | Fase checklist | Entregas |
 |----------------|----------|
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
-| Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09, E10 |
+| Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 |
 | Fase 3 — Integrações | E05 ✅, E11, E12, E13, E14, E15 |
 | Fase 4 — Histórico | E16, E17 |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |

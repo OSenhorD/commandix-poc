@@ -38,6 +38,8 @@ describe('OpenAPI + Scalar (e2e)', () => {
     expect(response.body.openapi).toMatch(/^3\./);
     expect(response.body.paths['/api/v1/health']).toBeDefined();
     expect(response.body.paths['/api/v1/auth/login']).toBeDefined();
+    expect(response.body.paths['/api/v1/auth/refresh']).toBeDefined();
+    expect(response.body.paths['/api/v1/auth/logout']).toBeDefined();
     expect(response.body.paths['/api/v1/tenants/bootstrap']).toBeDefined();
   });
 
@@ -50,6 +52,9 @@ describe('OpenAPI + Scalar (e2e)', () => {
 
     expect(schemas.LoginDto).toBeDefined();
     expect(schemas.LoginResponseDto).toBeDefined();
+    expect(schemas.RefreshDto).toBeDefined();
+    expect(schemas.RefreshResponseDto).toBeDefined();
+    expect(schemas.LogoutDto).toBeDefined();
     expect(schemas.BootstrapTenantDto).toBeDefined();
     expect(schemas.BootstrapTenantResponseDto).toBeDefined();
     expect(schemas.Role).toBeDefined();
@@ -61,6 +66,12 @@ describe('OpenAPI + Scalar (e2e)', () => {
       .expect(200);
 
     expect(response.body.paths['/api/v1/auth/login'].post.security).toEqual([]);
+    expect(response.body.paths['/api/v1/auth/refresh'].post.security).toEqual(
+      [],
+    );
+    expect(response.body.paths['/api/v1/auth/logout'].post.security).toEqual([
+      { bearer: [] },
+    ]);
     expect(response.body.paths['/api/v1/auth/me'].get.security).toEqual([
       { bearer: [] },
     ]);

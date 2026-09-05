@@ -1,6 +1,7 @@
 import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -16,6 +17,9 @@ import type { AuthenticatedUser } from '@/common/interfaces/authenticated-user.i
 import { AuthService } from './auth.service.js';
 import { LoginResponseDto } from './dto/login-response.dto.js';
 import { LoginDto } from './dto/login.dto.js';
+import { LogoutDto } from './dto/logout.dto.js';
+import { RefreshResponseDto } from './dto/refresh-response.dto.js';
+import { RefreshDto } from './dto/refresh.dto.js';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -33,9 +37,42 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
+  @Public()
+  @Post('refresh')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Issue a new access token from a refresh token',
+    security: [],
+  })
+  @ApiOkResponse({ type: RefreshResponseDto })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid, expired, or revoked refresh token',
+  })
+  @ApiBadRequestResponse({ description: 'Validation error' })
+  refresh(@Body() dto: RefreshDto) {
+    return this.authService.refresh(dto);
+  }
+
+  @Post('logout')
+  @HttpCode(204)
+  @ApiAuth()
+  @ApiOperation({
+    summary: 'Revoke the refresh token for the current device/session',
+  })
+  @ApiNoContentResponse({
+    description: 'Refresh token revoked or already invalid',
+  })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiBadRequestResponse({ description: 'Validation error' })
+  logout(@Body() dto: LogoutDto) {
+    return this.authService.logout(dto);
+  }
+
   @Get('me')
   @ApiAuth()
-  @ApiOperation({ summary: 'Return the authenticated user from the access token' })
+  @ApiOperation({
+    summary: 'Return the authenticated user from the access token',
+  })
   @ApiOkResponse({ type: UserSummaryDto })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   me(@CurrentUser() user: AuthenticatedUser): UserSummaryDto {
