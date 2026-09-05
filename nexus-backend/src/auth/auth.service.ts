@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 
 import { DatabaseService } from '@/database/database.service.js';
+import { RoleEnum } from '@/common/enums/role.enum.js';
 
 import {
   JWT_REFRESH_EXPIRES_IN,
@@ -43,7 +44,7 @@ export class AuthService {
     const payload: AccessTokenPayload = {
       sub: user.id,
       tenantId: user.tenantId,
-      role: user.role,
+      role: user.role as RoleEnum,
       email: user.email,
     };
 

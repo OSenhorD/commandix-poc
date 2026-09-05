@@ -31,6 +31,14 @@ export function configureOpenApi(app: INestApplication): void {
     )
     .setVersion(OPENAPI_VERSION)
     .addBearerAuth()
+    .addGlobalResponse({
+      status: 401,
+      description: 'Missing or invalid access token',
+    })
+    .addGlobalResponse({
+      status: 500,
+      description: 'Internal server error',
+    })
     .addTag('health')
     .addTag('tenants')
     .addTag('auth')

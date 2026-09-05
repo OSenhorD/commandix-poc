@@ -55,6 +55,18 @@ describe('OpenAPI + Scalar (e2e)', () => {
     expect(schemas.Role).toBeDefined();
   });
 
+  it('marks public and protected auth operations correctly', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/openapi.json')
+      .expect(200);
+
+    expect(response.body.paths['/api/v1/auth/login'].post.security).toEqual([]);
+    expect(response.body.paths['/api/v1/auth/me'].get.security).toEqual([
+      { bearer: [] },
+    ]);
+    expect(response.body.paths['/api/v1/health'].get.security).toEqual([]);
+  });
+
   it('GET /api/docs serves Scalar UI', async () => {
     const response = await request(app.getHttpServer())
       .get('/api/docs')

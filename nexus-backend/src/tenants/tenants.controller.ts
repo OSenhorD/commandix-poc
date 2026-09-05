@@ -7,6 +7,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { Public } from '@/common/decorators/public.decorator.js';
+
 import { BootstrapTenantResponseDto } from './dto/bootstrap-response.dto.js';
 import { BootstrapTenantDto } from './dto/bootstrap-tenant.dto.js';
 import { TenantsService } from './tenants.service.js';
@@ -16,8 +18,9 @@ import { TenantsService } from './tenants.service.js';
 export class TenantsController {
   constructor(private readonly tenantsService: TenantsService) {}
 
+  @Public()
   @Post('bootstrap')
-  @ApiOperation({ summary: 'Create tenant and first ADMIN user' })
+  @ApiOperation({ summary: 'Create tenant and first ADMIN user', security: [] })
   @ApiCreatedResponse({ type: BootstrapTenantResponseDto })
   @ApiConflictResponse({ description: 'Duplicate slug or email' })
   @ApiBadRequestResponse({ description: 'Validation error' })
