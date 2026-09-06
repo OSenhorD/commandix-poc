@@ -2,7 +2,7 @@
 
 [← Índice](./README.md)
 
-> Prisma 8: seguir `nexus-backend/.cursor/skills/prisma-8/SKILL.md` em tarefas de contract, migration e query.
+> Prisma 8: seguir `nexus-backend/.agents/skills/prisma-8/SKILL.md` em tarefas de contract, migration e query.
 
 ## Fase 1 — Fundação
 
@@ -32,7 +32,7 @@
 
 - [ ] Cliente HTTP (`src/api/client.ts`) com base `/api/v1`
 - [ ] Interceptor 401 → refresh → logout
-- [ ] Proxy Vite dev (`/api` → localhost:3000)
+- [ ] Proxy Vite dev (`/api` → `api:3000`, rede Docker)
 - [ ] Login + logout + token storage (`localStorage`)
 - [ ] Bootstrap (cadastro tenant + admin)
 - [ ] Integrações — listar (ADMIN + VIEWER)

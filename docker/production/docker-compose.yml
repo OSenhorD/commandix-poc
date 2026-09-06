@@ -1,0 +1,82 @@
+services:
+  database:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-commandix}
+      POSTGRES_USER: ${DB_USERNAME:-commandix}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    networks:
+      - commandix-development
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build:
+      context: ./nexus-backend
+      dockerfile: docker/production/Dockerfile
+      network: host
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      PRISMA_DISABLE_TELEMETRY: "1"
+
+      DATABASE_URL: postgresql://${DB_USERNAME:-commandix}:${DB_PASSWORD:?DB_PASSWORD must be set}@database:5432/${DB_DATABASE:-commandix}
+
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET must be set}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET must be set}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+
+      HTTP_TRIGGER_TIMEOUT_MS: ${HTTP_TRIGGER_TIMEOUT_MS:-30000}
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - commandix-development
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/v1/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # frontend:
+  #   build:
+  #     context: ./nexus-frontend
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     - commandix-production
+  #   ports:
+  #     - "${FRONTEND_PORT:-5173}:80"
+  #   depends_on:
+  #     api:
+  #       condition: service_healthy
+
+
+networks:
+  commandix-development:
+    driver: bridge
+
+
+volumes:
+  database_data:

@@ -2,7 +2,7 @@
 
 [← Índice](./README.md)
 
-> Política de versões e skill Prisma 8: ver [`AGENTS.md`](../../AGENTS.md) e `nexus-backend/.cursor/skills/prisma-8/SKILL.md`.
+> Política de versões e skill Prisma 8: ver [`AGENTS.md`](../../AGENTS.md) e `nexus-backend/.agents/skills/prisma-8/SKILL.md`.
 
 ## 6.1 Backend (obrigatório)
 

@@ -9,5 +9,6 @@ export default defineConfig({
     root: './',
     include: ['**/*.e2e-spec.ts'],
     setupFiles: ['./test/vitest.setup.ts'],
+    fileParallelism: false,
   },
 });

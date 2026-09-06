@@ -7,20 +7,29 @@ commandix-poc/
 ├── docs/spec/
 ├── AGENTS.md
 ├── readme.md
-├── docker-compose.yml
+├── docker/
+│   ├── production/
+│   │   └── docker-compose.yml
+│   └── development/
+│       └── docker-compose.yml
 ├── .env.example
-├── .cursor/
+├── .agents/
 │   ├── rules/                      # regras Cursor (monorepo)
 │   └── skills/
 │       ├── README.md
-│       └── prisma-8/               # symlink → nexus-backend/.cursor/skills/prisma-8
+│       └── prisma-8/               # symlink → nexus-backend/.agents/skills/prisma-8
 ├── nexus-backend/
 │   ├── prisma.config.ts
 │   ├── tsconfig.json               # paths: "@/*" → "./src/*"
-│   ├── Dockerfile
-│   ├── docker-entrypoint.sh        # db migrate → seed → node dist/main.js
+│   ├── docker/
+│   │   ├── production/
+│   │   │   ├── Dockerfile
+│   │   │   └── entrypoint.sh       # db migrate → seed → node dist/main.js
+│   │   └── development/
+│   │       ├── Dockerfile
+│   │       └── entrypoint.sh       # db migrate → seed → start:debug (watch)
 │   ├── migrations/app/
-│   ├── .cursor/skills/prisma-8/    # fonte da skill (skills:sync)
+│   ├── .agents/skills/prisma-8/    # fonte da skill (skills:sync)
 │   └── src/
 │       ├── database/               # DatabaseModule
 │       └── prisma/
@@ -39,8 +48,8 @@ commandix-poc/
 
 | Caminho | Papel |
 |---------|-------|
-| `nexus-backend/.cursor/skills/prisma-8/` | **Fonte** — `npm run skills:sync` |
-| `.cursor/skills/prisma-8/` | Symlink para descoberta na raiz do workspace |
+| `nexus-backend/.agents/skills/prisma-8/` | **Fonte** — `npm run skills:sync` |
+| `.agents/skills/prisma-8/` | Symlink para descoberta na raiz do workspace |
 
 Comandos Prisma: `cwd` em `nexus-backend/`.
 
@@ -50,7 +59,7 @@ Comandos Prisma: `cwd` em `nexus-backend/`.
 
 | Recurso | Caminho |
 |---------|---------|
-| Skill | `nexus-backend/.cursor/skills/prisma-8/SKILL.md` |
+| Skill | `nexus-backend/.agents/skills/prisma-8/SKILL.md` |
 | Contract | `nexus-backend/src/prisma/contract.prisma` |
 | Runtime | `nexus-backend/src/prisma/db.ts` |
 | Migrations | `nexus-backend/migrations/app/` |

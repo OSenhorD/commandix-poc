@@ -66,7 +66,7 @@ Execuções: validar tenant via relação com `Integration` (tabela não tem `te
 
 **Proibido:** retornar recurso de outro tenant (404, não 403).
 
-Prisma 8: `nexus-backend/.cursor/skills/prisma-8/SKILL.md`.
+Prisma 8: `nexus-backend/.agents/skills/prisma-8/SKILL.md`.
 
 ## 3.4 Fluxo de autenticação
 
