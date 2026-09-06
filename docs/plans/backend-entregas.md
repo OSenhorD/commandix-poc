@@ -82,29 +82,6 @@ flowchart TD
 
 ## Entregas
 
-### E14 — Serviço HTTP outbound
-
-**Objetivo:** cliente isolado para disparos externos (sem lógica de domínio).
-
-**Escopo:**
-- `src/integrations/http-outbound.service.ts` (ou `src/common/http/`)
-- Sempre **POST**; timeout `HTTP_TRIGGER_TIMEOUT_MS` (default 30s)
-- Headers: `customHeaders` primeiro; `Authorization: Bearer {authKey}` sobrescreve se ambos existirem
-- Retorno tipado: `{ httpStatusCode: number | null, responseBody: string, responseTimeMs: number }`
-- Timeout/rede → `httpStatusCode: null`
-
-**Arquivos:**
-- Criar: `http-outbound.service.ts`
-- Teste unitário com mock fetch/undici
-
-**Critério de done:**
-- [ ] 2xx, 4xx, timeout simulado retornam estrutura esperada
-- [ ] Sem retry
-
-**Dependências:** nenhuma de negócio (pode ser paralelo a E11–E13)
-
----
-
 ### E15 — Trigger + registro de execução
 
 **Objetivo:** disparo manual e persistência de `IntegrationExecution`.
@@ -207,7 +184,7 @@ flowchart TD
 |----------------|----------|
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
 | Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 ✅ |
-| Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13 ✅, E14, E15 |
+| Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13 ✅, E14 ✅, E15 |
 | Fase 4 — Histórico | E16, E17 |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
 
