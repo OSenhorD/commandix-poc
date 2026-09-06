@@ -59,6 +59,7 @@ Cada `feature/` fecha seu domínio (chamadas, hooks, schemas, componentes, pági
 - Componentes funcionais, tipagem estrita — **sem `any`**; ESLint roda regras type-checked (`strictTypeChecked`)
 - **`erasableSyntaxOnly: true`** no `tsconfig.app.json`: proíbe `enum`, `namespace` e **parameter properties** (`constructor(private x)`). Usar união `as const` e atribuição explícita no corpo do construtor
 - Em teste, tipar o mock (`vi.fn<typeof fetch>()`): sem o genérico, `mock.calls` é `any[]` e o `no-unsafe-member-access` reprova o arquivo
+- `@testing-library/dom` é **peer explícito** de `@testing-library/react` v16 — sem o pacote no `package.json`/`lockfile`, `render`/`screen` resolvem como tipo `error` e o ESLint (`no-unsafe-return` / `no-unsafe-call`) reprova os testes
 - Contexto e provider em **arquivos separados** (`*-context.ts` sem JSX + `*-provider.tsx`) — arquivo que exporta componente e não-componente quebra o Fast Refresh
 - Aspas duplas; Prettier da raiz (`printWidth: 120`)
 - Toda tela com dados tem **loading, erro e vazio** — `Skeleton`, `ErrorState` com retry, `EmptyState`
