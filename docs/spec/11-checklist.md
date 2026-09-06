@@ -38,7 +38,7 @@
 > Stack: React 19 + Vite 8 + Tailwind 4 + shadcn (`base-lyra`/Base UI) + React Router 7 + TanStack Query v5 + react-hook-form/zod.
 
 - [x] Scaffold Vite + React 19 + TypeScript + Tailwind 4 + shadcn (11 componentes base)
-- [ ] **F01** Dependências, Vitest, proxy Vite (`/api` → `api:3000`) e **serviço `frontend` no compose de desenvolvimento**
+- [x] **F01** Dependências, Vitest, proxy Vite (`/api` → `api:3000`) e **serviço `frontend` no compose de desenvolvimento**
 - [ ] **F02** Tipos da API + cliente HTTP (`shared/api/client.ts`, base `/api/v1`) + storage dos tokens
 - [ ] **F02** Interceptor 401 → refresh **single-flight** → logout (+ teste)
 - [ ] **F03** Providers, router (`createBrowserRouter`), `ProtectedRoute` e `RoleGate` (+ teste)

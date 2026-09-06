@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import path from "node:path";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
@@ -11,5 +12,19 @@ export default defineConfig({
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),
     },
+  },
+  server: {
+    host: true,
+    port: 5173,
+    proxy: {
+      // hostname da rede do Compose — nunca localhost
+      "/api": process.env.VITE_API_PROXY_TARGET ?? "http://api:3000",
+    },
+  },
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: ["./src/test/setup.ts"],
+    css: false,
   },
 });

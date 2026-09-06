@@ -30,4 +30,12 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // shadcn (base-lyra) exporta o helper de variantes do cva() junto do componente
+    // (ex.: `export { Button, buttonVariants }`) — padrão do gerador, não do app.
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ]);
