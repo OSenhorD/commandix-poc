@@ -1557,6 +1557,11 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 
 APIs geradas (estilo `base-lyra`): `Table/TableHeader/TableBody/TableHead/TableRow/TableCell`, `Select/SelectTrigger/SelectValue/SelectContent/SelectItem`, `Dialog/DialogTrigger/DialogContent/DialogHeader/DialogTitle/DialogDescription/DialogFooter/DialogClose`, `AlertDialog/AlertDialogTrigger/AlertDialogContent/AlertDialogHeader/AlertDialogTitle/AlertDialogDescription/AlertDialogFooter/AlertDialogAction/AlertDialogCancel`, `DropdownMenu/DropdownMenuTrigger/DropdownMenuContent/DropdownMenuItem/DropdownMenuLabel/DropdownMenuSeparator`, `Toaster` (de `@/components/ui/sonner`).
 
+> **Dois ajustes obrigatórios depois do `shadcn add`, confirmados na fonte real do registry `base-lyra` (não é hipótese):**
+>
+> 1. **`sonner.tsx` importa `useTheme` de `next-themes`** — uma lib de tema do Next.js que **não faz parte da nossa stack** e não está em nenhuma decisão do `AGENTS.md`. Editar o arquivo gerado: remover `import { useTheme } from "next-themes"` e a linha `const { theme = "system" } = useTheme()`; passar `theme="system"` fixo na própria definição do componente (`<Sonner theme="system" .../>`). O Sonner já resolve `"system"` sozinho via `prefers-color-scheme`, sem precisar de `next-themes` nem do nosso `useTheme` (F06 Passo 8) — os dois ficam desacoplados de propósito, para não duplicar estado entre o menu do usuário e o Toaster.
+> 2. **`select.tsx`, `dialog.tsx`, `alert-dialog.tsx` e `dropdown-menu.tsx` usam `<IconPlaceholder lucide="NomeDoIcone" .../>`**, importado de `@/app/(create)/components/icon-placeholder` — um helper interno do site de documentação do shadcn (multi-biblioteca de ícones), **não** um registryDependency de verdade. Se o `shadcn add` não resolver isso sozinho (import quebrado apontando pra `@/app/(create)/...`), a correção é mecânica: trocar cada `<IconPlaceholder lucide="XIcon" className="..." />` por `<XIcon className="..." />` importado direto de `"lucide-react"` — o valor de `lucide="..."` já é o nome exato do ícone em `lucide-react` (`iconLibrary` do `components.json` é `"lucide"`).
+
 - [ ] **Passo 2: Criar `src/shared/lib/format.ts`**
 
 ```typescript
@@ -1982,7 +1987,7 @@ Topbar com "Nexus" e o menu do usuário; alternar o tema muda a paleta e sobrevi
 - Produz:
   - `listIntegrations`, `getIntegration`, `createIntegration`, `updateIntegration`, `deleteIntegration`, `triggerIntegration`
   - Tipos `ListIntegrationsParams`, `CreateIntegrationInput`, `UpdateIntegrationInput`
-  - `integrationKeys` (chaves do TanStack Query) e o hook `useIntegrations(params)`
+  - `integrationKeys` (chaves do TanStack Query) e os hooks `useIntegrations(params)` e `useIntegration(id)`
 
 - [ ] **Passo 1: Criar `src/features/integrations/api.ts`**
 
