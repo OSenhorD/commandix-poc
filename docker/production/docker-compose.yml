@@ -9,7 +9,7 @@ services:
     volumes:
       - database_data:/var/lib/postgresql/data
     networks:
-      - commandix-development
+      - commandix-production
     healthcheck:
       test:
         [
@@ -47,7 +47,7 @@ services:
       database:
         condition: service_healthy
     networks:
-      - commandix-development
+      - commandix-production
     healthcheck:
       test:
         [
@@ -75,7 +75,7 @@ services:
 
 
 networks:
-  commandix-development:
+  commandix-production:
     driver: bridge
 
 
