@@ -318,7 +318,7 @@ Esperado: `No test files found` (exit 1 é aceitável aqui — a suíte real che
 
 > **`erasableSyntaxOnly: true`** está ligado no `tsconfig.app.json`: **nada de `enum`, `namespace` ou parameter property** (`constructor(private x)`). Use união `as const` e atribuição explícita no corpo do construtor.
 
-- [ ] **Passo 1: Criar `src/shared/types/api.ts`**
+- [x] **Passo 1: Criar `src/shared/types/api.ts`**
 
 ```typescript
 export type Role = "ADMIN" | "VIEWER";
@@ -401,7 +401,7 @@ export interface Execution extends ExecutionListItem {
 }
 ```
 
-- [ ] **Passo 2: Criar `src/shared/lib/storage.ts`**
+- [x] **Passo 2: Criar `src/shared/lib/storage.ts`**
 
 ```typescript
 const ACCESS_TOKEN_KEY = "nexus.accessToken";
@@ -429,7 +429,7 @@ export const tokenStorage = {
 };
 ```
 
-- [ ] **Passo 3: Criar `src/shared/api/errors.ts`**
+- [x] **Passo 3: Criar `src/shared/api/errors.ts`**
 
 ```typescript
 export class ApiError extends Error {
@@ -460,7 +460,7 @@ export function messageFromBody(body: unknown, fallback: string): string {
 }
 ```
 
-- [ ] **Passo 4: Escrever os testes do cliente em `src/shared/api/client.test.ts`**
+- [x] **Passo 4: Escrever os testes do cliente em `src/shared/api/client.test.ts`**
 
 ```typescript
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -595,7 +595,7 @@ describe("apiFetch", () => {
 });
 ```
 
-- [ ] **Passo 5: Rodar os testes e confirmar que falham**
+- [x] **Passo 5: Rodar os testes e confirmar que falham**
 
 ```bash
 docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm test
@@ -603,7 +603,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 
 Esperado: FAIL — `Failed to resolve import "./client"`.
 
-- [ ] **Passo 6: Criar `src/shared/api/client.ts`**
+- [x] **Passo 6: Criar `src/shared/api/client.ts`**
 
 ```typescript
 import { tokenStorage } from "@/shared/lib/storage";
@@ -696,7 +696,7 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
 }
 ```
 
-- [ ] **Passo 7: Rodar os testes e confirmar que passam**
+- [x] **Passo 7: Rodar os testes e confirmar que passam**
 
 ```bash
 docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm test
@@ -704,7 +704,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 
 Esperado: **7 testes passando**.
 
-- [ ] **Passo 8: Lint e typecheck**
+- [x] **Passo 8: Lint e typecheck**
 
 ```bash
 docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run lint
@@ -713,11 +713,11 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 
 **Critério de done F02:**
 
-- [ ] 7 testes do cliente HTTP passando, incluindo o de single-flight
-- [ ] `apiFetch` trata `204` sem tentar `res.json()`
-- [ ] Mensagem de erro do Nest normalizada (string e array)
-- [ ] Lint e typecheck limpos
-- [ ] Marcar **F02** (duas linhas) em [`docs/spec/11-checklist.md`](../spec/11-checklist.md)
+- [x] 7 testes do cliente HTTP passando, incluindo o de single-flight
+- [x] `apiFetch` trata `204` sem tentar `res.json()`
+- [x] Mensagem de erro do Nest normalizada (string e array)
+- [x] Lint e typecheck limpos
+- [x] Marcar **F02** (duas linhas) em [`docs/spec/11-checklist.md`](../spec/11-checklist.md)
 
 ---
 
