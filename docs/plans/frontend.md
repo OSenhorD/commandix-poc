@@ -139,7 +139,7 @@ dc exec frontend npx tsc -b
 
 > **Atenção:** `POST /tenants/bootstrap` responde `201` com `{ tenant, user }` e **não devolve tokens** ([05-api §5.2](../spec/05-api.md#post-tenantsbootstrap)). Por isso `bootstrap()` faz o cadastro e em seguida chama `login()` com as mesmas credenciais.
 
-- [ ] **Passo 1: Criar `src/shared/api/query-client.ts`**
+- [x] **Passo 1: Criar `src/shared/api/query-client.ts`**
 
 ```typescript
 import { QueryClient } from "@tanstack/react-query";
@@ -161,7 +161,7 @@ export function createQueryClient(): QueryClient {
 }
 ```
 
-- [ ] **Passo 2: Criar `src/features/auth/api.ts`**
+- [x] **Passo 2: Criar `src/features/auth/api.ts`**
 
 ```typescript
 import { apiFetch } from "@/shared/api/client";
@@ -198,7 +198,7 @@ export function getMe(): Promise<AuthUser> {
 }
 ```
 
-- [ ] **Passo 3: Criar `src/features/auth/auth-context.ts`**
+- [x] **Passo 3: Criar `src/features/auth/auth-context.ts`**
 
 Arquivo sem JSX — mantém o Fast Refresh funcionando no provider.
 
@@ -220,7 +220,7 @@ export interface AuthContextValue {
 export const AuthContext = createContext<AuthContextValue | null>(null);
 ```
 
-- [ ] **Passo 4: Criar `src/features/auth/auth-provider.tsx`**
+- [x] **Passo 4: Criar `src/features/auth/auth-provider.tsx`**
 
 ```tsx
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -299,7 +299,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 ```
 
-- [ ] **Passo 5: Criar `src/features/auth/use-auth.ts`**
+- [x] **Passo 5: Criar `src/features/auth/use-auth.ts`**
 
 ```typescript
 import { use } from "react";
@@ -313,7 +313,7 @@ export function useAuth(): AuthContextValue {
 }
 ```
 
-- [ ] **Passo 6: Criar `src/shared/components/role-gate.tsx`**
+- [x] **Passo 6: Criar `src/shared/components/role-gate.tsx`**
 
 ```tsx
 import type { ReactNode } from "react";
@@ -329,7 +329,7 @@ export function RoleGate({ role, children }: { role: Role; children: ReactNode }
 }
 ```
 
-- [ ] **Passo 7: Escrever os testes em `src/app/protected-route.test.tsx`**
+- [x] **Passo 7: Escrever os testes em `src/app/protected-route.test.tsx`**
 
 ```tsx
 import { render, screen } from "@testing-library/react";
@@ -423,7 +423,7 @@ describe("RoleGate", () => {
 });
 ```
 
-- [ ] **Passo 8: Rodar e confirmar que falham**
+- [x] **Passo 8: Rodar e confirmar que falham**
 
 ```bash
 docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm test
@@ -431,7 +431,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 
 Esperado: FAIL — `Failed to resolve import "./protected-route"`.
 
-- [ ] **Passo 9: Criar `src/app/protected-route.tsx`**
+- [x] **Passo 9: Criar `src/app/protected-route.tsx`**
 
 ```tsx
 import { Navigate, Outlet } from "react-router-dom";
@@ -458,11 +458,11 @@ export function ProtectedRoute({ roles }: { roles?: Role[] }) {
 }
 ```
 
-- [ ] **Passo 10: Rodar os testes e confirmar que passam**
+- [x] **Passo 10: Rodar os testes e confirmar que passam**
 
 Esperado: 5 testes novos passando (12 no total com os de F02).
 
-- [ ] **Passo 11: Criar as páginas placeholder**
+- [x] **Passo 11: Criar as páginas placeholder**
 
 Um arquivo por página, cada um exportando um componente que renderiza só o próprio nome — substituídos em F04–F11:
 
@@ -482,7 +482,7 @@ export function IntegrationsListPage() {
 }
 ```
 
-- [ ] **Passo 12: Criar `src/app/router.tsx`**
+- [x] **Passo 12: Criar `src/app/router.tsx`**
 
 ```tsx
 import { createBrowserRouter, Navigate } from "react-router-dom";
@@ -520,7 +520,7 @@ export const router = createBrowserRouter([
 ]);
 ```
 
-- [ ] **Passo 13: Criar `src/app/providers.tsx`**
+- [x] **Passo 13: Criar `src/app/providers.tsx`**
 
 ```tsx
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -543,7 +543,7 @@ export function Providers({ children }: { children: ReactNode }) {
 }
 ```
 
-- [ ] **Passo 14: Reescrever `src/main.tsx` e remover `src/App/`**
+- [x] **Passo 14: Reescrever `src/main.tsx` e remover `src/App/`**
 
 ```tsx
 import { StrictMode } from "react";
@@ -572,17 +572,17 @@ createRoot(rootElement).render(
 rm -rf nexus-frontend/src/App
 ```
 
-- [ ] **Passo 15: Verificar no browser**
+- [x] **Passo 15: Verificar no browser**
 
 Abrir http://localhost:5173 — sem token, deve redirecionar para `/login` e mostrar o placeholder. Rodar lint e typecheck.
 
 **Critério de done F03:**
 
-- [ ] Rota `/` redireciona para `/login` quando não há sessão
-- [ ] 5 testes de guarda passando (rota protegida + `RoleGate`)
-- [ ] `src/App/` removido; `main.tsx` monta `Providers` + `RouterProvider`
-- [ ] Lint e typecheck limpos
-- [ ] Marcar **F03** em [`docs/spec/11-checklist.md`](../spec/11-checklist.md)
+- [x] Rota `/` redireciona para `/login` quando não há sessão
+- [x] 5 testes de guarda passando (rota protegida + `RoleGate`)
+- [x] `src/App/` removido; `main.tsx` monta `Providers` + `RouterProvider`
+- [x] Lint e typecheck limpos
+- [x] Marcar **F03** em [`docs/spec/11-checklist.md`](../spec/11-checklist.md)
 
 ---
 

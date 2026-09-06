@@ -41,7 +41,7 @@
 - [x] **F01** Dependências, Vitest, proxy Vite (`/api` → `api:3000`) e **serviço `frontend` no compose de desenvolvimento**
 - [x] **F02** Tipos da API + cliente HTTP (`shared/api/client.ts`, base `/api/v1`) + storage dos tokens
 - [x] **F02** Interceptor 401 → refresh **single-flight** → logout (+ teste)
-- [ ] **F03** Providers, router (`createBrowserRouter`), `ProtectedRoute` e `RoleGate` (+ teste)
+- [x] **F03** Providers, router (`createBrowserRouter`), `ProtectedRoute` e `RoleGate` (+ teste)
 - [ ] **F04** Login + logout + reidratação de sessão (`GET /auth/me`)
 - [ ] **F05** Bootstrap (cadastro de tenant + admin)
 - [ ] **F06** Shell (topbar, tema, toasts) e componentes compartilhados (`DataTable`, paginação, vazio, erro)
