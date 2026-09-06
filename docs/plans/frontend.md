@@ -1431,7 +1431,12 @@ export function updateIntegration(id: string, input: UpdateIntegrationInput): Pr
 
 /** Hard delete com cascade nas execuções. Responde 204. */
 export function deleteIntegration(id: string): Promise<void> {
-  return apiFetch<void>(`/integrations/${id}`, { method: "DELETE" });
+  // Sem <void> explícito: @typescript-eslint/no-invalid-void-type reprova void como
+  // argumento de tipo em CallExpression (só isenta void em posição de tipo, ex. Promise<void>
+  // como anotação). TypeScript já infere T = void contextualmente a partir do retorno
+  // declarado da função — mesmo comportamento, sem o argumento de tipo. Achado em F03
+  // (docs/todo/eslint-no-invalid-void-type-apifetch-generic.md), aplicado aqui de antemão.
+  return apiFetch(`/integrations/${id}`, { method: "DELETE" });
 }
 
 /** Integração inativa → 400 (não 404). Payload opcional, merge shallow com defaultPayload. */
