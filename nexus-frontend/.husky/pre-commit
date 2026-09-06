@@ -1,0 +1,6 @@
+# nexus-frontend/.husky/pre-commit
+bash << EOF
+cd nexus-frontend;
+npm lint;
+npm test;
+EOF
