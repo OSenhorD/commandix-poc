@@ -32,7 +32,7 @@
 
 - [ ] Cliente HTTP (`src/api/client.ts`) com base `/api/v1`
 - [ ] Interceptor 401 → refresh → logout
-- [ ] Proxy Vite dev (`/api` → localhost:3000)
+- [ ] Proxy Vite dev (`/api` → `api:3000`, rede Docker)
 - [ ] Login + logout + token storage (`localStorage`)
 - [ ] Bootstrap (cadastro tenant + admin)
 - [ ] Integrações — listar (ADMIN + VIEWER)

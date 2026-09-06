@@ -34,11 +34,13 @@ nexus-backend/
 |----------|----------|
 | Após editar contract | `npm run contract:emit` |
 | Primeira vez (DB vazio) | `npx prisma db init` |
-| Dev local (schema em fluxo) | `npx prisma db update` |
+| Dev (schema em fluxo) | `npx prisma db update` |
 | Mudança versionada (branch/CI/Docker) | `npx prisma migration plan --name <slug>` → `npx prisma db migrate` |
 | Verificar drift | `npx prisma db verify` |
 
 **Docker / PoC:** `contract emit` (build) → `db migrate` → seed (sempre; idempotente) → start. Não usar `db update` em ambientes compartilhados.
+
+Todos os comandos da tabela rodam **dentro do container `api`** (Compose de desenvolvimento) via `docker compose -f docker/development/docker-compose.yml --project-directory . exec api <comando>` — nunca no host.
 
 ## NestJS
 

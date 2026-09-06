@@ -40,7 +40,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Spec / rules | raiz | `docs/spec/`, `.agents/rules/` |
 | Skills Prisma | `nexus-backend/.agents/skills/prisma-8/` | Sem symlink na raiz — ler direto neste caminho |
 
-**Workspace:** abrir `commandix-poc/` (raiz). Comandos Prisma: `cd nexus-backend` antes de `contract emit`, `db migrate`, etc.
+**Workspace:** abrir `commandix-poc/` (raiz). Comandos Prisma rodam **dentro do container `api`** (Compose de desenvolvimento): `docker compose -f docker/development/docker-compose.yml --project-directory . exec api <comando>` (`contract emit`, `db migrate`, etc.).
 
 ## Decisões adotadas
 
@@ -73,7 +73,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Paginação | Envelope `{ data, meta }` — `page`/`limit` (default 20, máx. 100); `meta`: `total`, `totalPages`, `hasNextPage`, `hasPreviousPage` — [05-api §5.0](./docs/spec/05-api.md#50-paginação-listagens) |
 | Listagem integrações | Filtro opcional `isActive`; `updatedAt DESC` — [05-api §5.3](./docs/spec/05-api.md#get-integrations) |
 | Frontend UI | **Escopo completo do protótipo** — login, logout, bootstrap, CRUD integrações (admin), trigger, histórico + detalhe; viewer somente leitura |
-| API URL (frontend) | Default **`/api/v1`** (relativo) — nginx (Docker) e proxy Vite (dev) encaminham para a API |
+| API URL (frontend) | Default **`/api/v1`** (relativo) — nginx (Docker, prod) e proxy Vite (Docker, dev) encaminham para a API |
 | Refresh 401 | Interceptor tenta `POST /auth/refresh`; falha → logout |
 | JWT claims | `{ sub, tenantId, role, email }` — ver [05-api](./docs/spec/05-api.md) §5.2 |
 | JWT access / refresh | `15m` / `7d` — `JWT_ACCESS_EXPIRES_IN` / `JWT_REFRESH_EXPIRES_IN` |
@@ -82,7 +82,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Criação de usuários | **Somente bootstrap** (tenant + `ADMIN`); sem convite/CRUD de usuários; módulo `users/` fora de escopo |
 | Health | `GET /api/v1/health` → `{ "status": "ok" }` — público; Docker healthcheck |
 | Tokens frontend | `localStorage` |
-| CORS (dev) | `http://localhost:5173` → API `:3000`; ver [08-docker §8.8](./docs/spec/08-docker.md#88-cors) |
+| CORS (dev, container Vite) | `http://localhost:5173` → API `:3000`; ver [08-docker §8.8](./docs/spec/08-docker.md#88-cors) |
 | Seed Docker | Idempotente; pula se tenant `acme` existir |
 | Seed no startup | **Sempre** no entrypoint Docker (`db migrate` → seed → start); idempotente — não re-insere se `acme` já existir; **decisão consciente da PoC**, não padrão de produção |
 | Node | **24.16.0** — `engines` em `nexus-backend/package.json`; imagem Docker `node:24.16.0-alpine` |
@@ -115,7 +115,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 - Nunca expor `passwordHash`, `tokenHash` ou `authKey` completo nas respostas
 - Mascarar `authKey` na resposta (ex.: `****-key`)
 - Cross-tenant access → `NotFoundException` (404), não 403
-- CORS habilitado em **dev local** — `origin: 'http://localhost:5173'` (frontend Vite `:5173`, API `:3000`); Docker com nginx: mesma origem, CORS desnecessário
+- CORS habilitado no **dev (container Vite)** — `origin: 'http://localhost:5173'` (frontend Vite `:5173`, API `:3000`, ambos em containers); prod com nginx: mesma origem, CORS desnecessário
 - `GET /api/v1/health` — healthcheck para Docker
 
 ### Banco (Prisma 8)
@@ -124,9 +124,10 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 - Contract: `nexus-backend/src/prisma/contract.prisma`
 - Client: `src/prisma/db.ts` → wrapper NestJS `DatabaseModule` / `DatabaseService`
 - Após editar contract: `npm run contract:emit`
-- Dev local (schema em fluxo): `npx prisma db update`
+- Dev (schema em fluxo): `npx prisma db update`
 - Mudanças versionadas (branch/Docker): `npx prisma migration plan --name <slug>` → `npx prisma db migrate`
 - Primeira bootstrap (DB vazio): `npx prisma db init`
+- Todos os comandos acima rodam dentro do container `api` (Compose de desenvolvimento) — nunca no host
 - Migrations: `nexus-backend/migrations/app/` (commitar)
 - Domínio: [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md) §4.1–4.3
 - Seed: `src/prisma/seed.ts` idempotente; senha `Admin123!`; entrypoint Docker sempre executa seed (ver decisão acima)
@@ -145,8 +146,8 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 
 | Ambiente | Como `/api/v1` chega na API |
 |----------|----------------------------|
-| Docker (nginx) | `location /api/` → proxy `http://api:3000` |
-| Dev (`vite dev`) | `server.proxy['/api']` → `http://localhost:3000` |
+| Docker — prod (nginx) | `location /api/` → proxy `http://api:3000` |
+| Docker — dev (`vite dev`, container) | `server.proxy['/api']` → `http://api:3000` (rede Docker) |
 
 `VITE_API_URL` é opcional (override); default no código: `/api/v1`. Evita quebrar ao acessar por IP/hostname diferente.
 
@@ -163,12 +164,16 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 docker compose -f docker/production/docker-compose.yml --project-directory . up --build   # produção
 docker compose -f docker/development/docker-compose.yml --project-directory . up --build    # desenvolvimento
 
-# Prisma 8 — backend (ver skill prisma-8/SKILL.md)
-cd nexus-backend
-npm run contract:emit              # após editar contract.prisma
-npx prisma db update               # dev: sync rápido
-npx prisma migration plan --name x # versionado: gera migration
-npx prisma db migrate              # aplica migrations pendentes
+# Prisma 8 — dentro do container `api` (dev compose; ver skill prisma-8/SKILL.md)
+
+# após editar contract.prisma
+docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm run contract:emit
+# dev: sync rápido
+docker compose -f docker/development/docker-compose.yml --project-directory . exec api npx prisma db update
+# versionado: gera migration
+docker compose -f docker/development/docker-compose.yml --project-directory . exec api npx prisma migration plan --name x
+# aplica migrations pendentes
+docker compose -f docker/development/docker-compose.yml --project-directory . exec api npx prisma db migrate
 ```
 
 ## O que NÃO fazer
@@ -202,5 +207,5 @@ npx prisma db migrate              # aplica migrations pendentes
 4. Tarefas Prisma → ler `nexus-backend/.agents/skills/prisma-8/SKILL.md` primeiro
 5. Seguir regras em `.agents/rules/`
 6. Implementar com diff mínimo
-7. Rodar testes/lint antes de declarar concluído
+7. Rodar testes/lint dentro do container `api` (Compose de desenvolvimento) antes de declarar concluído
 8. Atualizar README apenas quando pedido ou ao finalizar fase

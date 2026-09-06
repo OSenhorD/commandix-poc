@@ -30,7 +30,7 @@ Versões pinadas — alinhar com `engines` e imagens Docker:
 
 | Componente | Fonte | Versão |
 |------------|-------|--------|
-| Node (local) | `nexus-backend/package.json` → `engines.node` | `24.16.0` |
+| Node (`package.json`) | `nexus-backend/package.json` → `engines.node` | `24.16.0` |
 | Node (Docker) | `nexus-backend/docker/production/Dockerfile` | `node:24.16.0-alpine` |
 | PostgreSQL | Compose / spec | `postgres:16-alpine` (app); mínimo PN 15+ |
 
@@ -75,7 +75,7 @@ HTTP_TRIGGER_TIMEOUT_MS=30000
 
 | Ambiente | Configuração |
 |----------|--------------|
-| Dev Vite (`:5173`) + API (`:3000`) | `app.enableCors({ origin: 'http://localhost:5173' })` em `main.ts` |
-| Docker (nginx proxy `/api/`) | CORS **desnecessário** — mesma origem |
+| Docker dev — container Vite (`:5173`) + container `api` (`:3000`) | `app.enableCors({ origin: 'http://localhost:5173' })` em `main.ts` |
+| Docker prod (nginx proxy `/api/`) | CORS **desnecessário** — mesma origem |
 
 Detalhes: [08-docker §8.8](../../docs/spec/08-docker.md#88-cors).

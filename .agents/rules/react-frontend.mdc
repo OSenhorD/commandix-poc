@@ -51,11 +51,11 @@ Forms de integração: `name`, `type`, `targetUrl`, `authKey`, `customHeaders`, 
 ## API
 
 ```typescript
-// Relativo — nginx (Docker) ou proxy Vite (dev) encaminham /api → backend
+// Relativo — nginx (Docker, prod) ou proxy Vite (Docker, dev) encaminham /api → backend
 const API_URL = import.meta.env.VITE_API_URL ?? '/api/v1';
 ```
 
-**Dev:** configurar proxy em `vite.config.ts` (`/api` → `http://localhost:3000`).
+**Dev (container Vite):** configurar proxy em `vite.config.ts` (`/api` → `http://api:3000`, hostname resolvido pela rede do Compose — nunca `localhost`).
 
 Contrato: `docs/spec/05-api.md`.
 

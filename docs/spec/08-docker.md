@@ -91,9 +91,9 @@ Implementação: `nexus-backend/docker/production/entrypoint.sh` (prod) / `docke
 
 ## 8.6 Frontend — roteamento da API
 
-O cliente HTTP usa **`/api/v1`** (caminho relativo). Mesma origem do browser → funciona com qualquer host (localhost, IP, hostname).
+O cliente HTTP usa **`/api/v1`** (caminho relativo). Mesma origem do browser → funciona com qualquer host (IP, hostname, domínio).
 
-### Docker (nginx)
+### Docker — produção (nginx)
 
 ```nginx
 location /api/ {
@@ -103,43 +103,46 @@ location /api/ {
 
 Build do frontend **não** precisa de `VITE_API_URL` absoluto.
 
-### Dev local (Vite)
+### Docker — desenvolvimento (Vite)
+
+O container do frontend em dev roda `vite dev` (bind mount + hot-reload), na mesma rede do Compose que o serviço `api` — o proxy resolve `api` pelo hostname interno do Docker, nunca por `localhost`:
 
 ```typescript
 // vite.config.ts
 server: {
+  host: true, // expõe o dev server para fora do container
   proxy: {
-    '/api': 'http://localhost:3000',
+    '/api': 'http://api:3000',
   },
 },
 ```
 
 ### Override opcional
 
-`VITE_API_URL` no `.env` apenas se necessário (ex.: API em outro host durante dev).
+`VITE_API_URL` no `.env` apenas se necessário (ex.: API publicada em porta/host diferente do padrão do Compose).
 
 ## 8.8 CORS
 
 | Ambiente | Frontend | API | CORS na API |
 |----------|----------|-----|-------------|
-| **Dev local** | Vite `:5173` | Nest `:3000` | **Sim** — `origin: 'http://localhost:5173'` |
-| **Docker** | nginx `:5173` → `:80` | `:3000` (interno) | **Não** — browser usa mesma origem; `/api/` via proxy nginx |
+| **Docker — dev (Vite)** | container `vite dev`, porta publicada `:5173` | container `api`, porta publicada `:3000` | **Sim** — `origin: 'http://localhost:5173'` |
+| **Docker — prod (nginx)** | container nginx `:5173` → `:80` | `:3000` (interno) | **Não** — browser usa mesma origem; `/api/` via proxy nginx |
 
-### Dev local
+### Docker — dev (Vite)
 
-Frontend e API em portas diferentes → browser exige CORS para chamadas diretas à API (`http://localhost:3000`).
+Frontend e API rodam em containers separados, cada um publicando sua porta no host → do ponto de vista do browser são origens diferentes, exigindo CORS para chamadas diretas à API (`http://localhost:3000`).
 
 ```typescript
 // main.ts
 app.enableCors({ origin: 'http://localhost:5173' });
 ```
 
-Com proxy Vite (`/api` → `:3000`) e URL relativa `/api/v1`, a maioria das chamadas do frontend é **same-origin** (`localhost:5173`). CORS na API ainda é configurado para:
+Com proxy Vite (`/api` → `api:3000` via rede do Docker) e URL relativa `/api/v1`, a maioria das chamadas do frontend é **same-origin** (`localhost:5173`, porta publicada do container). CORS na API ainda é configurado para:
 
 - ferramentas externas (Postman, curl com `Origin`)
-- override `VITE_API_URL` apontando direto para `:3000`
+- override `VITE_API_URL` apontando direto para a porta publicada da API
 
-### Docker
+### Docker — prod (nginx)
 
 nginx faz proxy `/api/` → `api:3000`. Browser só fala com o host do frontend — **sem preflight CORS** para rotas `/api/v1/*`.
 
