@@ -1,6 +1,5 @@
 {
-  "prettier.prettierPath": "nexus-backend/node_modules/prettier",
-  "prettier.configPath": "nexus-backend/.prettierrc",
+  "prettier.configPath": ".prettierrc",
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
