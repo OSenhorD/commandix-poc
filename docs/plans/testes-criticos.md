@@ -1,7 +1,7 @@
 # Plano de Testes — Commandix PoC
 
 > **Objetivo:** garantir cobertura mínima obrigatória da PoC e testes incrementais por entrega.  
-> **Fonte de verdade:** [`AGENTS.md`](../../AGENTS.md), [`docs/spec/10-criterios.md`](../spec/10-criterios.md), [`docs/plans/backend-entregas.md`](./backend-entregas.md).
+> **Fonte de verdade:** [`AGENTS.md`](../../AGENTS.md), [`docs/spec/10-criterios.md`](../spec/10-criterios.md).
 
 ---
 
@@ -250,6 +250,5 @@ Fase C (E19 consolidado)     →  após E17; refatorar helpers se necessário
 |--------|-----------|
 | Critérios de avaliação | [10-criterios.md](../spec/10-criterios.md) |
 | Checklist | [11-checklist.md](../spec/11-checklist.md) |
-| Entregas backend | [backend-entregas.md](./backend-entregas.md) |
 | API | [05-api.md](../spec/05-api.md) |
 | Regras NestJS | [.agents/rules/nestjs-backend.mdc](../../.agents/rules/nestjs-backend.mdc) |
