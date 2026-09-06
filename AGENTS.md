@@ -106,6 +106,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | PostgreSQL | **16** (`postgres:16-alpine`) — alvo da app; atende mínimo Prisma Next 15+ |
 | Imports backend | Alias **`@/`** → `src/`; sufixo **`.js`** obrigatório; build com **`tsc-alias`** |
 | CI | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — lint, test, build, Docker Compose |
+| Pre-commit (Husky raiz) | `lint-staged` no host + `vitest related` **dentro** dos containers (`api` / `frontend`, compose de desenvolvimento, `exec -T`); só unitários; `*.e2e-spec.ts` fora. Commit de código exige o compose de dev no ar |
 
 ## Convenções
 
@@ -184,6 +185,9 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 ## Comandos úteis
 
 ```bash
+# Pre-commit — lint-staged no host; testes via compose exec (api / frontend)
+npx lint-staged
+
 # Docker — sobe postgres + api + frontend (após implementação)
 docker compose -f docker/production/docker-compose.yml --project-directory . up --build   # produção
 docker compose -f docker/development/docker-compose.yml --project-directory . up --build    # desenvolvimento

@@ -27,8 +27,7 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",
-    "preview": "vite preview",
-    "prepare": "cd .. && husky frontend/.husky"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
