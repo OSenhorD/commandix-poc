@@ -42,6 +42,7 @@ services:
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
 
       HTTP_TRIGGER_TIMEOUT_MS: ${HTTP_TRIGGER_TIMEOUT_MS:-30000}
+      ENABLE_API_DOCS: ${ENABLE_API_DOCS:-true}
     depends_on:
       database:
         condition: service_healthy

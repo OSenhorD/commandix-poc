@@ -44,6 +44,8 @@ Aguarde os healthchecks. A API sobe automaticamente com:
 |---------|-------------|------------|
 | API | http://localhost:3000/api/v1 | prefixo global NestJS |
 | Health | http://localhost:3000/api/v1/health | `{ "status": "ok" }` |
+| Docs (Swagger UI) | http://localhost:3000/api/docs | Try-it com JWT (`Authorize` → Bearer) |
+| OpenAPI JSON | http://localhost:3000/api/openapi.json | Documento OpenAPI 3.x gerado via `@nestjs/swagger` |
 | PostgreSQL | `localhost:5432` | user/senha/db default: `commandix` |
 | Frontend | — | **Pendente** (`nexus-frontend/` ainda não existe; serviço comentado no Compose) |
 
@@ -86,6 +88,7 @@ Copie `.env.example` → `.env` na **raiz** do monorepo. Principais variáveis:
 | `DB_DATABASE` / `DB_USERNAME` | `commandix` | Postgres no Compose |
 | `DB_PORT` | `5432` | Porta exposta do Postgres — **somente em desenvolvimento**; em produção o Postgres não expõe porta no host |
 | `API_PORT` | `3000` | Porta exposta da API |
+| `ENABLE_API_DOCS` | `true` | Liga/desliga `/api/docs` e `/api/openapi.json` (`false` → 404) |
 
 No Compose, a API recebe `DATABASE_URL` montada internamente (`database:5432`). Ver [`.env.example`](./.env.example) e [`docs/spec/08-docker.md`](./docs/spec/08-docker.md).
 
