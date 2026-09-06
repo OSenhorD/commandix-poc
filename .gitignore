@@ -7,9 +7,6 @@ node_modules/
 dist/
 
 # IDE
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
 .idea/
 
 # OS

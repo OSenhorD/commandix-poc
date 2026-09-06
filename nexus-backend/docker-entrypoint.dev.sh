@@ -7,5 +7,5 @@ echo "Running database migrations..."
 echo "Running seed..."
 npm run seed
 
-echo "Starting API in watch mode..."
-exec npm run start:dev
+echo "Starting API in watch mode (debug inspector on 9229)..."
+exec npm run start:debug
