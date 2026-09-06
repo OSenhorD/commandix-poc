@@ -116,6 +116,8 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 - Nunca expor `passwordHash`, `tokenHash` ou `authKey` completo nas respostas
 - Mascarar `authKey` na resposta (ex.: `****-key`)
 - Cross-tenant access → `NotFoundException` (404), não 403
+- Rota com prefixo top-level diferente do resto do módulo (ex.: `GET /executions/:id` vs. `GET /integrations/:integrationId/executions`): criar um **segundo `@Controller()`** no mesmo módulo (pode ficar no mesmo arquivo `*.controller.ts`) e registrar ambos em `controllers: []` — Nest não permite path absoluto por método dentro de um controller com prefixo próprio
+- Validar tenant de uma entidade sem `tenantId` direto (ex.: `IntegrationExecution`) via `.include('relation', (r) => r.select('tenantId'))` no ORM Prisma 8 — evita duas queries separadas; comparar `entity.relation.tenantId !== tenantId` → 404
 - CORS habilitado no **dev (container Vite)** — `origin: 'http://localhost:5173'` (frontend Vite `:5173`, API `:3000`, ambos em containers); prod com nginx: mesma origem, CORS desnecessário
 - `GET /api/v1/health` — healthcheck para Docker
 

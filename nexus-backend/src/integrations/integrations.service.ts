@@ -7,6 +7,7 @@ import {
 import { ExecutionStatusEnum } from '@/common/enums/execution-status.enum.js';
 import { buildPaginatedResponse } from '@/common/utils/pagination.util.js';
 import { DatabaseService } from '@/database/database.service.js';
+import { toExecutionResponse } from '@/executions/executions.mapper.js';
 
 import { CreateIntegrationDto } from './dto/create-integration.dto.js';
 import { ListIntegrationsQueryDto } from './dto/list-integrations-query.dto.js';
@@ -14,7 +15,6 @@ import { TriggerIntegrationDto } from './dto/trigger-integration.dto.js';
 import { UpdateIntegrationDto } from './dto/update-integration.dto.js';
 import { HttpOutboundService } from './http-outbound.service.js';
 import {
-  toExecutionResponse,
   toIntegrationListItem,
   toIntegrationResponse,
 } from './integrations.mapper.js';

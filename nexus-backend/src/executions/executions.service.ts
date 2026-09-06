@@ -8,7 +8,10 @@ import { buildPaginatedResponse } from '@/common/utils/pagination.util.js';
 import { DatabaseService } from '@/database/database.service.js';
 
 import { ListExecutionsQueryDto } from './dto/list-executions-query.dto.js';
-import { toExecutionListItem } from './executions.mapper.js';
+import {
+  toExecutionListItem,
+  toExecutionResponse,
+} from './executions.mapper.js';
 import { parseDateFilter } from './utils/parse-date-filter.util.js';
 
 @Injectable()
@@ -81,5 +84,29 @@ export class ExecutionsService {
       limit,
       total,
     );
+  }
+
+  async findOne(id: string, tenantId: string) {
+    const execution = await this.database.orm.public.IntegrationExecution.where(
+      { id },
+    )
+      .select(
+        'id',
+        'integrationId',
+        'status',
+        'httpStatusCode',
+        'responseTimeMs',
+        'requestPayload',
+        'responseBody',
+        'executedAt',
+      )
+      .include('integration', (integration) => integration.select('tenantId'))
+      .first();
+
+    if (!execution || execution.integration.tenantId !== tenantId) {
+      throw new NotFoundException();
+    }
+
+    return toExecutionResponse(execution);
   }
 }

@@ -82,27 +82,6 @@ flowchart TD
 
 ## Entregas
 
-### E17 — Execuções: detalhe
-
-**Objetivo:** detalhe de execução com tenant via join.
-
-**Escopo:**
-- `GET /executions/:id` — ADMIN, VIEWER
-- Buscar execução + validar `integration.tenantId === user.tenantId`
-- Cross-tenant → 404
-- Resposta completa com `requestPayload` e `responseBody` (já truncado no banco)
-
-**Arquivos:**
-- Modificar: `executions.controller.ts`, `executions.service.ts`
-
-**Critério de done:**
-- [ ] Detalhe retorna campos completos
-- [ ] Execução de outro tenant → 404
-
-**Dependências:** E16
-
----
-
 ### E19 — Testes críticos (obrigatório)
 
 **Objetivo:** cobertura mínima exigida pela PoC ([10-criterios](../spec/10-criterios.md)).
@@ -136,7 +115,7 @@ flowchart TD
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
 | Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 ✅ |
 | Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13 ✅, E14 ✅, E15 ✅ |
-| Fase 4 — Histórico | E16 ✅, E17 |
+| Fase 4 — Histórico | E16 ✅, E17 ✅ |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
 
 > Frontend (Fase 5) e nginx no Compose ficam fora deste documento.

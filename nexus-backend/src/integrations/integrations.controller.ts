@@ -28,9 +28,9 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator.js';
 import { Roles } from '@/common/decorators/roles.decorator.js';
 import { RoleEnum } from '@/common/enums/role.enum.js';
 import type { AuthenticatedUser } from '@/common/interfaces/authenticated-user.interface.js';
+import { ExecutionResponseDto } from '@/executions/dto/execution-response.dto.js';
 
 import { CreateIntegrationDto } from './dto/create-integration.dto.js';
-import { ExecutionResponseDto } from './dto/execution-response.dto.js';
 import { IntegrationResponseDto } from './dto/integration-response.dto.js';
 import { ListIntegrationsQueryDto } from './dto/list-integrations-query.dto.js';
 import { PaginatedIntegrationsResponseDto } from './dto/paginated-integrations-response.dto.js';
