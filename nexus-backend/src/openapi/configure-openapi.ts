@@ -1,11 +1,9 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { apiReference } from '@scalar/nestjs-api-reference';
 
 import {
   isApiDocsEnabled,
   OPENAPI_JSON_PATH,
-  OPENAPI_SCALAR_PATH,
   OPENAPI_SETUP_PATH,
   OPENAPI_TITLE,
   OPENAPI_VERSION,
@@ -50,16 +48,6 @@ export function configureOpenApi(app: INestApplication): void {
     SwaggerModule.createDocument(app, config, swaggerDocumentOptions);
 
   SwaggerModule.setup(OPENAPI_SETUP_PATH, app, documentFactory, {
-    ui: false,
-    raw: ['json'],
     jsonDocumentUrl: OPENAPI_JSON_PATH,
   });
-
-  app.use(
-    OPENAPI_SCALAR_PATH,
-    apiReference({
-      theme: 'default',
-      url: `/${OPENAPI_JSON_PATH}`,
-    }),
-  );
 }
