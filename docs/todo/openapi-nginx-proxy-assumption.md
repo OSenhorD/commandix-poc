@@ -1,6 +1,6 @@
 # Task 13 do plano OpenAPI assume um proxy nginx que não existe
 
-**Contexto:** `docs/plans/openapi-scalar.md`, Task 13, Step 2 — revisão de 2026-09-06.
+**Contexto:** plano `docs/plans/openapi-scalar.md` (Task 13, Step 2), removido em 2026-09-06 após conclusão — ver `git log --all -- docs/plans/openapi-scalar.md`.
 
 **Descrição:** O plano original assumia um nginx com `location /api/` proxiando `/api/openapi.json` e `/api/docs` para o serviço `api`. No estado atual do repositório não existe serviço nginx: `docker/production/docker-compose.yml` tem o serviço `frontend` comentado (sem build ainda) e nenhum proxy reverso configurado. A API expõe a porta diretamente (`${API_PORT:-3000}:3000`).
 

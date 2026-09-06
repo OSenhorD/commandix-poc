@@ -726,6 +726,15 @@
                   "name": "integration_tenantId_idx_c93ed4f1",
                   "prefix": "integration_tenantId_idx",
                   "unique": false
+                },
+                {
+                  "columns": [
+                    "tenantId",
+                    "updatedAt"
+                  ],
+                  "name": "integration_tenantId_updatedAt_idx_dd16144d",
+                  "prefix": "integration_tenantId_updatedAt_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -831,14 +840,6 @@
                   "name": "integrationExecution_integrationId_idx_c1110add",
                   "prefix": "integrationExecution_integrationId_idx",
                   "unique": false
-                },
-                {
-                  "columns": [
-                    "status"
-                  ],
-                  "name": "integrationExecution_status_idx_e98638ab",
-                  "prefix": "integrationExecution_status_idx",
-                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -909,7 +910,13 @@
                   "id"
                 ]
               },
-              "uniques": []
+              "uniques": [
+                {
+                  "columns": [
+                    "tokenHash"
+                  ]
+                }
+              ]
             },
             "tenant": {
               "columns": {
@@ -1078,7 +1085,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "b2d4c5ff16c021a87425bdc8004f75e522022fdbbe8efeaf1a54346feec814e2"
+    "storageHash": "2e70f946b86b01e5c9ab19d707febadf065d73e0cec903104f88f622f0f61593"
   },
   "execution": {
     "executionHash": "75159b9a22b572da057d44ff5d9cec639660918393aeb77aec1923dedb57c29d",

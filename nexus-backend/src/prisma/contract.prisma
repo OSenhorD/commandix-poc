@@ -56,7 +56,7 @@ model Integration {
   updatedAt      temporal.updatedAtString()
   executions     IntegrationExecution[]
 
-  @@index([tenantId])
+  @@index([tenantId, updatedAt])
 }
 
 model IntegrationExecution {
@@ -71,14 +71,13 @@ model IntegrationExecution {
   executedAt      TimestamptzString @default(now())
 
   @@index([integrationId, executedAt])
-  @@index([status])
 }
 
 model RefreshToken {
   id        Uuid               @id @default(uuid())
   userId    Uuid
   user      User               @relation(fields: [userId], references: [id])
-  tokenHash String
+  tokenHash String             @unique
   expiresAt TimestamptzString
   revokedAt TimestamptzString?
 

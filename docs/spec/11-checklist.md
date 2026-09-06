@@ -6,7 +6,11 @@
 
 ## Fase 1 — Fundação
 
-- [ ] Docker Compose (postgres + api ✅; frontend pendente — `nexus-frontend/` a criar)
+- [x] Domínio Prisma 8 (`contract.prisma` + migrations)
+- [x] `DatabaseModule` (wrapper do client Prisma)
+- [x] Bootstrap da aplicação NestJS (`main.ts`, prefixo `api/v1`, `GET /health`)
+- [x] Seed idempotente (`src/prisma/seed.ts`)
+- [ ] Docker Compose (`database` + `api` ✅; `frontend` pendente — `nexus-frontend/` a criar)
 
 ## Fase 2 — Auth
 
@@ -43,8 +47,8 @@
 
 ## Fase 6 — Polish
 
-- [ ] `.env.example` completo
-- [ ] README com decisões
-- [ ] Testes críticos (auth, tenant isolation, execuções) — **obrigatório**
+- [x] `.env.example` completo
+- [x] README com decisões
+- [x] Testes críticos (auth, tenant isolation, trigger, scoping de execuções — ver [10-criterios](./10-criterios.md)) — **obrigatório**
 - [ ] (Bônus) cobertura E2E/unitária extra
 - [ ] (Bônus) n8n workflow

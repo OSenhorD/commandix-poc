@@ -55,7 +55,7 @@ erDiagram
     RefreshToken {
         uuid id PK
         uuid userId FK
-        string tokenHash
+        string tokenHash UK
         datetime expiresAt
         datetime revokedAt
     }
@@ -65,7 +65,7 @@ erDiagram
 
 > **Implementação:** `nexus-backend/src/prisma/contract.prisma`. Sintaxe e tipos: skill Prisma 8 (`nexus-backend/.agents/skills/prisma-8/references/contract.md`). Após editar: `npm run contract:emit`. Mudanças versionadas: `migration plan` + `db migrate`.
 
-Bloco abaixo descreve **entidades, campos e relações** do domínio Commandix (PSL de referência):
+Bloco abaixo descreve **entidades, campos e relações** do domínio Commandix (PSL de referência). Tipos simplificados (`String`, `DateTime`, `@updatedAt`) para leitura — o contract Prisma 8 real usa os tipos de domínio (`Uuid`, `TimestamptzString`, `temporal.updatedAtString()`); ver a skill. O `onDelete: Cascade` abaixo, porém, **não** é simplificação — reflete a decisão "DELETE integração → hard delete + cascade em execuções" (`AGENTS.md`).
 
 ```prisma
 enum Role {
@@ -121,13 +121,13 @@ model Integration {
   updatedAt      DateTime                @updatedAt
   executions     IntegrationExecution[]
 
-  @@index([tenantId])
+  @@index([tenantId, updatedAt])
 }
 
 model IntegrationExecution {
   id              String          @id @default(uuid())
   integrationId   String
-  integration     Integration     @relation(fields: [integrationId], references: [id])
+  integration     Integration     @relation(fields: [integrationId], references: [id], onDelete: Cascade)
   status          ExecutionStatus
   httpStatusCode  Int?
   responseTimeMs  Int
@@ -136,14 +136,13 @@ model IntegrationExecution {
   executedAt      DateTime        @default(now())
 
   @@index([integrationId, executedAt])
-  @@index([status])
 }
 
 model RefreshToken {
   id        String    @id @default(uuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id])
-  tokenHash String
+  tokenHash String    @unique
   expiresAt DateTime
   revokedAt DateTime?
 
@@ -199,11 +198,12 @@ model RefreshToken {
 | `integrationId` | UUID | sim (FK) | Referência a `Integration` |
 | `status` | enum | sim | `SUCCESS` \| `FAILURE` — ver critério abaixo |
 | `httpStatusCode` | int | não | Código HTTP da resposta externa (`null` se timeout/erro de rede) |
-**Critério `SUCCESS` / `FAILURE`:** se a API da integração retornar sucesso (HTTP 2xx), `SUCCESS`; senão, `FAILURE`. Não interpretar o body — apenas o status HTTP (ou ausência de resposta).
 | `responseTimeMs` | int | sim | Tempo de resposta em ms |
 | `requestPayload` | JSON | não | Payload enviado ao serviço externo |
 | `responseBody` | text | não | Corpo da resposta externa; **máx. 10 240 bytes UTF-8** na persistência ([05-api §5.4](./05-api.md#truncamento-de-responsebody)) |
 | `executedAt` | datetime | sim | Default: now |
+
+**Critério `SUCCESS` / `FAILURE`:** se a API da integração retornar sucesso (HTTP 2xx), `SUCCESS`; senão, `FAILURE`. Não interpretar o body — apenas o status HTTP (ou ausência de resposta).
 
 ### RefreshToken
 
@@ -211,7 +211,7 @@ model RefreshToken {
 |-------|------|-------------|-------|
 | `id` | UUID | sim (PK) | Gerado automaticamente |
 | `userId` | UUID | sim (FK) | Referência a `User` |
-| `tokenHash` | string | sim | Hash do refresh token; **nunca expor na API** |
+| `tokenHash` | string | sim (UK) | Hash do refresh token; único (lookup direto em login/refresh/logout); **nunca expor na API** |
 | `expiresAt` | datetime | sim | |
 | `revokedAt` | datetime | não | Preenchido no logout **deste** refresh token (dispositivo atual) |
 

@@ -12,7 +12,7 @@ Contexto para agentes de IA trabalhando neste repositório.
 
 | Componente | Status |
 |------------|--------|
-| `nexus-backend/` | Domínio Prisma 8 + migration + seed + `DatabaseModule`; Docker (Dockerfile + entrypoint); sem módulos de negócio |
+| `nexus-backend/` | **Funcional** — módulos `auth`, `tenants`, `integrations`, `executions`, `common`, `openapi`, `database`; Prisma 8 (contract + migration + seed); Docker (Dockerfile + entrypoint); testes unitários + e2e (falta `test/executions-scoping.e2e-spec.ts`) |
 | `nexus-frontend/` | **Não criado** |
 | Prisma 8 | `contract.prisma` — domínio Commandix; migration `20260903T0509_initial` |
 | Docker Compose | **postgres + api** (`docker compose -f docker/production/docker-compose.yml --project-directory . up --build`); frontend pendente |
@@ -56,7 +56,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | `IntegrationType` | Metadado; disparo HTTP idêntico para `WEBHOOK`, `REST_API`, `N8N` |
 | Desativar integração | `PATCH { isActive: false }` |
 | DELETE integração | Hard delete + cascade em execuções |
-| Trigger inativo | Rejeitar (integração deve estar `isActive: true`) |
+| Trigger inativo | Rejeitar com **`400`** — integração deve estar `isActive: true` (existe e é do tenant, então não é 404) |
 | HTTP outbound | **Sempre POST**; timeout 30s; **sem retry** |
 | `authKey` at-rest | Texto ou criptografia — candidato documenta no README final |
 | Merge payload | Shallow: `{ ...defaultPayload, ...payload }` |
