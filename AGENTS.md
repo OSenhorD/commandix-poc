@@ -80,6 +80,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Frontend — `erasableSyntaxOnly` | Ligado no `tsconfig.app.json`: **sem `enum`, `namespace` ou parameter property** (`constructor(private x)`). Usar união `as const` e atribuir no corpo do construtor |
 | Frontend — contexto React | Contexto e provider em arquivos separados (`*-context.ts` sem JSX + `*-provider.tsx`) — um arquivo que exporta componente **e** não-componente quebra o Fast Refresh |
 | Frontend — lint | **ESLint 10 (`strictTypeChecked`)** no frontend; **oxlint** no backend. Um linter por pacote, proposital — não unificar |
+| Prettier | Isolado por pacote — `nexus-backend/.prettierrc` (aspas simples, estilo Nest) e `nexus-frontend/.prettierrc` (aspas duplas). Sem `.prettierrc` na raiz; a extensão VS Code resolve a config mais próxima do arquivo |
 | Frontend — sessão | `AuthProvider` (contexto) expõe `{ user, isLoading, login, logout, bootstrap }`; reidratação por `useQuery(["auth","me"])` → `GET /auth/me` |
 | Frontend — estado de lista | Paginação e filtros vivem na **URL** (`useSearchParams`); a query key do TanStack Query deriva da URL — sobrevive ao reload e o link é compartilhável |
 | Frontend — `authKey` no form | **Nunca** pré-preencher no formulário de edição: a API devolve a chave **mascarada** (`****-key`) e salvar isso destrói a credencial. Campo vazio = manter o valor atual |
@@ -163,6 +164,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 - Toda tela com dados tem loading (`Skeleton`), erro (com retry) e vazio
 - Ações de escrita **ocultas** para `VIEWER` (`RoleGate`), e rotas de escrita barradas no router
 - Paginação e filtros na URL (`useSearchParams`)
+- Prettier próprio em `nexus-frontend/.prettierrc` (aspas duplas, `printWidth` 120) — não usar o do backend
 
 **Infra API no frontend:**
 
@@ -186,8 +188,10 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 docker compose -f docker/production/docker-compose.yml --project-directory . up --build   # produção
 docker compose -f docker/development/docker-compose.yml --project-directory . up --build    # desenvolvimento
 
-# Frontend — dentro do container `frontend` (dev compose, após F12)
+# Frontend — dentro do container `frontend` (dev compose)
 docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run lint
+docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run format
+docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run format:check
 docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm test
 docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npx shadcn add <componente>
 
@@ -223,6 +227,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 - Não pré-preencher `authKey` em formulário de edição — a API devolve mascarada
 - Não omitir `@testing-library/dom` no frontend — peer do RTL v16; sem ele `render`/`screen` viram tipo `error` no ESLint type-checked
 - Não adicionar TanStack Table, axios ou date-fns — fora do escopo escolhido (tabelas fixas, `fetch`, `Intl`)
+- Não criar `.prettierrc` na raiz — Prettier é isolado por pacote (`nexus-backend/` e `nexus-frontend/`)
 
 ## Arquivos de referência
 

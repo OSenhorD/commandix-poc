@@ -61,7 +61,7 @@ Cada `feature/` fecha seu domínio (chamadas, hooks, schemas, componentes, pági
 - Em teste, tipar o mock (`vi.fn<typeof fetch>()`): sem o genérico, `mock.calls` é `any[]` e o `no-unsafe-member-access` reprova o arquivo
 - `@testing-library/dom` é **peer explícito** de `@testing-library/react` v16 — sem o pacote no `package.json`/`lockfile`, `render`/`screen` resolvem como tipo `error` e o ESLint (`no-unsafe-return` / `no-unsafe-call`) reprova os testes
 - Contexto e provider em **arquivos separados** (`*-context.ts` sem JSX + `*-provider.tsx`) — arquivo que exporta componente e não-componente quebra o Fast Refresh
-- Aspas duplas; Prettier da raiz (`printWidth: 120`)
+- Aspas duplas; Prettier local em `nexus-frontend/.prettierrc` (`printWidth: 120`) — isolado do backend
 - Toda tela com dados tem **loading, erro e vazio** — `Skeleton`, `ErrorState` com retry, `EmptyState`
 - Ações de escrita são **ocultadas** para `VIEWER` (`RoleGate`), não apenas desabilitadas
 - Sem TanStack Table na PoC — colunas fixas por tela

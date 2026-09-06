@@ -20,7 +20,7 @@
 | bcrypt | Hash de senhas | Implementado |
 | Vitest + supertest | 4.x — **testes críticos obrigatórios** (ver [10-criterios § Testes](./10-criterios.md)) | Implementado (falta e2e de execuções) |
 | tsc-alias | Pós-build — reescreve `@/` em paths relativos no `dist/` | Configurado |
-| oxlint | Linter do projeto (`npm run lint`) — **não** ESLint; formatação via Prettier | Configurado |
+| oxlint | Linter do projeto (`npm run lint`) — **não** ESLint; formatação via Prettier isolado em `nexus-backend/.prettierrc` (aspas simples) | Configurado |
 | nodemon | Watch mode do Compose de desenvolvimento (+ inspector na `9229`) | Configurado |
 
 **Imports (backend):** preferir `@/…/arquivo.js` (mapeia para `src/`); sufixo `.js` obrigatório. Ver [`AGENTS.md`](../../AGENTS.md) § Convenções.
@@ -40,6 +40,7 @@ Prioridade **baixa** de acabamento visual na avaliação ([10-criterios](./10-cr
 | react-hook-form + zod | Forms e validação espelhando os DTOs `class-validator` do backend | Pendente |
 | `fetch` (client próprio) | `shared/api/client.ts` — Bearer + 401 → refresh **single-flight** → logout | Pendente |
 | ESLint 10 (`strictTypeChecked`) | Linter do frontend — o backend usa **oxlint**; um linter por pacote | Configurado |
+| Prettier | Isolado em `nexus-frontend/.prettierrc` (aspas duplas, `printWidth` 120) — não compartilha o do backend | Configurado |
 | Vitest + Testing Library | Só o crítico: client HTTP e gate de role (bônus na avaliação) | Pendente |
 
 Plano de implementação: [`docs/plans/frontend.md`](../plans/frontend.md) (entregas F01–F12). Padrões e armadilhas do contrato: [`.agents/rules/react-frontend.mdc`](../../.agents/rules/react-frontend.mdc).

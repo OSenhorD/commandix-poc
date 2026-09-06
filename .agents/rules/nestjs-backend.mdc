@@ -106,3 +106,7 @@ Validar tenant via `Integration`. Ordenação `executedAt DESC`. Paginação §5
 ## Health
 
 `GET /api/v1/health`
+
+## Formatação
+
+Prettier local em `.prettierrc` (`singleQuote: true`, `trailingComma: "all"`). Isolado do frontend — não há `.prettierrc` na raiz. Scripts: `npm run format` / `npm run format:check`.
