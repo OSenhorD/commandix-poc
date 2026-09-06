@@ -1,0 +1,122 @@
+[
+  {
+    "id": "dropIndex.integrationExecution.integrationExecution_status_idx_e98638ab",
+    "label": "Drop index \"integrationExecution_status_idx_e98638ab\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "integrationExecution_status_idx_e98638ab",
+        "table": "integrationExecution"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"integrationExecution_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"integrationExecution_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop index \"integrationExecution_status_idx_e98638ab\"",
+        "sql": "DROP INDEX \"public\".\"integrationExecution_status_idx_e98638ab\"",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"integrationExecution_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"integrationExecution_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.refreshToken.refreshToken_tokenHash_key",
+    "label": "Add unique constraint on \"refreshToken\" (tokenHash)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "refreshToken_tokenHash_key",
+        "table": "refreshToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"refreshToken_tokenHash_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refreshToken_tokenHash_key",
+          "public",
+          "\"public\".\"refreshToken\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"refreshToken_tokenHash_key\"",
+        "sql": "ALTER TABLE \"public\".\"refreshToken\" ADD CONSTRAINT \"refreshToken_tokenHash_key\" UNIQUE (\"tokenHash\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"refreshToken_tokenHash_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refreshToken_tokenHash_key",
+          "public",
+          "\"public\".\"refreshToken\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.integration.integration_tenantId_updatedAt_idx_dd16144d",
+    "label": "Create index \"integration_tenantId_updatedAt_idx_dd16144d\" on \"integration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "integration_tenantId_updatedAt_idx_dd16144d",
+        "table": "integration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"integration_tenantId_updatedAt_idx_dd16144d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"integration_tenantId_updatedAt_idx_dd16144d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"integration_tenantId_updatedAt_idx_dd16144d\"",
+        "sql": "CREATE INDEX \"integration_tenantId_updatedAt_idx_dd16144d\" ON \"public\".\"integration\" (\"tenantId\", \"updatedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"integration_tenantId_updatedAt_idx_dd16144d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"integration_tenantId_updatedAt_idx_dd16144d\""
+        ]
+      }
+    ]
+  }
+]
