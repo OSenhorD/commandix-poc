@@ -82,31 +82,6 @@ flowchart TD
 
 ## Entregas
 
-### E15 — Trigger + registro de execução
-
-**Objetivo:** disparo manual e persistência de `IntegrationExecution`.
-
-**Escopo:**
-- `POST /integrations/:id/trigger` — ADMIN
-- Rejeitar se `isActive === false`
-- Merge shallow: `{ ...defaultPayload, ...payload }`
-- Chamar E14; determinar status: 2xx → `SUCCESS`, senão → `FAILURE`
-- Truncar `responseBody` em 10 240 bytes UTF-8 + sufixo `… [truncated]`
-- Persistir execução; resposta `200` conforme spec
-
-**Arquivos:**
-- Modificar: `integrations.controller.ts`, `integrations.service.ts`
-- Criar: `dto/trigger-integration.dto.ts`, `utils/truncate-response-body.util.ts`
-
-**Critério de done:**
-- [ ] Trigger em integração inativa → erro (400 ou 404 conforme spec/implementação)
-- [ ] Execução gravada com status correto
-- [ ] Body > 10 KB truncado na persistência
-
-**Dependências:** E13, E14
-
----
-
 ### E16 — Execuções: listagem por integração
 
 **Objetivo:** histórico paginado com filtros.
@@ -184,7 +159,7 @@ flowchart TD
 |----------------|----------|
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
 | Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 ✅ |
-| Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13 ✅, E14 ✅, E15 |
+| Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13 ✅, E14 ✅, E15 ✅ |
 | Fase 4 — Histórico | E16, E17 |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
 

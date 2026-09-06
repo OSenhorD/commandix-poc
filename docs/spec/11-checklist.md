@@ -17,10 +17,10 @@
 
 ## Fase 3 — Integrações
 
-- [ ] CRUD de integrações com tenant scoping (PATCH parcial — [05-api §5.3](./05-api.md#patch-integrationsid))
-- [ ] Listagem paginada ([05-api §5.0](./05-api.md#50-paginação-listagens) + filtro `isActive` — [§5.3](./05-api.md#get-integrations))
-- [ ] Serviço HTTP para disparo
-- [ ] Registro de execuções (`responseBody` truncado em 10 240 bytes)
+- [x] CRUD de integrações com tenant scoping (PATCH parcial — [05-api §5.3](./05-api.md#patch-integrationsid))
+- [x] Listagem paginada ([05-api §5.0](./05-api.md#50-paginação-listagens) + filtro `isActive` — [§5.3](./05-api.md#get-integrations))
+- [x] Serviço HTTP para disparo
+- [x] Registro de execuções (`responseBody` truncado em 10 240 bytes)
 
 ## Fase 4 — Histórico
 

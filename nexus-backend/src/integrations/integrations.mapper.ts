@@ -1,4 +1,5 @@
 import { maskAuthKey } from '@/common/utils/mask-auth-key.util.js';
+import type { ExecutionStatusEnum } from '@/common/enums/execution-status.enum.js';
 import type { IntegrationTypeEnum } from '@/common/enums/integration-type.enum.js';
 
 type JsonObject = Record<string, unknown>;
@@ -40,6 +41,28 @@ export interface IntegrationResponse {
   updatedAt: string;
 }
 
+export interface ExecutionRecord {
+  id: string;
+  integrationId: string;
+  status: ExecutionStatusEnum | string;
+  httpStatusCode: number | null;
+  responseTimeMs: number;
+  requestPayload: unknown;
+  responseBody: string | null;
+  executedAt: string;
+}
+
+export interface ExecutionResponse {
+  id: string;
+  integrationId: string;
+  status: ExecutionStatusEnum | string;
+  httpStatusCode: number | null;
+  responseTimeMs: number;
+  requestPayload: JsonObject | null;
+  responseBody: string | null;
+  executedAt: string;
+}
+
 function asJsonObject(value: unknown): JsonObject | null {
   if (value == null || typeof value !== 'object' || Array.isArray(value)) {
     return null;
@@ -77,5 +100,20 @@ export function toIntegrationResponse(
     isActive: integration.isActive,
     createdAt: integration.createdAt,
     updatedAt: integration.updatedAt,
+  };
+}
+
+export function toExecutionResponse(
+  execution: ExecutionRecord,
+): ExecutionResponse {
+  return {
+    id: execution.id,
+    integrationId: execution.integrationId,
+    status: execution.status,
+    httpStatusCode: execution.httpStatusCode,
+    responseTimeMs: execution.responseTimeMs,
+    requestPayload: asJsonObject(execution.requestPayload),
+    responseBody: execution.responseBody,
+    executedAt: execution.executedAt,
   };
 }
