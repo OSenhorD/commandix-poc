@@ -82,30 +82,6 @@ flowchart TD
 
 ## Entregas
 
-### E16 — Execuções: listagem por integração
-
-**Objetivo:** histórico paginado com filtros.
-
-**Escopo:**
-- Módulo `executions/` (ou rotas em `integrations/` + service dedicado)
-- `GET /integrations/:id/executions` — ADMIN, VIEWER
-- Validar integração pertence ao tenant (404 cross-tenant)
-- Paginação E05; filtros: `status`, `from`, `to` ([05-api §5.4](../spec/05-api.md#filtros-de-data-from-to))
-- Parse ISO 8601; date-only `YYYY-MM-DD` → dia UTC inteiro; `from > to` → 400
-- Ordenação: `executedAt DESC`
-- Listagem **sem** `requestPayload` / `responseBody` completos (resumo)
-
-**Arquivos:**
-- Criar: `src/executions/executions.module.ts`, `executions.controller.ts`, `executions.service.ts`, `dto/list-executions-query.dto.ts`, `utils/parse-date-filter.util.ts`
-
-**Critério de done:**
-- [ ] Filtros de data inclusive funcionam em UTC
-- [ ] Integração de outro tenant → 404
-
-**Dependências:** E15
-
----
-
 ### E17 — Execuções: detalhe
 
 **Objetivo:** detalhe de execução com tenant via join.
@@ -160,7 +136,7 @@ flowchart TD
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
 | Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 ✅ |
 | Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13 ✅, E14 ✅, E15 ✅ |
-| Fase 4 — Histórico | E16, E17 |
+| Fase 4 — Histórico | E16 ✅, E17 |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
 
 > Frontend (Fase 5) e nginx no Compose ficam fora deste documento.

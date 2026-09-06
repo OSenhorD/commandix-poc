@@ -17,9 +17,7 @@ describe('HttpOutboundService', () => {
   });
 
   it('sends a POST request with the JSON payload as body', async () => {
-    fetchMock.mockResolvedValue(
-      new Response('{"ok":true}', { status: 200 }),
-    );
+    fetchMock.mockResolvedValue(new Response('{"ok":true}', { status: 200 }));
 
     await service.send({
       targetUrl: 'https://example.com/webhook',
@@ -36,9 +34,7 @@ describe('HttpOutboundService', () => {
   });
 
   it('returns the status code and response body for a successful response', async () => {
-    fetchMock.mockResolvedValue(
-      new Response('{"ok":true}', { status: 200 }),
-    );
+    fetchMock.mockResolvedValue(new Response('{"ok":true}', { status: 200 }));
 
     const result = await service.send({
       targetUrl: 'https://example.com/webhook',
@@ -51,9 +47,7 @@ describe('HttpOutboundService', () => {
   });
 
   it('returns the status code as-is for a non-2xx response, without throwing', async () => {
-    fetchMock.mockResolvedValue(
-      new Response('Not Found', { status: 404 }),
-    );
+    fetchMock.mockResolvedValue(new Response('Not Found', { status: 404 }));
 
     const result = await service.send({
       targetUrl: 'https://example.com/webhook',

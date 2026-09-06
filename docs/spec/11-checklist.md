@@ -24,8 +24,8 @@
 
 ## Fase 4 — Histórico
 
-- [ ] Ordenação execuções (`executedAt DESC`)
-- [ ] Listagem paginada com filtros ([05-api §5.0](./05-api.md#50-paginação-listagens) + `status`, `from`/`to`)
+- [x] Ordenação execuções (`executedAt DESC`)
+- [x] Listagem paginada com filtros ([05-api §5.0](./05-api.md#50-paginação-listagens) + `status`, `from`/`to`)
 - [ ] Detalhe de execução (tenant via `Integration`)
 
 ## Fase 5 — Frontend
