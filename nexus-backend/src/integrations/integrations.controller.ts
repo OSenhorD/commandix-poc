@@ -28,11 +28,13 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator.js';
 import { Roles } from '@/common/decorators/roles.decorator.js';
 import { RoleEnum } from '@/common/enums/role.enum.js';
 import type { AuthenticatedUser } from '@/common/interfaces/authenticated-user.interface.js';
+import { ExecutionResponseDto } from '@/executions/dto/execution-response.dto.js';
 
 import { CreateIntegrationDto } from './dto/create-integration.dto.js';
 import { IntegrationResponseDto } from './dto/integration-response.dto.js';
 import { ListIntegrationsQueryDto } from './dto/list-integrations-query.dto.js';
 import { PaginatedIntegrationsResponseDto } from './dto/paginated-integrations-response.dto.js';
+import { TriggerIntegrationDto } from './dto/trigger-integration.dto.js';
 import { UpdateIntegrationDto } from './dto/update-integration.dto.js';
 import { IntegrationsService } from './integrations.service.js';
 
@@ -118,5 +120,23 @@ export class IntegrationsController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<void> {
     await this.integrationsService.remove(id, user.tenantId);
+  }
+
+  @Post(':id/trigger')
+  @HttpCode(200)
+  @Roles(RoleEnum.ADMIN)
+  @ApiOperation({ summary: 'Trigger a manual execution for an integration' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: ExecutionResponseDto })
+  @ApiBadRequestResponse({ description: 'Integration is not active' })
+  @ApiNotFoundResponse({ description: 'Integration not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Insufficient role' })
+  trigger(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: TriggerIntegrationDto,
+  ) {
+    return this.integrationsService.trigger(id, user.tenantId, dto);
   }
 }

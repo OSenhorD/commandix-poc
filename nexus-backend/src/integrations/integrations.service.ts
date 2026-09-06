@@ -4,16 +4,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { ExecutionStatusEnum } from '@/common/enums/execution-status.enum.js';
 import { buildPaginatedResponse } from '@/common/utils/pagination.util.js';
 import { DatabaseService } from '@/database/database.service.js';
+import { toExecutionResponse } from '@/executions/executions.mapper.js';
 
 import { CreateIntegrationDto } from './dto/create-integration.dto.js';
 import { ListIntegrationsQueryDto } from './dto/list-integrations-query.dto.js';
+import { TriggerIntegrationDto } from './dto/trigger-integration.dto.js';
 import { UpdateIntegrationDto } from './dto/update-integration.dto.js';
+import { HttpOutboundService } from './http-outbound.service.js';
 import {
   toIntegrationListItem,
   toIntegrationResponse,
 } from './integrations.mapper.js';
+import { truncateResponseBody } from './utils/truncate-response-body.util.js';
 
 const integrationDetailSelect = [
   'id',
@@ -30,7 +35,10 @@ const integrationDetailSelect = [
 
 @Injectable()
 export class IntegrationsService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly httpOutbound: HttpOutboundService,
+  ) {}
 
   private buildUpdateData(
     dto: UpdateIntegrationDto,
@@ -166,5 +174,58 @@ export class IntegrationsService {
     }
 
     await this.database.orm.public.Integration.where({ id, tenantId }).delete();
+  }
+
+  async trigger(id: string, tenantId: string, dto: TriggerIntegrationDto) {
+    const integration = await this.database.orm.public.Integration.where({
+      id,
+      tenantId,
+    })
+      .select(
+        'targetUrl',
+        'authKey',
+        'customHeaders',
+        'defaultPayload',
+        'isActive',
+      )
+      .first();
+
+    if (!integration) {
+      throw new NotFoundException();
+    }
+
+    if (!integration.isActive) {
+      throw new BadRequestException('Integration is not active');
+    }
+
+    const defaultPayload =
+      (integration.defaultPayload as Record<string, unknown> | null) ?? {};
+    const requestPayload = { ...defaultPayload, ...dto.payload };
+
+    const result = await this.httpOutbound.send({
+      targetUrl: integration.targetUrl,
+      payload: requestPayload,
+      customHeaders: integration.customHeaders as Record<string, string> | null,
+      authKey: integration.authKey,
+    });
+
+    const status =
+      result.httpStatusCode !== null &&
+      result.httpStatusCode >= 200 &&
+      result.httpStatusCode < 300
+        ? ExecutionStatusEnum.SUCCESS
+        : ExecutionStatusEnum.FAILURE;
+
+    const execution =
+      await this.database.orm.public.IntegrationExecution.create({
+        integrationId: id,
+        status,
+        httpStatusCode: result.httpStatusCode,
+        responseTimeMs: result.responseTimeMs,
+        requestPayload: requestPayload as never,
+        responseBody: truncateResponseBody(result.responseBody),
+      });
+
+    return toExecutionResponse(execution);
   }
 }

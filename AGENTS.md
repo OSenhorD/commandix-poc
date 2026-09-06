@@ -67,6 +67,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Erro de rede / timeout | `FAILURE`, `httpStatusCode: null` |
 | Execuções — tenant | Sempre validar via join/relação com `Integration.tenantId` (tabela não tem `tenantId`) |
 | Ordenação execuções | `executedAt DESC` |
+| Campo `TimestamptzString` (Prisma 8) | Tipo JS é **`string`** (ISO) em input e output do ORM — não `Date`; filtros `.gte()`/`.lte()` precisam de `date.toISOString()` do lado da aplicação |
 | Truncamento | `responseBody` limitado a **10 240 bytes** UTF-8 (+ sufixo `… [truncated]` se cortado) |
 | PATCH integração | Parcial — todos os campos opcionais; `authKey` omitido mantém; JSON substitui inteiro |
 | Filtros de data | ISO 8601/RFC 3339; UTC; `from`/`to` **inclusive**; date-only `YYYY-MM-DD` → dia inteiro UTC; `from > to` → 400 |
@@ -115,6 +116,8 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 - Nunca expor `passwordHash`, `tokenHash` ou `authKey` completo nas respostas
 - Mascarar `authKey` na resposta (ex.: `****-key`)
 - Cross-tenant access → `NotFoundException` (404), não 403
+- Rota com prefixo top-level diferente do resto do módulo (ex.: `GET /executions/:id` vs. `GET /integrations/:integrationId/executions`): criar um **segundo `@Controller()`** no mesmo módulo (pode ficar no mesmo arquivo `*.controller.ts`) e registrar ambos em `controllers: []` — Nest não permite path absoluto por método dentro de um controller com prefixo próprio
+- Validar tenant de uma entidade sem `tenantId` direto (ex.: `IntegrationExecution`) via `.include('relation', (r) => r.select('tenantId'))` no ORM Prisma 8 — evita duas queries separadas; comparar `entity.relation.tenantId !== tenantId` → 404
 - CORS habilitado no **dev (container Vite)** — `origin: 'http://localhost:5173'` (frontend Vite `:5173`, API `:3000`, ambos em containers); prod com nginx: mesma origem, CORS desnecessário
 - `GET /api/v1/health` — healthcheck para Docker
 
@@ -198,14 +201,19 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 | `.agents/rules/*.mdc` | Regras por domínio (raiz do monorepo) |
 | `nexus-backend/.agents/skills/prisma-8/` | Skill Prisma 8 (sync via `npm run skills:sync`) |
 | `readme.md` | Setup, seed, decisões do candidato |
+| `docs/todo/` | Melhorias possíveis, erros encontrados, acoplamentos percebidos — não bloqueiam a entrega atual |
 
 ## Fluxo de trabalho sugerido para IA
 
-1. Ler o arquivo relevante em `docs/spec/`
-2. Consultar **decisões adotadas** neste arquivo antes de implementar
-3. Verificar [checklist](./docs/spec/11-checklist.md) antes e depois da tarefa
-4. Tarefas Prisma → ler `nexus-backend/.agents/skills/prisma-8/SKILL.md` primeiro
-5. Seguir regras em `.agents/rules/`
-6. Implementar com diff mínimo
-7. Rodar testes/lint dentro do container `api` (Compose de desenvolvimento) antes de declarar concluído
-8. Atualizar README apenas quando pedido ou ao finalizar fase
+1. **Antes de implementar:** se a tarefa não estiver bem explicada (spec/critério de done ambíguo ou incompleto), fazer perguntas relevantes ao usuário antes de codar — não assumir. Se já bem explicada (ticket com escopo, arquivos e critério de done claros, ex.: entregas em `docs/plans/`), pode prosseguir direto
+2. Ler o arquivo relevante em `docs/spec/`
+3. Consultar **decisões adotadas** neste arquivo antes de implementar
+4. Verificar [checklist](./docs/spec/11-checklist.md) antes e depois da tarefa
+5. Tarefas Prisma → ler `nexus-backend/.agents/skills/prisma-8/SKILL.md` primeiro
+6. Seguir regras em `.agents/rules/`
+7. Implementar com diff mínimo
+8. Rodar testes/lint dentro do container `api` (Compose de desenvolvimento) antes de declarar concluído
+9. **Ao concluir uma entrega:** marcar como feita no `.md` correspondente (`docs/plans/*.md` — título + critério de done; [`docs/spec/11-checklist.md`](./docs/spec/11-checklist.md) — item da fase)
+10. **Ao observar** uma melhoria possível, erro encontrado ou acoplamento percebido durante o trabalho (mesmo fora do escopo da tarefa atual): registrar em `docs/todo/<item>.md`, sem bloquear a entrega
+11. **Ao observar** um padrão de código, decisão técnica ou comportamento não óbvio da stack (ex.: tipagem de um campo no ORM, convenção implícita repetida em vários arquivos): registrar aqui neste `AGENTS.md`, na seção de **decisões adotadas** ou **convenções**, conforme o caso
+12. Atualizar README apenas quando pedido ou ao finalizar fase

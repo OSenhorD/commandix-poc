@@ -9,6 +9,7 @@ import { CommonModule } from '@/common/common.module.js';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard.js';
 import { RolesGuard } from '@/common/guards/roles.guard.js';
 import { DatabaseModule } from '@/database/database.module.js';
+import { ExecutionsModule } from '@/executions/executions.module.js';
 import { IntegrationsModule } from '@/integrations/integrations.module.js';
 import {
   getBootstrapThrottleLimit,
@@ -29,6 +30,7 @@ import { TenantsModule } from '@/tenants/tenants.module.js';
     TenantsModule,
     AuthModule,
     IntegrationsModule,
+    ExecutionsModule,
   ],
   controllers: [AppController],
   providers: [

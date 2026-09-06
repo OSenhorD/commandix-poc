@@ -1,3 +1,4 @@
+import { asJsonObject } from '@/common/utils/as-json-object.util.js';
 import { maskAuthKey } from '@/common/utils/mask-auth-key.util.js';
 import type { IntegrationTypeEnum } from '@/common/enums/integration-type.enum.js';
 
@@ -38,14 +39,6 @@ export interface IntegrationResponse {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-}
-
-function asJsonObject(value: unknown): JsonObject | null {
-  if (value == null || typeof value !== 'object' || Array.isArray(value)) {
-    return null;
-  }
-
-  return value as JsonObject;
 }
 
 export function toIntegrationListItem(

@@ -82,99 +82,6 @@ flowchart TD
 
 ## Entregas
 
-### E14 — Serviço HTTP outbound
-
-**Objetivo:** cliente isolado para disparos externos (sem lógica de domínio).
-
-**Escopo:**
-- `src/integrations/http-outbound.service.ts` (ou `src/common/http/`)
-- Sempre **POST**; timeout `HTTP_TRIGGER_TIMEOUT_MS` (default 30s)
-- Headers: `customHeaders` primeiro; `Authorization: Bearer {authKey}` sobrescreve se ambos existirem
-- Retorno tipado: `{ httpStatusCode: number | null, responseBody: string, responseTimeMs: number }`
-- Timeout/rede → `httpStatusCode: null`
-
-**Arquivos:**
-- Criar: `http-outbound.service.ts`
-- Teste unitário com mock fetch/undici
-
-**Critério de done:**
-- [ ] 2xx, 4xx, timeout simulado retornam estrutura esperada
-- [ ] Sem retry
-
-**Dependências:** nenhuma de negócio (pode ser paralelo a E11–E13)
-
----
-
-### E15 — Trigger + registro de execução
-
-**Objetivo:** disparo manual e persistência de `IntegrationExecution`.
-
-**Escopo:**
-- `POST /integrations/:id/trigger` — ADMIN
-- Rejeitar se `isActive === false`
-- Merge shallow: `{ ...defaultPayload, ...payload }`
-- Chamar E14; determinar status: 2xx → `SUCCESS`, senão → `FAILURE`
-- Truncar `responseBody` em 10 240 bytes UTF-8 + sufixo `… [truncated]`
-- Persistir execução; resposta `200` conforme spec
-
-**Arquivos:**
-- Modificar: `integrations.controller.ts`, `integrations.service.ts`
-- Criar: `dto/trigger-integration.dto.ts`, `utils/truncate-response-body.util.ts`
-
-**Critério de done:**
-- [ ] Trigger em integração inativa → erro (400 ou 404 conforme spec/implementação)
-- [ ] Execução gravada com status correto
-- [ ] Body > 10 KB truncado na persistência
-
-**Dependências:** E13, E14
-
----
-
-### E16 — Execuções: listagem por integração
-
-**Objetivo:** histórico paginado com filtros.
-
-**Escopo:**
-- Módulo `executions/` (ou rotas em `integrations/` + service dedicado)
-- `GET /integrations/:id/executions` — ADMIN, VIEWER
-- Validar integração pertence ao tenant (404 cross-tenant)
-- Paginação E05; filtros: `status`, `from`, `to` ([05-api §5.4](../spec/05-api.md#filtros-de-data-from-to))
-- Parse ISO 8601; date-only `YYYY-MM-DD` → dia UTC inteiro; `from > to` → 400
-- Ordenação: `executedAt DESC`
-- Listagem **sem** `requestPayload` / `responseBody` completos (resumo)
-
-**Arquivos:**
-- Criar: `src/executions/executions.module.ts`, `executions.controller.ts`, `executions.service.ts`, `dto/list-executions-query.dto.ts`, `utils/parse-date-filter.util.ts`
-
-**Critério de done:**
-- [ ] Filtros de data inclusive funcionam em UTC
-- [ ] Integração de outro tenant → 404
-
-**Dependências:** E15
-
----
-
-### E17 — Execuções: detalhe
-
-**Objetivo:** detalhe de execução com tenant via join.
-
-**Escopo:**
-- `GET /executions/:id` — ADMIN, VIEWER
-- Buscar execução + validar `integration.tenantId === user.tenantId`
-- Cross-tenant → 404
-- Resposta completa com `requestPayload` e `responseBody` (já truncado no banco)
-
-**Arquivos:**
-- Modificar: `executions.controller.ts`, `executions.service.ts`
-
-**Critério de done:**
-- [ ] Detalhe retorna campos completos
-- [ ] Execução de outro tenant → 404
-
-**Dependências:** E16
-
----
-
 ### E19 — Testes críticos (obrigatório)
 
 **Objetivo:** cobertura mínima exigida pela PoC ([10-criterios](../spec/10-criterios.md)).
@@ -207,8 +114,8 @@ flowchart TD
 |----------------|----------|
 | Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
 | Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 ✅ |
-| Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13 ✅, E14, E15 |
-| Fase 4 — Histórico | E16, E17 |
+| Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13 ✅, E14 ✅, E15 ✅ |
+| Fase 4 — Histórico | E16 ✅, E17 ✅ |
 | Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
 
 > Frontend (Fase 5) e nginx no Compose ficam fora deste documento.
