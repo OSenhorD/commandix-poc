@@ -23,13 +23,13 @@ Plataforma de automação B2B — módulo de gestão de integrações multi-tena
 
 ```bash
 cp .env.example .env
-docker compose -f docker/docker-compose.prod.yml --project-directory . up --build
+docker compose -f docker/production/docker-compose.yml --project-directory . up --build
 ```
 
 Para desenvolvimento (bind mount do código + watch mode):
 
 ```bash
-docker compose -f docker/docker-compose.dev.yml --project-directory . up --build
+docker compose -f docker/development/docker-compose.yml --project-directory . up --build
 ```
 
 `--project-directory .` mantém `.env` e caminhos relativos (`./nexus-backend`, volumes) resolvidos a partir da raiz, mesmo com os arquivos de compose em `docker/`.
@@ -60,20 +60,20 @@ Aguarde os healthchecks. A API sobe automaticamente com:
 ### Comandos Docker úteis
 
 ```bash
-# Subir em background (produção; troque o -f para .dev.yml em desenvolvimento)
-docker compose -f docker/docker-compose.prod.yml --project-directory . up --build -d
+# Subir em background (produção; troque o -f para docker/development/docker-compose.yml em desenvolvimento)
+docker compose -f docker/production/docker-compose.yml --project-directory . up --build -d
 
 # Ver logs da API
-docker compose -f docker/docker-compose.prod.yml --project-directory . logs -f api
+docker compose -f docker/production/docker-compose.yml --project-directory . logs -f api
 
 # Parar serviços
-docker compose -f docker/docker-compose.prod.yml --project-directory . down
+docker compose -f docker/production/docker-compose.yml --project-directory . down
 
 # Parar e apagar volume do Postgres (reset completo do banco)
-docker compose -f docker/docker-compose.prod.yml --project-directory . down -v
+docker compose -f docker/production/docker-compose.yml --project-directory . down -v
 
 # Subir só o banco (útil para dev local da API)
-docker compose -f docker/docker-compose.prod.yml --project-directory . up database -d
+docker compose -f docker/production/docker-compose.yml --project-directory . up database -d
 ```
 
 ### Variáveis de ambiente
@@ -138,7 +138,7 @@ npm run build
 npm run start:prod
 ```
 
-O **Dockerfile.prod** da API já executa `contract:emit` e `build` na etapa de build; o entrypoint (`docker-entrypoint.prod.sh`) cuida de migrate + seed + start.
+O **`docker/production/Dockerfile`** da API já executa `contract:emit` e `build` na etapa de build; o entrypoint (`docker/production/entrypoint.sh`) cuida de migrate + seed + start.
 
 ## Testes
 
@@ -160,7 +160,7 @@ npm run test:cov      # com cobertura
 Para rodar o teste de seed com banco:
 
 ```bash
-# Postgres no ar (ex.: docker compose -f docker/docker-compose.prod.yml --project-directory . up database -d)
+# Postgres no ar (ex.: docker compose -f docker/production/docker-compose.yml --project-directory . up database -d)
 export DATABASE_URL=postgresql://commandix:commandix@localhost:5432/commandix
 npm run test:e2e
 ```
@@ -239,7 +239,7 @@ Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
 | Migrations | `migrations/app/` + `db migrate` no Docker |
 | Schema no Docker | `contract emit` (build) → `db migrate` → seed idempotente (sempre no entrypoint) |
 | Multi-tenancy | `tenantId` no JWT + filtro no service; cross-tenant → 404 |
-| Infra local | Docker Compose com um comando (`docker compose -f docker/docker-compose.prod.yml --project-directory . up --build`) |
+| Infra local | Docker Compose com um comando (`docker compose -f docker/production/docker-compose.yml --project-directory . up --build`) |
 | Trigger HTTP | Sempre POST, timeout 30s, sem retry, `authKey` como Bearer |
 | `authKey` at-rest | Texto plano na PoC (sem criptografia) |
 | Execuções | `responseBody` truncado em 10 240 bytes UTF-8 |

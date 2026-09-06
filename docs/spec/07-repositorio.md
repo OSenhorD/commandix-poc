@@ -8,8 +8,10 @@ commandix-poc/
 ├── AGENTS.md
 ├── readme.md
 ├── docker/
-│   ├── docker-compose.prod.yml
-│   └── docker-compose.dev.yml
+│   ├── production/
+│   │   └── docker-compose.yml
+│   └── development/
+│       └── docker-compose.yml
 ├── .env.example
 ├── .agents/
 │   ├── rules/                      # regras Cursor (monorepo)
@@ -19,10 +21,13 @@ commandix-poc/
 ├── nexus-backend/
 │   ├── prisma.config.ts
 │   ├── tsconfig.json               # paths: "@/*" → "./src/*"
-│   ├── Dockerfile.prod
-│   ├── Dockerfile.dev
-│   ├── docker-entrypoint.prod.sh   # db migrate → seed → node dist/main.js
-│   ├── docker-entrypoint.dev.sh    # db migrate → seed → start:debug (watch)
+│   ├── docker/
+│   │   ├── production/
+│   │   │   ├── Dockerfile
+│   │   │   └── entrypoint.sh       # db migrate → seed → node dist/main.js
+│   │   └── development/
+│   │       ├── Dockerfile
+│   │       └── entrypoint.sh       # db migrate → seed → start:debug (watch)
 │   ├── migrations/app/
 │   ├── .agents/skills/prisma-8/    # fonte da skill (skills:sync)
 │   └── src/

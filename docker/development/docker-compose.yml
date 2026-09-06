@@ -27,7 +27,7 @@ services:
   api:
     build:
       context: ./nexus-backend
-      dockerfile: Dockerfile.dev
+      dockerfile: docker/development/Dockerfile
       network: host
     restart: unless-stopped
     user: "${UID:-1000}:${GID:-1000}"

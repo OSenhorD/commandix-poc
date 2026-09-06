@@ -26,7 +26,7 @@ WORKDIR /app
 # bcrypt native bindings on Alpine
 RUN apk add --no-cache python3 make g++
 
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 ENV NODE_ENV=production
@@ -37,10 +37,10 @@ COPY --from=build /app/prisma.config.ts ./
 COPY --from=build /app/.prisma ./.prisma
 COPY --from=build /app/migrations ./migrations
 COPY --from=build /app/src/prisma ./src/prisma
-COPY docker-entrypoint.prod.sh ./
 
-RUN chmod +x docker-entrypoint.prod.sh
+COPY docker/production/entrypoint.sh ./docker/production/entrypoint.sh
+RUN chmod +x docker/production/entrypoint.sh
 
 EXPOSE 3000
 
-ENTRYPOINT ["./docker-entrypoint.prod.sh"]
+ENTRYPOINT ["./docker/production/entrypoint.sh"]

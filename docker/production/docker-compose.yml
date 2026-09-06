@@ -26,7 +26,7 @@ services:
   api:
     build:
       context: ./nexus-backend
-      dockerfile: Dockerfile.prod
+      dockerfile: docker/production/Dockerfile
       network: host
     restart: unless-stopped
     ports:
