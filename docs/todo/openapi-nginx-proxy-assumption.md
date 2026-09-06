@@ -7,3 +7,5 @@
 **Impacto:** Baixo agora (docs funcionam via acesso direto à API), mas quando o frontend (`nexus-frontend/`, ainda a criar — ver `docs/spec/11-checklist.md` Fase 5) for containerizado com um proxy reverso, será necessário adicionar as rotas `/api/docs` e `/api/openapi.json` (ou todo o prefixo `/api/`) à configuração de proxy — do contrário a documentação fica inacessível em produção atrás do proxy.
 
 **Sugestão:** Ao criar o serviço `frontend`/proxy em `docker/production/docker-compose.yml`, garantir que o proxy encaminhe todo `/api/` (não apenas `/api/v1/`) para o serviço `api`, cobrindo `/api/docs` e `/api/openapi.json`.
+
+**Encaminhamento (2026-09-06):** coberto pela entrega **F12** de [`docs/plans/frontend.md`](../plans/frontend.md) — o `nginx.conf` do serviço `frontend` proxia todo o prefixo `/api/` (não só `/api/v1/`). Fechar este item ao concluir F12.

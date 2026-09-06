@@ -10,7 +10,7 @@
 - [x] `DatabaseModule` (wrapper do client Prisma)
 - [x] Bootstrap da aplicação NestJS (`main.ts`, prefixo `api/v1`, `GET /health`)
 - [x] Seed idempotente (`src/prisma/seed.ts`)
-- [ ] Docker Compose (`database` + `api` ✅; `frontend` pendente — `nexus-frontend/` a criar)
+- [ ] Docker Compose (`database` + `api` ✅; serviço `frontend` pendente — entrega **F12** de [`docs/plans/frontend.md`](../plans/frontend.md))
 
 ## Fase 2 — Auth
 
@@ -34,16 +34,23 @@
 
 ## Fase 5 — Frontend
 
-- [ ] Cliente HTTP (`src/api/client.ts`) com base `/api/v1`
-- [ ] Interceptor 401 → refresh → logout
-- [ ] Proxy Vite dev (`/api` → `api:3000`, rede Docker)
-- [ ] Login + logout + token storage (`localStorage`)
-- [ ] Bootstrap (cadastro tenant + admin)
-- [ ] Integrações — listar (ADMIN + VIEWER)
-- [ ] Integrações — criar / editar / desativar / excluir (ADMIN)
-- [ ] Trigger manual (ADMIN)
-- [ ] Histórico — listagem, filtros, detalhe execução
-- [ ] Controle de UI por role (ocultar ações de escrita para VIEWER)
+> Plano detalhado, com critério de done por entrega: [`docs/plans/frontend.md`](../plans/frontend.md).
+> Stack: React 19 + Vite 8 + Tailwind 4 + shadcn (`base-lyra`/Base UI) + React Router 7 + TanStack Query v5 + react-hook-form/zod.
+
+- [x] Scaffold Vite + React 19 + TypeScript + Tailwind 4 + shadcn (11 componentes base)
+- [x] **F01** Dependências, Vitest, proxy Vite (`/api` → `api:3000`) e **serviço `frontend` no compose de desenvolvimento**
+- [x] **F02** Tipos da API + cliente HTTP (`shared/api/client.ts`, base `/api/v1`) + storage dos tokens
+- [x] **F02** Interceptor 401 → refresh **single-flight** → logout (+ teste)
+- [x] **F03** Providers, router (`createBrowserRouter`), `ProtectedRoute` e `RoleGate` (+ teste)
+- [ ] **F04** Login + logout + reidratação de sessão (`GET /auth/me`)
+- [ ] **F05** Bootstrap (cadastro de tenant + admin)
+- [ ] **F06** Shell (topbar, tema, toasts) e componentes compartilhados (`DataTable`, paginação, vazio, erro)
+- [ ] **F07** Integrações — listar com filtro `isActive` e paginação (ADMIN + VIEWER)
+- [ ] **F08** Integrações — criar / editar (`authKey` nunca pré-preenchida; PATCH só do que mudou)
+- [ ] **F09** Integrações — ativar/desativar, excluir e disparar (ADMIN)
+- [ ] **F10** Histórico — listagem por integração com filtros `status`/`from`/`to`
+- [ ] **F11** Histórico — detalhe da execução (`requestPayload`, `responseBody` truncado)
+- [ ] **F12** Docker (Dockerfiles, nginx, serviço `frontend` nos dois composes) + CI + READMEs
 
 ## Fase 6 — Polish
 

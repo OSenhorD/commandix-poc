@@ -38,7 +38,20 @@ commandix-poc/
 │           └── seed.ts
 │       # auth/, tenants/, integrations/, executions/, common/
 ├── nexus-frontend/
+│   ├── components.json             # shadcn (estilo base-lyra, alias @/components/ui)
+│   ├── vite.config.ts              # alias @/ + proxy /api → api:3000 (dev)
+│   ├── eslint.config.js            # ESLint 10 strictTypeChecked
+│   ├── docker/
+│   │   ├── production/
+│   │   │   ├── Dockerfile          # build Vite → nginx
+│   │   │   └── nginx.conf          # SPA + proxy /api/ → api:3000
+│   │   └── development/
+│   │       └── Dockerfile          # vite dev --host (bind mount)
 │   └── src/
+│       ├── app/                    # providers, router, protected-route
+│       ├── components/ui/          # shadcn (alias fixo)
+│       ├── shared/                 # api/, types/, lib/, components/
+│       └── features/               # auth/, integrations/, executions/
 └── ...
 ```
 

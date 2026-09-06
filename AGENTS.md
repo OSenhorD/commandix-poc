@@ -13,9 +13,9 @@ Contexto para agentes de IA trabalhando neste repositório.
 | Componente | Status |
 |------------|--------|
 | `nexus-backend/` | **Funcional** — módulos `auth`, `tenants`, `integrations`, `executions`, `common`, `openapi`, `database`; Prisma 8 (contract + migration + seed); Docker (Dockerfile + entrypoint); testes unitários + e2e (falta `test/executions-scoping.e2e-spec.ts`) |
-| `nexus-frontend/` | **Não criado** |
+| `nexus-frontend/` | **Scaffold** — Vite 8 + React 19 + TS 6 + Tailwind 4 + shadcn (`base-lyra`/Base UI, 11 componentes base). Sem router, cliente HTTP nem telas. Plano: [`docs/plans/frontend.md`](./docs/plans/frontend.md) (F01–F12) |
 | Prisma 8 | `contract.prisma` — domínio Commandix; migration `20260903T0509_initial` |
-| Docker Compose | **postgres + api** (`docker compose -f docker/production/docker-compose.yml --project-directory . up --build`); frontend pendente |
+| Docker Compose | **postgres + api** (`docker compose -f docker/production/docker-compose.yml --project-directory . up --build`); serviço `frontend` pendente (entrega F12) |
 
 ## Arquitetura alvo
 
@@ -74,15 +74,28 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Paginação | Envelope `{ data, meta }` — `page`/`limit` (default 20, máx. 100); `meta`: `total`, `totalPages`, `hasNextPage`, `hasPreviousPage` — [05-api §5.0](./docs/spec/05-api.md#50-paginação-listagens) |
 | Listagem integrações | Filtro opcional `isActive`; `updatedAt DESC` — [05-api §5.3](./docs/spec/05-api.md#get-integrations) |
 | Frontend UI | **Escopo completo do protótipo** — login, logout, bootstrap, CRUD integrações (admin), trigger, histórico + detalhe; viewer somente leitura |
+| Frontend — stack | React 19 + Vite 8 + TS 6; Tailwind 4 (**CSS-first**, sem `tailwind.config.js`); shadcn estilo `base-lyra` sobre **`@base-ui/react`** (não Radix); lucide-react; React Router 7; TanStack Query v5; react-hook-form + zod; ESLint 10 |
+| Frontend — estrutura | **Feature-sliced**: `app/`, `shared/`, `features/{auth,integrations,executions}/`. `components/ui/` **fica em `@/components/ui`** — `components.json` fixa esse alias; mover quebra o `shadcn add` |
+| Frontend — imports | Alias `@/` → `src/` **sem** sufixo `.js` — ao contrário do backend, que exige `.js` |
+| Frontend — `erasableSyntaxOnly` | Ligado no `tsconfig.app.json`: **sem `enum`, `namespace` ou parameter property** (`constructor(private x)`). Usar união `as const` e atribuir no corpo do construtor |
+| Frontend — contexto React | Contexto e provider em arquivos separados (`*-context.ts` sem JSX + `*-provider.tsx`) — um arquivo que exporta componente **e** não-componente quebra o Fast Refresh |
+| Frontend — lint | **ESLint 10 (`strictTypeChecked`)** no frontend; **oxlint** no backend. Um linter por pacote, proposital — não unificar |
+| Frontend — sessão | `AuthProvider` (contexto) expõe `{ user, isLoading, login, logout, bootstrap }`; reidratação por `useQuery(["auth","me"])` → `GET /auth/me` |
+| Frontend — estado de lista | Paginação e filtros vivem na **URL** (`useSearchParams`); a query key do TanStack Query deriva da URL — sobrevive ao reload e o link é compartilhável |
+| Frontend — `authKey` no form | **Nunca** pré-preencher no formulário de edição: a API devolve a chave **mascarada** (`****-key`) e salvar isso destrói a credencial. Campo vazio = manter o valor atual |
+| Frontend — PATCH | Enviar **só os campos alterados** (diff contra o valor carregado); `PATCH {}` vazio → `400`; `customHeaders`/`defaultPayload` substituem o objeto inteiro |
+| Frontend — testes | Vitest + Testing Library (jsdom), `fetch` stubado — cobre **só** o cliente HTTP (refresh single-flight) e o gate de role |
+| Proxy dev (Vite) | `server.proxy['/api']` → `VITE_API_PROXY_TARGET ?? 'http://api:3000'` (hostname da rede do Compose, nunca `localhost`) |
+| nginx (prod) | Proxia **todo** o prefixo `/api/` — não só `/api/v1/` — para manter `/api/docs` e `/api/openapi.json` acessíveis; SPA com `try_files $uri $uri/ /index.html` |
 | API URL (frontend) | Default **`/api/v1`** (relativo) — nginx (Docker, prod) e proxy Vite (Docker, dev) encaminham para a API |
-| Refresh 401 | Interceptor tenta `POST /auth/refresh`; falha → logout |
+| Refresh 401 | Interceptor **single-flight**: uma única promise de `POST /auth/refresh` compartilhada por chamadas concorrentes; sucesso → repete a original 1×; falha → limpa storage e vai para `/login`. `/auth/login` e `/auth/refresh` nunca entram no ciclo |
 | JWT claims | `{ sub, tenantId, role, email }` — ver [05-api](./docs/spec/05-api.md) §5.2 |
 | JWT access / refresh | `15m` / `7d` — `JWT_ACCESS_EXPIRES_IN` / `JWT_REFRESH_EXPIRES_IN` |
 | Logout | Revoga **só** o refresh token do dispositivo atual; outras sessões permanecem |
 | Bootstrap rate limit | `@nestjs/throttler` em `POST /tenants/bootstrap` — default 5 req / 60s por IP |
 | Criação de usuários | **Somente bootstrap** (tenant + `ADMIN`); sem convite/CRUD de usuários; módulo `users/` fora de escopo |
 | Health | `GET /api/v1/health` → `{ "status": "ok" }` — público; Docker healthcheck |
-| Tokens frontend | `localStorage` |
+| Tokens frontend | `localStorage`, chaves `nexus.accessToken` / `nexus.refreshToken`, acessadas por `shared/lib/storage.ts` — **fora do React**, para o interceptor não depender da árvore de componentes |
 | CORS (dev, container Vite) | `http://localhost:5173` → API `:3000`; ver [08-docker §8.8](./docs/spec/08-docker.md#88-cors) |
 | Seed Docker | Idempotente; pula se tenant `acme` existir |
 | Seed no startup | **Sempre** no entrypoint Docker (`db migrate` → seed → start); idempotente — não re-insere se `acme` já existir; **decisão consciente da PoC**, não padrão de produção |
@@ -138,18 +151,23 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 
 ### Frontend (React)
 
-- Vite + React 19 + TypeScript
-- React Router v6+ — rotas protegidas com redirect para login
-- **API base:** `/api/v1` (URL relativa; ver infra abaixo)
-- Tokens em `localStorage`
-- **Interceptor HTTP:** resposta 401 → tentar refresh → logout se falhar
-- UI funcional com **todas as telas/ações do protótipo**; sem foco em design; HTML/CSS simples
+**Regras completas:** [`.agents/rules/react-frontend.mdc`](./.agents/rules/react-frontend.mdc). **Plano:** [`docs/plans/frontend.md`](./docs/plans/frontend.md).
+
+- Stack: React 19 + Vite 8 + TypeScript 6; Tailwind 4 (CSS-first); shadcn `base-lyra` sobre `@base-ui/react`; React Router 7; TanStack Query v5; react-hook-form + zod
+- Estrutura **feature-sliced** — `app/` (providers, router), `shared/` (api, types, lib, componentes transversais), `features/{auth,integrations,executions}/`, `components/ui/` (shadcn, alias fixo)
+- Alias `@/` → `src/`, **sem** sufixo `.js`
+- Tipagem estrita, **sem `any`** — ESLint roda regras type-checked
+- **API base:** `import.meta.env.VITE_API_URL ?? '/api/v1'` (URL relativa)
+- Tokens em `localStorage` via `shared/lib/storage.ts`; cliente HTTP em `shared/api/client.ts` com refresh single-flight
+- Toda tela com dados tem loading (`Skeleton`), erro (com retry) e vazio
+- Ações de escrita **ocultas** para `VIEWER` (`RoleGate`), e rotas de escrita barradas no router
+- Paginação e filtros na URL (`useSearchParams`)
 
 **Infra API no frontend:**
 
 | Ambiente | Como `/api/v1` chega na API |
 |----------|----------------------------|
-| Docker — prod (nginx) | `location /api/` → proxy `http://api:3000` |
+| Docker — prod (nginx) | `location /api/` → proxy `http://api:3000/api/` (todo o prefixo `/api/`) |
 | Docker — dev (`vite dev`, container) | `server.proxy['/api']` → `http://api:3000` (rede Docker) |
 
 `VITE_API_URL` é opcional (override); default no código: `/api/v1`. Evita quebrar ao acessar por IP/hostname diferente.
@@ -166,6 +184,11 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 # Docker — sobe postgres + api + frontend (após implementação)
 docker compose -f docker/production/docker-compose.yml --project-directory . up --build   # produção
 docker compose -f docker/development/docker-compose.yml --project-directory . up --build    # desenvolvimento
+
+# Frontend — dentro do container `frontend` (dev compose, após F12)
+docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run lint
+docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm test
+docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npx shadcn add <componente>
 
 # Prisma 8 — dentro do container `api` (dev compose; ver skill prisma-8/SKILL.md)
 
@@ -192,6 +215,12 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 - Não commitar `.env` ou secrets
 - Não ignorar tenant scoping em nenhuma query — **incluindo execuções**
 - Não query `IntegrationExecution` por `id` sem validar tenant via `Integration`
+- Não usar Radix diretamente no frontend — os componentes shadcn deste projeto são **Base UI**
+- Não criar `tailwind.config.js` — Tailwind 4 é CSS-first, configurado em `src/index.css`
+- Não mover `nexus-frontend/src/components/ui/` — o `components.json` fixa esse alias
+- Não usar sufixo `.js` em imports do frontend (é regra do backend, não do Vite)
+- Não pré-preencher `authKey` em formulário de edição — a API devolve mascarada
+- Não adicionar TanStack Table, axios ou date-fns — fora do escopo escolhido (tabelas fixas, `fetch`, `Intl`)
 
 ## Arquivos de referência
 
@@ -201,6 +230,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 | `.agents/rules/*.mdc` | Regras por domínio (raiz do monorepo) |
 | `nexus-backend/.agents/skills/prisma-8/` | Skill Prisma 8 (sync via `npm run skills:sync`) |
 | `readme.md` | Setup, seed, decisões do candidato |
+| `docs/plans/` | Planos de entrega rastreados (`frontend.md` — F01–F12; `testes-criticos.md`) |
 | `docs/todo/` | Melhorias possíveis, erros encontrados, acoplamentos percebidos — não bloqueiam a entrega atual |
 
 ## Fluxo de trabalho sugerido para IA

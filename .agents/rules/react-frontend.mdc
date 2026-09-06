@@ -6,62 +6,112 @@ alwaysApply: false
 
 # React Frontend
 
-Mínimo funcional — **HTML/CSS simples** (sem Tailwind ou UI library obrigatória). **Escopo completo do protótipo:** todas as telas e ações expostas pela API necessárias ao fluxo end-to-end (via UI, não curl).
+**Escopo completo do protótipo:** todas as telas e ações expostas pela API necessárias ao fluxo end-to-end (via UI, não curl).
+
+Acabamento visual é prioridade **baixa** na avaliação ([10-criterios](../../docs/spec/10-criterios.md)) — usar o que shadcn/Tailwind já entregam, sem projeto de design próprio.
 
 ## Stack
 
-- React 19 + TypeScript + Vite (versões mais recentes)
-- React Router v7+ (ou última estável)
-- fetch ou axios com interceptor JWT
+| Camada | Tecnologia |
+|--------|------------|
+| Base | React 19 + TypeScript 6 + Vite 8 |
+| Estilo | Tailwind CSS 4 — CSS-first (`@import "tailwindcss"` em `src/index.css`, sem `tailwind.config.js`) |
+| Componentes | shadcn (estilo `base-lyra`) sobre **`@base-ui/react`** — não Radix |
+| Ícones | `lucide-react` |
+| Rotas | React Router 7 (`createBrowserRouter`) |
+| Dados | TanStack Query v5 |
+| Formulários | react-hook-form + zod (`@hookform/resolvers`) |
+| Lint | **ESLint 10** (`strictTypeChecked`) — o backend usa oxlint; linters diferentes por pacote, propositalmente |
+| Compilador | React Compiler (`babel-plugin-react-compiler` via `@rolldown/plugin-babel`) |
+| Testes | Vitest + Testing Library (jsdom) — só o crítico (client HTTP, gate de role) |
 
-## Estrutura
+Política de versões (sempre a última estável) em [`AGENTS.md`](../../AGENTS.md).
+
+## Estrutura (feature-sliced)
 
 ```
-src/
-├── api/          # client, auth, tenants, integrations, executions
-├── pages/        # Login, Bootstrap, Integrations, IntegrationForm, Executions, ExecutionDetail
-├── components/   # Layout, ProtectedRoute, tabelas, forms
-├── hooks/        # useAuth, useIntegrations
-└── types/        # DTOs espelhando docs/spec/05-api.md
+nexus-frontend/src/
+├── main.tsx · index.css
+├── app/
+│   ├── providers.tsx        # QueryClient + Auth + Theme + Tooltip + Toaster
+│   ├── router.tsx           # createBrowserRouter
+│   └── protected-route.tsx  # redirect /login + gate por role
+├── components/ui/           # shadcn — alias FIXO, ver abaixo
+├── shared/
+│   ├── api/{client,errors,query-client}.ts
+│   ├── types/api.ts         # DTOs espelhando docs/spec/05-api.md
+│   ├── lib/{utils,storage,format}.ts
+│   └── components/          # data-table, pagination-bar, empty-state,
+│                            # error-state, json-field, role-gate, confirm-dialog
+└── features/
+    ├── auth/         api.ts · auth-context.ts · auth-provider.tsx · use-auth.ts · schemas.ts · pages/
+    ├── integrations/ api.ts · hooks.ts · schemas.ts · components/ · pages/
+    └── executions/   api.ts · hooks.ts · schemas.ts · components/ · pages/
 ```
 
-## Auth
+**`components/ui/` não vai para dentro de `shared/`** — `components.json` fixa `"ui": "@/components/ui"`; mover quebra o `shadcn add`.
 
-- Tokens em **`localStorage`** (`accessToken`, `refreshToken`)
-- `ProtectedRoute` → redirect `/login` se não autenticado
-- 401 → tentar `POST /auth/refresh` → logout se falhar
-- Cliente HTTP centralizado (`src/api/client.ts`) com interceptor de refresh
-- **Logout** na UI
+Cada `feature/` fecha seu domínio (chamadas, hooks, schemas, componentes, páginas). O que é usado por mais de uma feature sobe para `shared/`.
 
-## Telas e ações
+## Convenções
 
-| Tela | ADMIN | VIEWER |
-|------|-------|--------|
-| Login | ✅ | ✅ |
-| Bootstrap (tenant + admin) | ✅ rota pública | — |
-| Integrações — listar | ✅ | ✅ |
-| Integrações — criar / editar | ✅ | — |
-| Integrações — desativar / excluir | ✅ | — |
-| Integrações — trigger | ✅ | — |
-| Histórico — listar + filtros | ✅ | ✅ |
-| Histórico — detalhe execução | ✅ | ✅ |
-
-Forms de integração: `name`, `type`, `targetUrl`, `authKey`, `customHeaders`, `defaultPayload`, `isActive`.
+- Alias `@/` → `src/`, **sem sufixo `.js`** — diferente do backend, que exige `.js` (ESM em Node)
+- Componentes funcionais, tipagem estrita — **sem `any`**; ESLint roda regras type-checked (`strictTypeChecked`)
+- **`erasableSyntaxOnly: true`** no `tsconfig.app.json`: proíbe `enum`, `namespace` e **parameter properties** (`constructor(private x)`). Usar união `as const` e atribuição explícita no corpo do construtor
+- Em teste, tipar o mock (`vi.fn<typeof fetch>()`): sem o genérico, `mock.calls` é `any[]` e o `no-unsafe-member-access` reprova o arquivo
+- Contexto e provider em **arquivos separados** (`*-context.ts` sem JSX + `*-provider.tsx`) — arquivo que exporta componente e não-componente quebra o Fast Refresh
+- Aspas duplas; Prettier da raiz (`printWidth: 120`)
+- Toda tela com dados tem **loading, erro e vazio** — `Skeleton`, `ErrorState` com retry, `EmptyState`
+- Ações de escrita são **ocultadas** para `VIEWER` (`RoleGate`), não apenas desabilitadas
+- Sem TanStack Table na PoC — colunas fixas por tela
 
 ## API
 
 ```typescript
 // Relativo — nginx (Docker, prod) ou proxy Vite (Docker, dev) encaminham /api → backend
-const API_URL = import.meta.env.VITE_API_URL ?? '/api/v1';
+const API_URL = import.meta.env.VITE_API_URL ?? "/api/v1";
 ```
 
-**Dev (container Vite):** configurar proxy em `vite.config.ts` (`/api` → `http://api:3000`, hostname resolvido pela rede do Compose — nunca `localhost`).
+**Dev (container Vite):** proxy em `vite.config.ts` — `/api` → `http://api:3000` (hostname da rede do Compose, nunca `localhost`); override por `VITE_API_PROXY_TARGET`.
 
-Contrato: `docs/spec/05-api.md`.
+Contrato: [`docs/spec/05-api.md`](../../docs/spec/05-api.md). Tipos em `shared/types/api.ts` espelham os DTOs de lá.
 
-## Convenções
+## Auth
 
-- Componentes funcionais, tipagem estrita (sem `any`)
-- Loading e error states básicos
-- HTML/CSS simples — sem biblioteca UI pesada
-- Ocultar/desabilitar ações conforme `role` do usuário logado
+- Tokens em **`localStorage`** (`nexus.accessToken`, `nexus.refreshToken`) via `shared/lib/storage.ts` — **fora do React**, para o interceptor não depender da árvore de componentes
+- `shared/api/client.ts` centraliza `fetch`: injeta `Authorization: Bearer`, normaliza erro em `ApiError`, trata `204` sem body
+- **401 → refresh single-flight:** uma única promise de `POST /auth/refresh` compartilhada por chamadas concorrentes; sucesso → repete a original **uma vez**; falha → limpa storage e vai para `/login`. `/auth/login` e `/auth/refresh` nunca entram no ciclo
+- `AuthProvider` expõe `{ user, isLoading, login, logout, bootstrap }`; reidrata a sessão com `useQuery(["auth","me"])` → `GET /auth/me`
+- Logout: `POST /auth/logout { refreshToken }` → limpa storage → `queryClient.clear()` → `/login`
+
+## Dados (TanStack Query)
+
+- Chaves: `["integrations", params]` · `["integration", id]` · `["executions", integrationId, params]` · `["execution", id]` · `["auth","me"]`
+- **Paginação e filtros vivem na URL** (`useSearchParams`); a query key deriva dela — estado sobrevive ao reload e o link é compartilhável
+- `placeholderData: keepPreviousData` na paginação
+- Invalidar após mutation: create/update/delete → `["integrations"]`; trigger → `["executions", integrationId]`
+- `retry` só em erro de rede — nunca em 4xx; `refetchOnWindowFocus: false`
+
+## Telas e ações
+
+| Rota | Tela | ADMIN | VIEWER |
+|------|------|-------|--------|
+| `/login` | Login | ✅ | ✅ |
+| `/bootstrap` | Cadastro tenant + admin | rota pública | rota pública |
+| `/integrations` | Lista (filtro `isActive`, paginação) | ✅ | ✅ leitura |
+| `/integrations/new` · `/integrations/:id/edit` | Form | ✅ | — |
+| `/integrations` (ações) | Ativar/desativar, excluir, disparar | ✅ | — |
+| `/integrations/:id/executions` | Histórico (filtros `status`, `from`, `to`) | ✅ | ✅ |
+| `/executions/:id` | Detalhe da execução | ✅ | ✅ |
+
+Campos do form de integração: `name`, `type`, `targetUrl`, `authKey`, `customHeaders`, `defaultPayload`, `isActive`.
+
+## Armadilhas do contrato (obrigatório respeitar)
+
+| Regra | Por quê |
+|-------|---------|
+| **Nunca pré-preencher `authKey` na edição** | A API devolve a chave **mascarada** (`****-key`); gravar isso de volta destrói a credencial. Campo vazio + placeholder "deixe em branco para manter" |
+| **PATCH envia só o que mudou** | `PATCH {}` vazio → `400`; e `customHeaders`/`defaultPayload` **substituem** o objeto inteiro, não fazem merge |
+| **Trigger em integração inativa → `400`** | Não é 404 — desabilitar/explicar a ação na UI quando `isActive: false` |
+| **Cross-tenant → `404`** | Tratar como "não encontrado", sem mensagem de permissão |
+| `responseBody` pode vir truncado | Sufixo `… [truncated]` (limite 10 240 bytes) — sinalizar na UI |
