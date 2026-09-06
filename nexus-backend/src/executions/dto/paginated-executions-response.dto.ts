@@ -1,26 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { PaginationMetaDto } from '@/common/dto/pagination-meta.dto.js';
+
 import { ExecutionListItemDto } from './execution-list-item.dto.js';
-
-class PaginationMetaDto {
-  @ApiProperty({ example: 1 })
-  page!: number;
-
-  @ApiProperty({ example: 20 })
-  limit!: number;
-
-  @ApiProperty({ example: 1 })
-  total!: number;
-
-  @ApiProperty({ example: 1 })
-  totalPages!: number;
-
-  @ApiProperty()
-  hasNextPage!: boolean;
-
-  @ApiProperty()
-  hasPreviousPage!: boolean;
-}
 
 export class PaginatedExecutionsResponseDto {
   @ApiProperty({ type: [ExecutionListItemDto] })
