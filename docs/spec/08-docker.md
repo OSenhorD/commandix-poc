@@ -10,7 +10,7 @@ Versões pinadas — ver `nexus-backend/package.json` (`engines.node`) e imagens
 |---------|--------------|----------------|
 | database | 5432 (dev) / não exposto (prod) | `postgres:16-alpine` |
 | api | 3000 | build `nexus-backend/docker/production/Dockerfile` (prod) / `docker/development/Dockerfile` (dev) — `node:24.16.0-alpine` |
-| frontend | 5173 → 80 | build `nexus-frontend/Dockerfile` (nginx) |
+| frontend | 5173 → 80 (prod) / 5173 (dev) | build `nexus-frontend/docker/production/Dockerfile` (nginx) / `docker/development/Dockerfile` (`vite dev --host`) |
 
 Em produção, o Postgres **não expõe porta no host** — apenas os serviços da rede do compose acessam via hostname interno `database`.
 
@@ -44,11 +44,19 @@ ENABLE_API_DOCS=true
 
 # Frontend — opcional; default no código é /api/v1 (relativo)
 # VITE_API_URL=/api/v1
+# FRONTEND_PORT=5173
+# VITE_API_PROXY_TARGET=http://api:3000
 ```
 
 `ENABLE_API_DOCS` liga/desliga `/api/docs` e `/api/openapi.json` — `false` → `404` nas duas. Default: ligado. Ver [05-api §5.6](./05-api.md#56-documentação-openapi).
 
-Frontend usa `/api/v1` relativo — ver §8.6. `VITE_API_URL` opcional.
+Frontend usa `/api/v1` relativo — ver §8.6. `VITE_API_URL` e `VITE_API_PROXY_TARGET` são opcionais:
+
+| Variável | Default | Uso |
+|----------|---------|-----|
+| `FRONTEND_PORT` | `5173` | Porta publicada do serviço `frontend` (host) |
+| `VITE_API_URL` | `/api/v1` | Base do cliente HTTP no browser — só sobrescrever se a API não estiver atrás do mesmo host |
+| `VITE_API_PROXY_TARGET` | `http://api:3000` | Alvo do proxy do `vite dev` (build time do dev server, não do bundle) |
 
 **Produção — obrigatórias:** `docker/production/docker-compose.yml` usa `${VAR:?...}` para `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` e `DB_PASSWORD` — sem fallback fraco; o `docker compose up` falha rápido se alguma faltar no `.env`.
 
@@ -63,7 +71,6 @@ Frontend usa `/api/v1` relativo — ver §8.6. `VITE_API_URL` opcional.
 | `NODE_ENV` | Fixado por serviço | `production` / `development` |
 | `PORT` | Fixado — porta interna do processo Nest (não confundir com `API_PORT`, a porta publicada no host) | `3000` |
 | `API_DEBUG_PORT` | Compose de desenvolvimento apenas — porta do inspector Node (`--inspect`) | default `9229` |
-| `FRONTEND_PORT` | Porta publicada do serviço `frontend` (comentado até o frontend existir) | default `5173` |
 
 Host do Postgres é **`database`** (nome do serviço no compose), não `postgres`.
 
@@ -104,6 +111,8 @@ docker compose -f docker/development/docker-compose.yml --project-directory . up
 1. **Postgres** — healthcheck `pg_isready`
 2. **API** — build inclui `contract emit` → entrypoint: `db migrate` → seed idempotente → `node dist/main.js`
 3. **Frontend** — após API healthy (`GET /api/v1/health`)
+   - prod: nginx servindo o build estático + proxy `/api/`
+   - dev: `vite dev --host` com bind mount e proxy `/api` → `api:3000`
 
 ## 8.5 Seed no entrypoint
 
@@ -130,6 +139,10 @@ location /api/ {
 }
 ```
 
+**Proxiar todo o prefixo `/api/`**, não apenas `/api/v1/` — assim `/api/docs` (Swagger UI) e `/api/openapi.json` continuam acessíveis atrás do proxy, já que ficam fora do prefixo versionado ([05-api §5.6](./05-api.md#56-documentação-openapi)).
+
+Rotas do SPA (React Router) precisam de fallback: `try_files $uri $uri/ /index.html`.
+
 Build do frontend **não** precisa de `VITE_API_URL` absoluto.
 
 ### Docker — desenvolvimento (Vite)
@@ -140,11 +153,14 @@ O container do frontend em dev roda `vite dev` (bind mount + hot-reload), na mes
 // vite.config.ts
 server: {
   host: true, // expõe o dev server para fora do container
+  port: 5173,
   proxy: {
-    '/api': 'http://api:3000',
+    '/api': process.env.VITE_API_PROXY_TARGET ?? 'http://api:3000',
   },
 },
 ```
+
+`VITE_API_PROXY_TARGET` existe para quem eventualmente rodar `npm run dev` fora do Compose — no host, `api` não resolve.
 
 ### Override opcional
 
@@ -157,7 +173,7 @@ server: {
 | Compose | `docker/production/docker-compose.yml`, `docker/development/docker-compose.yml` |
 | CI | `.github/workflows/ci.yml` |
 | API | `nexus-backend/docker/production/Dockerfile`/`docker/production/entrypoint.sh` (prod), `docker/development/Dockerfile`/`docker/development/entrypoint.sh` (dev) |
-| Frontend | `nexus-frontend/Dockerfile`, `nginx.conf` |
+| Frontend | `nexus-frontend/docker/production/Dockerfile` + `nginx.conf` (prod), `nexus-frontend/docker/development/Dockerfile` (dev) — mesma convenção do backend |
 | Volume | `postgres_data` |
 
 ## 8.8 CORS
@@ -191,7 +207,9 @@ Arquivo: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
 
 | Job | Validações |
 |-----|------------|
-| `validate` | Node 24.16.0 + Postgres 16 service — `contract:emit`, diff do contract, migrate, lint, Prettier, test/e2e, build |
-| `docker` | `docker compose up --build`, healthcheck, test/e2e no container `api` |
+| `validate` | Backend: Node 24.16.0 + Postgres 16 service — `contract:emit`, diff do contract, migrate, lint, Prettier, test/e2e, build |
+| `frontend` | Frontend: `npm ci`, ESLint, `tsc -b`, Vitest, `vite build` — **a criar na entrega F12** |
+
+> **Não existe job de Docker Compose no CI** — ver [`docs/todo/ci-sem-job-docker.md`](../todo/ci-sem-job-docker.md).
 
 Dispara em push/PR para `main`.

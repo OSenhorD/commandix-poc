@@ -47,7 +47,7 @@ Aguarde os healthchecks. A API sobe automaticamente com:
 | Docs (Swagger UI) | http://localhost:3000/api/docs | Try-it com JWT (`Authorize` → Bearer) |
 | OpenAPI JSON | http://localhost:3000/api/openapi.json | Documento OpenAPI 3.x gerado via `@nestjs/swagger` |
 | PostgreSQL | `localhost:5432` | user/senha/db default: `commandix` |
-| Frontend | — | **Pendente** (`nexus-frontend/` ainda não existe; serviço comentado no Compose) |
+| Frontend | http://localhost:5173 | **Pendente** — `nexus-frontend/` tem só o scaffold; serviço comentado no Compose (entrega F12 de [`docs/plans/frontend.md`](./docs/plans/frontend.md)) |
 
 ### Credenciais demo (seed)
 
@@ -158,30 +158,29 @@ Workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — push/PR em
 
 | Job | O que valida |
 |-----|----------------|
-| **validate** | `npm ci`, `contract:emit` (+ contract commitado), `prisma db migrate`, lint, Prettier, testes unit/e2e, build |
-| **docker** | `docker compose up --build`, healthcheck da API, testes unit/e2e via `docker compose exec api` |
+| **validate** | Backend — `npm ci`, `contract:emit` (+ contract commitado), `prisma db migrate`, lint, Prettier, testes unit/e2e, build |
 
-Jobs em paralelo. Node **24.16.0** + Postgres **16** no job `validate`.
+Node **24.16.0** + Postgres **16** como service. O job de frontend entra na entrega F12 ([`docs/plans/frontend.md`](./docs/plans/frontend.md)); a validação por Docker Compose ainda não existe — ver [`docs/todo/ci-sem-job-docker.md`](./docs/todo/ci-sem-job-docker.md).
 
 ## Status
 
 | Componente | Diretório | Status |
 |------------|-----------|--------|
 | API NestJS | `nexus-backend/` | Em implementação |
-| Frontend React | `nexus-frontend/` | A criar |
+| Frontend React | `nexus-frontend/` | Scaffold (Vite + React 19 + Tailwind 4 + shadcn); telas pendentes — [`docs/plans/frontend.md`](./docs/plans/frontend.md) |
 | PostgreSQL + Prisma 8 | `nexus-backend/src/prisma/` | Contract + migrations + seed |
-| Docker Compose | `docker/` | **Postgres + API** (frontend pendente) |
+| Docker Compose | `docker/` | **Postgres + API** (serviço `frontend` pendente — F12) |
 
 ## Stack
 
 - **Backend:** NestJS 12, Node 24, TypeScript 6 (ESM), Prisma 8, PostgreSQL, JWT
-- **Frontend:** React 19, TypeScript, Vite
+- **Frontend:** React 19, TypeScript 6, Vite 8, Tailwind CSS 4, shadcn (estilo `base-lyra` sobre Base UI), React Router 7, TanStack Query v5, react-hook-form + zod
 - **Infra:** Docker Compose (Postgres 16, nginx)
-- **Testes:** Vitest + supertest — **testes críticos obrigatórios** (tenant isolation, auth, trigger, execuções); cobertura extra = bônus
+- **Testes:** Vitest + supertest (backend) — **testes críticos obrigatórios** (tenant isolation, auth, trigger, execuções); Vitest + Testing Library (frontend) no cliente HTTP e no gate de role; cobertura extra = bônus
 
 ## Extensões sugeridas (VS Code / Cursor)
 
-Opcionais — a UI da PoC usa **HTML/CSS simples** (sem Tailwind ou biblioteca de componentes obrigatória).
+Opcionais.
 
 - [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
 - [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
@@ -211,8 +210,10 @@ Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
 | Integrações | PATCH parcial; desativar via PATCH; DELETE hard + cascade |
 | Frontend API | URL relativa `/api/v1` + proxy nginx/Vite |
 | CORS | Dev (container Vite): `localhost:5173` → API `:3000`; prod (nginx): mesma origem |
-| Frontend auth | Interceptor 401 → refresh → logout |
-| Frontend UI | Escopo completo na UI |
+| Frontend auth | Interceptor 401 → refresh **single-flight** → logout; tokens em `localStorage` |
+| Frontend UI | Escopo completo na UI; acabamento visual usa o default do shadcn (prioridade baixa na avaliação) |
+| Frontend estrutura | Feature-sliced (`app/`, `shared/`, `features/`); dados com TanStack Query; forms com react-hook-form + zod |
+| Frontend `authKey` | Nunca pré-preenchida na edição — a API devolve mascarada; campo vazio mantém o valor |
 | API prefix | `/api/v1` (global prefix no NestJS) |
 | Health | `GET /api/v1/health` → `{ "status": "ok" }` |
 | JWT | Access `15m`, refresh `7d`; claims `{ sub, tenantId, role, email }` |
