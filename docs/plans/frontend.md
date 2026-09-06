@@ -119,7 +119,7 @@ dc exec frontend npx tsc -b
 
 > **Ovo e galinha:** o container ainda não existe, então o primeiro `npm install` roda em um container descartável — nunca no host.
 
-- [ ] **Passo 1: Instalar as dependências de runtime**
+- [x] **Passo 1: Instalar as dependências de runtime**
 
 ```bash
 docker run --rm -u "$(id -u):$(id -g)" -v "$PWD/nexus-frontend":/app -w /app node:24.16.0-alpine \
@@ -128,14 +128,14 @@ docker run --rm -u "$(id -u):$(id -g)" -v "$PWD/nexus-frontend":/app -w /app nod
 
 Versões esperadas (última estável em 2026-09): `@tanstack/react-query@5`, `react-hook-form@7`, `zod@4`, `@hookform/resolvers@5`.
 
-- [ ] **Passo 2: Instalar as dependências de teste**
+- [x] **Passo 2: Instalar as dependências de teste**
 
 ```bash
 docker run --rm -u "$(id -u):$(id -g)" -v "$PWD/nexus-frontend":/app -w /app node:24.16.0-alpine \
   npm install -D vitest jsdom @testing-library/react @testing-library/user-event @testing-library/jest-dom
 ```
 
-- [ ] **Passo 3: Adicionar os scripts de teste em `nexus-frontend/package.json`**
+- [x] **Passo 3: Adicionar os scripts de teste em `nexus-frontend/package.json`**
 
 ```json
   "scripts": {
@@ -149,7 +149,7 @@ docker run --rm -u "$(id -u):$(id -g)" -v "$PWD/nexus-frontend":/app -w /app nod
   },
 ```
 
-- [ ] **Passo 4: Configurar proxy e Vitest em `nexus-frontend/vite.config.ts`**
+- [x] **Passo 4: Configurar proxy e Vitest em `nexus-frontend/vite.config.ts`**
 
 ```typescript
 /// <reference types="vitest/config" />
@@ -184,7 +184,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Passo 5: Criar `nexus-frontend/src/test/setup.ts`**
+- [x] **Passo 5: Criar `nexus-frontend/src/test/setup.ts`**
 
 ```typescript
 import "@testing-library/jest-dom/vitest";
@@ -198,13 +198,13 @@ afterEach(() => {
 });
 ```
 
-- [ ] **Passo 6: Adicionar os tipos globais do Vitest em `nexus-frontend/tsconfig.app.json`**
+- [x] **Passo 6: Adicionar os tipos globais do Vitest em `nexus-frontend/tsconfig.app.json`**
 
 ```json
     "types": ["vite/client", "vitest/globals"],
 ```
 
-- [ ] **Passo 7: Criar `nexus-frontend/docker/development/Dockerfile`**
+- [x] **Passo 7: Criar `nexus-frontend/docker/development/Dockerfile`**
 
 ```dockerfile
 FROM node:24.16.0-alpine
@@ -221,7 +221,7 @@ EXPOSE 5173
 CMD ["npm", "run", "dev"]
 ```
 
-- [ ] **Passo 8: Criar `nexus-frontend/.dockerignore`**
+- [x] **Passo 8: Criar `nexus-frontend/.dockerignore`**
 
 ```
 node_modules
@@ -232,7 +232,7 @@ dist
 *.log
 ```
 
-- [ ] **Passo 9: Adicionar o serviço `frontend` em `docker/development/docker-compose.yml`**
+- [x] **Passo 9: Adicionar o serviço `frontend` em `docker/development/docker-compose.yml`**
 
 Depois do serviço `api`, antes de `networks:`:
 
@@ -267,7 +267,7 @@ volumes:
   frontend_dev_node_modules:
 ```
 
-- [ ] **Passo 10: Subir o ambiente e verificar**
+- [x] **Passo 10: Subir o ambiente e verificar**
 
 ```bash
 docker compose -f docker/development/docker-compose.yml --project-directory . up --build -d
@@ -276,7 +276,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . lo
 
 Esperado: log do Vite com `Local: http://localhost:5173/`; `curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/` → `200`.
 
-- [ ] **Passo 11: Verificar que o proxy alcança a API**
+- [x] **Passo 11: Verificar que o proxy alcança a API**
 
 ```bash
 curl -s http://localhost:5173/api/v1/health
@@ -284,7 +284,7 @@ curl -s http://localhost:5173/api/v1/health
 
 Esperado: `{"status":"ok"}` — prova que `server.proxy` resolve `api:3000` pela rede do Compose.
 
-- [ ] **Passo 12: Rodar o Vitest vazio para validar a configuração**
+- [x] **Passo 12: Rodar o Vitest vazio para validar a configuração**
 
 ```bash
 docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm test
@@ -294,10 +294,10 @@ Esperado: `No test files found` (exit 1 é aceitável aqui — a suíte real che
 
 **Critério de done F01:**
 
-- [ ] `docker compose ... up` sobe `database`, `api` e `frontend`
-- [ ] http://localhost:5173 responde 200 e http://localhost:5173/api/v1/health devolve `{"status":"ok"}`
-- [ ] `exec frontend npm run lint` e `exec frontend npx tsc -b` passam
-- [ ] Marcar **F01** em [`docs/spec/11-checklist.md`](../spec/11-checklist.md)
+- [x] `docker compose ... up` sobe `database`, `api` e `frontend`
+- [x] http://localhost:5173 responde 200 e http://localhost:5173/api/v1/health devolve `{"status":"ok"}`
+- [x] `exec frontend npm run lint` e `exec frontend npx tsc -b` passam
+- [x] Marcar **F01** em [`docs/spec/11-checklist.md`](../spec/11-checklist.md)
 
 ---
 
