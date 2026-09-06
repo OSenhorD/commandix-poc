@@ -10,10 +10,10 @@
 
 ## Fase 2 — Auth
 
-- [x] Bootstrap de tenant (`POST /tenants/bootstrap`) — rate limit pendente (E10)
-- [ ] Login / refresh / logout (access `15m`, refresh `7d`; claims §5.2 de [05-api](./05-api.md))
-- [ ] JwtAuthGuard + RolesGuard
-- [ ] Decorator @CurrentUser()
+- [x] Bootstrap de tenant (`POST /tenants/bootstrap`) — rate limit implementado (E10, `ThrottlerGuard`)
+- [x] Login / refresh / logout (access `15m`, refresh `7d`; claims §5.2 de [05-api](./05-api.md))
+- [x] JwtAuthGuard + RolesGuard
+- [x] Decorator @CurrentUser()
 
 ## Fase 3 — Integrações
 
