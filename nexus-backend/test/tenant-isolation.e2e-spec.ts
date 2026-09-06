@@ -67,7 +67,7 @@ describe.skipIf(!hasDatabase)('Integrations tenant isolation (e2e)', () => {
     acmeViewerToken = viewerLogin.body.accessToken;
 
     const otherSlug = `other-${Date.now()}`;
-    const otherBootstrap = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post('/api/v1/tenants/bootstrap')
       .send({
         tenantName: 'Other Tenant',

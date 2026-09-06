@@ -28,6 +28,7 @@ services:
     build:
       context: ./nexus-backend
       dockerfile: Dockerfile.dev
+      network: host
     restart: unless-stopped
     user: "${UID:-1000}:${GID:-1000}"
     ports:
