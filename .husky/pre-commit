@@ -1,1 +1,54 @@
-npx lint-staged
+# Husky 9 runs this file with `sh -e` (shebang is ignored).
+COMPOSE="docker compose -f docker/development/docker-compose.yml --project-directory ."
+
+staged_rel() {
+  prefix=$1
+  git diff --cached --name-only --diff-filter=ACMR | while IFS= read -r file; do
+    case "$file" in
+      "$prefix"/*) printf '%s\n' "${file#"$prefix"/}" ;;
+    esac
+  done
+}
+
+require_service() {
+  $COMPOSE ps --status running --services 2>/dev/null | grep -qx "$1" \
+    || {
+      echo "pre-commit: serviço '$1' precisa estar no ar (compose de desenvolvimento)" >&2
+      exit 1
+    }
+}
+
+run_pkg() {
+  service=$1
+  prefix=$2
+  files=$(staged_rel "$prefix")
+  [ -z "$files" ] && return 0
+
+  require_service "$service"
+
+  set --
+  while IFS= read -r rel; do
+    [ -n "$rel" ] && set -- "$@" "$rel"
+  done <<EOF
+$files
+EOF
+
+  $COMPOSE exec -T "$service" npm run format -- "$@"
+
+  set --
+  while IFS= read -r rel; do
+    case "$rel" in
+      *.ts | *.tsx) set -- "$@" "$rel" ;;
+    esac
+  done <<EOF
+$files
+EOF
+
+  [ "$#" -eq 0 ] && return 0
+  $COMPOSE exec -T "$service" npm run lint -- "$@"
+  $COMPOSE exec -T "$service" npm run test:related -- "$@"
+}
+
+run_pkg api nexus-backend
+run_pkg frontend nexus-frontend
+git update-index --again
