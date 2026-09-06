@@ -9,7 +9,7 @@ import { configureApp } from '@/configure-app.js';
 import { configureOpenApi } from '@/openapi/configure-openapi.js';
 import { db } from '@/prisma/db.js';
 
-describe('OpenAPI + Scalar (e2e)', () => {
+describe('OpenAPI + Swagger UI (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeAll(async () => {
@@ -78,12 +78,12 @@ describe('OpenAPI + Scalar (e2e)', () => {
     expect(response.body.paths['/api/v1/health'].get.security).toEqual([]);
   });
 
-  it('GET /api/docs serves Scalar UI', async () => {
+  it('GET /api/docs serves Swagger UI', async () => {
     const response = await request(app.getHttpServer())
       .get('/api/docs')
       .expect(200);
 
-    expect(response.text.toLowerCase()).toContain('scalar');
+    expect(response.text.toLowerCase()).toContain('swagger-ui');
   });
 
   it('ENABLE_API_DOCS=false skips routes', async () => {

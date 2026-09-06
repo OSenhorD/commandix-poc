@@ -4,6 +4,5 @@ export function isApiDocsEnabled(): boolean {
 
 export const OPENAPI_TITLE = 'Commandix API';
 export const OPENAPI_VERSION = '1.0';
-export const OPENAPI_SETUP_PATH = '_openapi';
+export const OPENAPI_SETUP_PATH = 'api/docs';
 export const OPENAPI_JSON_PATH = 'api/openapi.json';
-export const OPENAPI_SCALAR_PATH = '/api/docs';
