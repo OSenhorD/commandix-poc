@@ -6,16 +6,16 @@ SPA React do Commandix PoC — gestão de integrações multi-tenant. Consome a 
 
 ## Stack
 
-| Camada | Tecnologia |
-|--------|------------|
-| Base | React 19 · TypeScript 6 · Vite 8 · React Compiler |
-| Estilo | Tailwind CSS 4 (CSS-first, em `src/index.css` — **sem** `tailwind.config.js`) |
+| Camada      | Tecnologia                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------ |
+| Base        | React 19 · TypeScript 6 · Vite 8 · React Compiler                                          |
+| Estilo      | Tailwind CSS 4 (CSS-first, em `src/index.css` — **sem** `tailwind.config.js`)              |
 | Componentes | shadcn, estilo `base-lyra`, sobre `@base-ui/react` (**não** Radix) · ícones `lucide-react` |
-| Rotas | React Router 7 (`createBrowserRouter`) |
-| Dados | TanStack Query v5 |
-| Formulários | react-hook-form + zod |
-| Lint | ESLint 10 (`strictTypeChecked`) — o backend usa oxlint |
-| Testes | Vitest + Testing Library (jsdom) |
+| Rotas       | React Router 7 (`createBrowserRouter`)                                                     |
+| Dados       | TanStack Query v5                                                                          |
+| Formulários | react-hook-form + zod                                                                      |
+| Lint        | ESLint 10 (`strictTypeChecked`) — o backend usa oxlint                                     |
+| Testes      | Vitest + Testing Library (jsdom)                                                           |
 
 ## Como rodar
 
@@ -38,13 +38,15 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 
 ## Scripts
 
-| Script | O que faz |
-|--------|-----------|
-| `npm run dev` | Vite dev server (`--host`, proxy `/api` → `api:3000`) |
-| `npm run build` | `tsc -b && vite build` |
-| `npm run lint` | ESLint |
-| `npm test` | Vitest |
-| `npm run preview` | Serve o build local |
+| Script                 | O que faz                                             |
+| ---------------------- | ----------------------------------------------------- |
+| `npm run dev`          | Vite dev server (`--host`, proxy `/api` → `api:3000`) |
+| `npm run build`        | `tsc -b && vite build`                                |
+| `npm run lint`         | ESLint                                                |
+| `npm run format`       | Prettier (write) — config local em `.prettierrc`      |
+| `npm run format:check` | Prettier (só verifica)                                |
+| `npm test`             | Vitest                                                |
+| `npm run preview`      | Serve o build local                                   |
 
 ## Estrutura
 
@@ -67,9 +69,9 @@ src/
 
 Base: `import.meta.env.VITE_API_URL ?? "/api/v1"` — caminho **relativo**, resolvido pelo proxy do Vite (dev) ou pelo nginx (prod).
 
-| Variável | Default | Uso |
-|----------|---------|-----|
-| `VITE_API_URL` | `/api/v1` | Base do cliente HTTP no browser |
-| `VITE_API_PROXY_TARGET` | `http://api:3000` | Alvo do proxy do dev server |
+| Variável                | Default           | Uso                             |
+| ----------------------- | ----------------- | ------------------------------- |
+| `VITE_API_URL`          | `/api/v1`         | Base do cliente HTTP no browser |
+| `VITE_API_PROXY_TARGET` | `http://api:3000` | Alvo do proxy do dev server     |
 
 Contrato completo: [`docs/spec/05-api.md`](../docs/spec/05-api.md). Padrões e armadilhas: [`.agents/rules/react-frontend.mdc`](../.agents/rules/react-frontend.mdc).
