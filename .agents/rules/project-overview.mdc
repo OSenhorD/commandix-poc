@@ -35,7 +35,7 @@ commandix-poc/
 ├── .agents/rules/          # regras (monorepo)
 ├── nexus-backend/          # API + Prisma 8
 ├── nexus-frontend/         # React (a criar)
-├── docker-compose.yml
+├── docker/                 # docker-compose.prod.yml, docker-compose.dev.yml
 └── docs/spec/
 ```
 

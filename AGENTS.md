@@ -15,7 +15,7 @@ Contexto para agentes de IA trabalhando neste repositório.
 | `nexus-backend/` | Domínio Prisma 8 + migration + seed + `DatabaseModule`; Docker (Dockerfile + entrypoint); sem módulos de negócio |
 | `nexus-frontend/` | **Não criado** |
 | Prisma 8 | `contract.prisma` — domínio Commandix; migration `20260903T0509_initial` |
-| Docker Compose | **postgres + api** (`docker compose up --build`); frontend pendente |
+| Docker Compose | **postgres + api** (`docker compose -f docker/docker-compose.prod.yml --project-directory . up --build`); frontend pendente |
 
 ## Arquitetura alvo
 
@@ -86,6 +86,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Seed Docker | Idempotente; pula se tenant `acme` existir |
 | Seed no startup | **Sempre** no entrypoint Docker (`db migrate` → seed → start); idempotente — não re-insere se `acme` já existir; **decisão consciente da PoC**, não padrão de produção |
 | Node | **24.16.0** — `engines` em `nexus-backend/package.json`; imagem Docker `node:24.16.0-alpine` |
+| Docker Compose (arquivos) | `docker/docker-compose.prod.yml` e `docker/docker-compose.dev.yml`; Dockerfiles em `nexus-backend/` (`Dockerfile.prod`/`Dockerfile.dev`) |
 | PostgreSQL | **16** (`postgres:16-alpine`) — alvo da app; atende mínimo Prisma Next 15+ |
 | Imports backend | Alias **`@/`** → `src/`; sufixo **`.js`** obrigatório; build com **`tsc-alias`** |
 | CI | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — lint, test, build, Docker Compose |
@@ -159,7 +160,8 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 
 ```bash
 # Docker — sobe postgres + api + frontend (após implementação)
-docker compose up --build
+docker compose -f docker/docker-compose.prod.yml --project-directory . up --build   # produção
+docker compose -f docker/docker-compose.dev.yml --project-directory . up --build    # desenvolvimento
 
 # Prisma 8 — backend (ver skill prisma-8/SKILL.md)
 cd nexus-backend

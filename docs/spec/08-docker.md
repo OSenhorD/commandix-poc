@@ -9,7 +9,7 @@ Versões pinadas — ver `nexus-backend/package.json` (`engines.node`) e imagens
 | Serviço | Porta (host) | Imagem / build |
 |---------|--------------|----------------|
 | postgres | 5432 | `postgres:16-alpine` |
-| api | 3000 | build `nexus-backend/Dockerfile` (`node:24.16.0-alpine`) |
+| api | 3000 | build `nexus-backend/Dockerfile.prod` (prod) / `Dockerfile.dev` (dev) — `node:24.16.0-alpine` |
 | frontend | 5173 → 80 | build `nexus-frontend/Dockerfile` (nginx) |
 
 ## 8.2 Variáveis de ambiente
@@ -55,8 +55,14 @@ Aplica-se **somente** a `POST /tenants/bootstrap`. Resposta `429` quando excedid
 ## 8.3 Comando único
 
 ```bash
-docker compose up --build
+# Produção
+docker compose -f docker/docker-compose.prod.yml --project-directory . up --build
+
+# Desenvolvimento (bind mount + watch)
+docker compose -f docker/docker-compose.dev.yml --project-directory . up --build
 ```
+
+`--project-directory .` garante que `.env` e caminhos relativos do compose (`./nexus-backend`, volumes) resolvam a partir da raiz do monorepo, mesmo com os arquivos de compose dentro de `docker/`.
 
 ## 8.4 Startup
 
@@ -75,7 +81,7 @@ docker compose up --build
 | Restart / redeploy | Seed roda de novo, mas é no-op quando dados demo já existem |
 | Produção real | **Fora de escopo** — em produção típica seed não roda a cada deploy; aqui é conveniência para avaliadores |
 
-Implementação: `nexus-backend/docker-entrypoint.sh` chama `tsx src/prisma/seed.ts` (ou equivalente) entre migrate e start.
+Implementação: `nexus-backend/docker-entrypoint.prod.sh` (prod) / `docker-entrypoint.dev.sh` (dev) chama o seed entre migrate e start.
 
 ## 8.6 Frontend — roteamento da API
 
@@ -135,9 +141,9 @@ nginx faz proxy `/api/` → `api:3000`. Browser só fala com o host do frontend 
 
 | Item | Arquivo |
 |------|---------|
-| Compose | `docker-compose.yml` |
+| Compose | `docker/docker-compose.prod.yml`, `docker/docker-compose.dev.yml` |
 | CI | `.github/workflows/ci.yml` |
-| API | `nexus-backend/Dockerfile`, `docker-entrypoint.sh` |
+| API | `nexus-backend/Dockerfile.prod`/`docker-entrypoint.prod.sh` (prod), `Dockerfile.dev`/`docker-entrypoint.dev.sh` (dev) |
 | Frontend | `nexus-frontend/Dockerfile`, `nginx.conf` |
 | Volume | `postgres_data` |
 

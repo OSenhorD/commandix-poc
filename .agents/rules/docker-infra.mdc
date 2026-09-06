@@ -1,6 +1,6 @@
 ---
 description: Docker Compose e variáveis de ambiente
-globs: docker-compose*.yml,Dockerfile*,.env.example,nexus-backend/docker-entrypoint.sh,nexus-frontend/nginx.conf
+globs: docker/docker-compose*.yml,Dockerfile*,.env.example,nexus-backend/docker-entrypoint.*.sh,nexus-frontend/nginx.conf
 alwaysApply: false
 ---
 
@@ -8,15 +8,22 @@ alwaysApply: false
 
 ```bash
 cp .env.example .env
-docker compose up --build
+
+# Produção
+docker compose -f docker/docker-compose.prod.yml --project-directory . up --build
+
+# Desenvolvimento (bind mount + watch)
+docker compose -f docker/docker-compose.dev.yml --project-directory . up --build
 ```
+
+`--project-directory .` mantém a resolução do `.env` e dos caminhos relativos (`./nexus-backend`, volumes) a partir da raiz do monorepo, mesmo com o compose dentro de `docker/`.
 
 ## Serviços
 
 | Nome | Build / imagem | Porta |
 |------|----------------|-------|
 | `postgres` | `postgres:16-alpine` | 5432 |
-| `api` | `nexus-backend/Dockerfile` | 3000 |
+| `api` | `nexus-backend/Dockerfile.prod` (prod) / `Dockerfile.dev` (dev) | 3000 |
 | `frontend` | `nexus-frontend/Dockerfile` (nginx) | 5173 |
 
 Versões pinadas — alinhar com `engines` e imagens Docker:
@@ -24,7 +31,7 @@ Versões pinadas — alinhar com `engines` e imagens Docker:
 | Componente | Fonte | Versão |
 |------------|-------|--------|
 | Node (local) | `nexus-backend/package.json` → `engines.node` | `24.16.0` |
-| Node (Docker) | `nexus-backend/Dockerfile` | `node:24.16.0-alpine` |
+| Node (Docker) | `nexus-backend/Dockerfile.prod` | `node:24.16.0-alpine` |
 | PostgreSQL | Compose / spec | `postgres:16-alpine` (app); mínimo PN 15+ |
 
 ## Startup
