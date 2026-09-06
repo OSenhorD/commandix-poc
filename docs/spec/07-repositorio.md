@@ -14,10 +14,8 @@ commandix-poc/
 │       └── docker-compose.yml
 ├── .env.example
 ├── .agents/
-│   ├── rules/                      # regras Cursor (monorepo)
-│   └── skills/
-│       ├── README.md
-│       └── prisma-8/               # symlink → nexus-backend/.agents/skills/prisma-8
+│   ├── README.md                   # aponta para a skill em nexus-backend/
+│   └── rules/                      # regras Cursor (monorepo)
 ├── nexus-backend/
 │   ├── prisma.config.ts
 │   ├── tsconfig.json               # paths: "@/*" → "./src/*"
@@ -48,10 +46,17 @@ commandix-poc/
 
 | Caminho | Papel |
 |---------|-------|
-| `nexus-backend/.agents/skills/prisma-8/` | **Fonte** — `npm run skills:sync` |
-| `.agents/skills/prisma-8/` | Symlink para descoberta na raiz do workspace |
+| `nexus-backend/.agents/skills/prisma-8/` | **Fonte única** — `npm run skills:sync` |
 
-Comandos Prisma: `cwd` em `nexus-backend/`.
+**Sem symlink na raiz** — ler a skill direto neste caminho (ver [`AGENTS.md`](../../AGENTS.md) § Monorepo).
+
+**Comandos Prisma:** rodam **dentro do container `api`** (Compose de desenvolvimento), nunca no host — o `DATABASE_URL` só existe na rede do Compose:
+
+```bash
+docker compose -f docker/development/docker-compose.yml --project-directory . exec api <comando>
+```
+
+O `cwd` dentro do container já é a raiz do backend (`/app`). Ver [`AGENTS.md`](../../AGENTS.md) § Comandos úteis e [`readme.md`](../../readme.md) § Prisma 8.
 
 **Imports TypeScript:** alias `@/` → `src/`; build (`npm run build`) usa `tsc-alias` para reescrever no `dist/`. Detalhes em [`AGENTS.md`](../../AGENTS.md).
 

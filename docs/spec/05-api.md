@@ -8,7 +8,7 @@ Base URL: `/api/v1`
 
 ## 5.0 Paginação (listagens)
 
-Padrão único para `GET /integrations` e `GET /integrations/:id/executions`.
+Padrão único para `GET /integrations` e `GET /integrations/:integrationId/executions`.
 
 ### Query params
 
@@ -72,6 +72,7 @@ Response `200`:
 | POST | `/auth/login` | — | Retorna tokens |
 | POST | `/auth/refresh` | — | Renova access token |
 | POST | `/auth/logout` | JWT | Revoga refresh token **do dispositivo atual** |
+| GET | `/auth/me` | JWT | Retorna o usuário autenticado (claims do access token) |
 
 ### JWT — access token
 
@@ -177,16 +178,37 @@ Comportamento:
 - Idempotente: token já revogado ou inexistente → `204` (sem vazar existência).
 - Não invalida access tokens já emitidos (expiram naturalmente em ~15m).
 
+### GET /auth/me
+
+Retorna o usuário autenticado **a partir das claims do access token** — sem consulta ao banco. Usado pelo frontend para reidratar a sessão ao recarregar a página (token no storage, estado do usuário perdido).
+
+Sem body de request. Requer `Authorization: Bearer <accessToken>`; token ausente/inválido → `401`.
+
+Response `200`:
+
+```json
+{
+  "id": "...",
+  "email": "admin@acme.com",
+  "role": "ADMIN",
+  "tenantId": "..."
+}
+```
+
+Mesma forma do objeto `user` de `POST /auth/login` e `POST /tenants/bootstrap` (`id`, `email`, `role`, `tenantId`) — mapeamento direto das claims `sub`, `email`, `role`, `tenantId`.
+
 ## 5.3 Integrations
 
-| Método | Rota | Role | Descrição |
-|--------|------|------|-----------|
-| GET | `/integrations` | ADMIN, VIEWER | Lista paginada do tenant |
-| POST | `/integrations` | ADMIN | Cria |
-| GET | `/integrations/:id` | ADMIN, VIEWER | Detalhe |
-| PATCH | `/integrations/:id` | ADMIN | Atualiza |
-| DELETE | `/integrations/:id` | ADMIN | Remove (hard delete + cascade execuções) |
-| POST | `/integrations/:id/trigger` | ADMIN | Dispara execução |
+| Método | Rota | Role | Sucesso | Descrição |
+|--------|------|------|---------|-----------|
+| GET | `/integrations` | ADMIN, VIEWER | `200` | Lista paginada do tenant |
+| POST | `/integrations` | ADMIN | `201` | Cria |
+| GET | `/integrations/:id` | ADMIN, VIEWER | `200` | Detalhe |
+| PATCH | `/integrations/:id` | ADMIN | `200` | Atualiza |
+| DELETE | `/integrations/:id` | ADMIN | **`204`** (sem body) | Remove (hard delete + cascade execuções) |
+| POST | `/integrations/:id/trigger` | ADMIN | `200` | Dispara execução |
+
+`:id` deve ser um **UUID válido** — formato inválido → `400` (antes de qualquer consulta). Integração de outro tenant → `404`.
 
 ### GET /integrations
 
@@ -227,7 +249,7 @@ Response `200`:
 }
 ```
 
-Listagem retorna campos resumidos (sem `customHeaders` / `defaultPayload` completos) — detalhe em `GET /integrations/:id`.
+Listagem retorna campos resumidos — `customHeaders` e `defaultPayload` são **omitidos** (não aparecem no item, não é uma versão parcial deles); disponíveis em `GET /integrations/:id`.
 
 ### POST /integrations
 
@@ -295,9 +317,17 @@ Response `200` — mesma forma de `POST /integrations` (representação completa
 
 Campos **não** patcháveis: `id`, `tenantId`, `createdAt` (`updatedAt` atualizado pelo ORM).
 
+### DELETE /integrations/:id
+
+**Hard delete** — remove a integração e, em cascade, todas as suas execuções (`IntegrationExecution.integration` com `onDelete: Cascade`). Não há soft delete; para preservar o histórico, desativar via `PATCH { "isActive": false }`.
+
+Sem body de request. Response **`204` sem body**. Integração inexistente ou de outro tenant → `404`.
+
 ### POST /integrations/:id/trigger
 
 Disparo HTTP outbound: **sempre POST** para `targetUrl`; timeout 30s; **sem retry**. Não há campo `httpMethod` no modelo.
+
+**Integração inativa (`isActive: false`) → `400`**, não 404: a integração existe e pertence ao tenant, então o erro é de estado, não de recurso ausente. Nenhuma execução é registrada — a validação acontece antes do disparo.
 
 Request (payload opcional; merge shallow com `defaultPayload`):
 
@@ -328,7 +358,7 @@ Response `200` (execução criada):
 
 | Método | Rota | Role | Descrição |
 |--------|------|------|-----------|
-| GET | `/integrations/:id/executions` | ADMIN, VIEWER | Lista paginada |
+| GET | `/integrations/:integrationId/executions` | ADMIN, VIEWER | Lista paginada |
 | GET | `/executions/:id` | ADMIN, VIEWER | Detalhe |
 
 Query params: paginação [§5.0](./05-api.md#50-paginação-listagens); filtros: `status`, `from`, `to`.
@@ -407,9 +437,39 @@ Response `200` (detalhe — inclui `requestPayload` e `responseBody`):
 
 | Código | Uso |
 |--------|-----|
-| 400 | Validação de DTO ou query inválida (ex.: paginação, ISO 8601 inválido, `from > to`) |
+| 400 | Validação de DTO ou query inválida (ex.: paginação, ISO 8601 inválido, `from > to`, PATCH com body vazio) — inclui **trigger em integração inativa** |
 | 401 | Token ausente/inválido |
 | 403 | Role insuficiente |
 | 404 | Recurso não encontrado (inclui cross-tenant) |
 | 409 | Conflito (`email` ou `tenantSlug` duplicado) |
 | 429 | Rate limit excedido (bootstrap) |
+
+## 5.6 Documentação OpenAPI
+
+Documento OpenAPI 3.x gerado em runtime pelo `@nestjs/swagger` a partir dos decorators dos controllers/DTOs — não há arquivo versionado no repositório. Configuração em `src/openapi/`.
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| GET | `/api/docs` | — | Swagger UI (try-it com `Authorize` → Bearer) |
+| GET | `/api/openapi.json` | — | Documento OpenAPI 3.x (JSON) |
+
+**Fora do prefixo `/api/v1`** — as duas rotas ficam sob `/api`, não sob a base URL da API. As rotas *documentadas* dentro do JSON mantêm o prefixo (`/api/v1/auth/login`, etc.).
+
+### `ENABLE_API_DOCS`
+
+| Valor | Efeito |
+|-------|--------|
+| ausente ou qualquer valor ≠ `false` | Docs ligadas (**default**) |
+| `false` (case-insensitive) | `configureOpenApi()` não registra nada — ambas as rotas → `404` |
+
+Ver [08-docker §8.2](./08-docker.md#82-variáveis-de-ambiente).
+
+### Convenções do documento
+
+| Aspecto | Regra |
+|---------|-------|
+| Segurança global | `bearerAuth` — rotas públicas (`/health`, `/auth/login`, `/auth/refresh`, `/tenants/bootstrap`) declaram `security: []` |
+| Respostas globais | `401` e `500` adicionadas a todas as operações |
+| Tags | `health`, `tenants`, `auth`, `integrations`, `executions` |
+| `operationId` | Nome do método do controller (ex.: `login`, `trigger`) |
+| Schemas | Classes DTO com `@ApiProperty` — `authKey` sempre mascarada nos exemplos |

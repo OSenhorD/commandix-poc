@@ -9,16 +9,19 @@
 | Tecnologia | Versão / nota | Status |
 |------------|---------------|--------|
 | Node.js | **24.16.0** (`engines` + `node:24.16.0-alpine` no Dockerfile) | Configurado |
-| NestJS | 12.x (`nexus-backend/`) | Starter |
+| NestJS | 12.x (`nexus-backend/`) | Implementado |
 | TypeScript | 6.x, ESM (`"type": "module"`), alias `@/` → `src/` | Configurado |
 | PostgreSQL | **16** (`postgres:16-alpine`; mínimo Prisma Next 15+) | Via Docker |
-| Prisma 8 | v8 RC — `@prisma/orm-postgres`, contract em `src/prisma/` | Inicializado |
-| class-validator | DTOs + `ValidationPipe` global | Pendente |
-| @nestjs/throttler | Rate limit básico em `POST /tenants/bootstrap` | Pendente |
-| @nestjs/jwt + passport | Guards de autenticação | Pendente |
-| bcrypt | Hash de senhas | Pendente |
-| Vitest + supertest | 4.x — **testes críticos obrigatórios** (ver [10-criterios § Testes](./10-criterios.md)) | Starter |
+| Prisma 8 | v8 RC — `@prisma/orm-postgres`, contract em `src/prisma/` | Implementado |
+| class-validator | DTOs + `ValidationPipe` global (`whitelist` + `transform`) | Implementado |
+| @nestjs/throttler | Rate limit básico em `POST /tenants/bootstrap` | Implementado |
+| @nestjs/jwt + passport | Guards de autenticação (`JwtAuthGuard` + `RolesGuard` globais) | Implementado |
+| @nestjs/swagger | OpenAPI 3.x + Swagger UI — ver [05-api §5.6](./05-api.md#56-documentação-openapi) | Implementado |
+| bcrypt | Hash de senhas | Implementado |
+| Vitest + supertest | 4.x — **testes críticos obrigatórios** (ver [10-criterios § Testes](./10-criterios.md)) | Implementado (falta e2e de execuções) |
 | tsc-alias | Pós-build — reescreve `@/` em paths relativos no `dist/` | Configurado |
+| oxlint | Linter do projeto (`npm run lint`) — **não** ESLint; formatação via Prettier | Configurado |
+| nodemon | Watch mode do Compose de desenvolvimento (+ inspector na `9229`) | Configurado |
 
 **Imports (backend):** preferir `@/…/arquivo.js` (mapeia para `src/`); sufixo `.js` obrigatório. Ver [`AGENTS.md`](../../AGENTS.md) § Convenções.
 
@@ -45,10 +48,10 @@ VIEWER: leitura em integrações e histórico. ADMIN: todas as ações de escrit
 
 | Requisito | Status |
 |-----------|--------|
-| Docker Compose: `api`, `frontend`, `postgres` | Pendente |
-| Healthcheck no PostgreSQL antes da API subir | Pendente |
-| CORS dev (`localhost:5173`) | Fase 1 — ver [08-docker §8.8](./08-docker.md#88-cors) |
-| Migrations no Docker | `db migrate` no entrypoint (migrations em `migrations/app/`) |
-| `.env.example` com todas as variáveis | Pendente |
+| Docker Compose: `api`, `frontend`, `database` | **Parcial** — `api` + `database` prontos (produção e desenvolvimento); `frontend` comentado |
+| Healthcheck no PostgreSQL antes da API subir | Implementado (`pg_isready` + `depends_on: service_healthy`) |
+| CORS dev (`localhost:5173`) | Implementado em `configureApp()` — ver [08-docker §8.8](./08-docker.md#88-cors) |
+| Migrations no Docker | Implementado — `db migrate` no entrypoint (migrations em `migrations/app/`) |
+| `.env.example` com todas as variáveis | Implementado |
 
 Detalhes em [Infraestrutura (Docker)](./08-docker.md).

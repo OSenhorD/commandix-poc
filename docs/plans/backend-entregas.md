@@ -22,103 +22,16 @@
 |------|--------|
 | NestJS 12 starter | ✅ |
 | Global prefix `api/v1` | ✅ (`main.ts`) |
-| Prisma 8 — domínio Commandix | ✅ (`contract.prisma` + migration `initial`) |
+| Prisma 8 — domínio Commandix | ✅ (`contract.prisma` + migrations) |
 | Seed idempotente | ✅ (`src/prisma/seed.ts`) |
 | `GET /api/v1/health` | ✅ |
-| Módulos de negócio | ❌ |
+| Módulos de negócio | ✅ `auth`, `tenants`, `integrations`, `executions`, `common`, `openapi` — ver [Concluído](#concluído-e01e19-por-fase) |
 | `DatabaseModule` | ✅ |
 | `ValidationPipe` / CORS | ✅ |
-| Docker Compose | ⚠️ postgres + api (frontend pendente) |
-| Testes críticos | ❌ |
+| Docker Compose | ⚠️ `database` + `api` prontos (dev e prod); `frontend` pendente |
+| Testes críticos | ✅ — ver [10-criterios](../spec/10-criterios.md) |
 
----
-
-## Mapa de dependências
-
-```mermaid
-flowchart TD
-    E01[E01 Domínio Prisma]
-    E02[E02 DatabaseModule]
-    E03[E03 Bootstrap app]
-    E04[E04 Seed]
-    E05[E05 Paginação common]
-    E06[E06 Bootstrap tenant]
-    E07[E07 Login]
-    E08[E08 JWT + Guards]
-    E09[E09 Refresh + Logout]
-    E10[E10 Rate limit bootstrap]
-    E11[E11 Integrations CRUD base]
-    E12[E12 Integrations listagem]
-    E13[E13 Integrations PATCH/DELETE]
-    E14[E14 HTTP outbound]
-    E15[E15 Trigger + execução]
-    E16[E16 Execuções listagem]
-    E17[E17 Execuções detalhe]
-    E18[E18 Docker API]
-    E19[E19 Testes críticos]
-
-    E01 --> E02
-    E02 --> E04
-    E03 --> E06
-    E02 --> E06
-    E06 --> E07
-    E07 --> E08
-    E08 --> E09
-    E08 --> E11
-    E05 --> E11
-    E11 --> E12
-    E11 --> E13
-    E13 --> E14
-    E14 --> E15
-    E15 --> E16
-    E15 --> E17
-    E04 --> E18
-    E03 --> E18
-    E17 --> E19
-    E09 --> E19
-```
-
----
-
-## Entregas
-
-### E19 — Testes críticos (obrigatório)
-
-**Objetivo:** cobertura mínima exigida pela PoC ([10-criterios](../spec/10-criterios.md)).
-
-**Escopo — dividir em sub-entregas se preferir PRs menores:**
-
-| Sub | Foco | Arquivo sugerido |
-|-----|------|------------------|
-| E19a | Tenant isolation (integrations) | `test/tenant-isolation.e2e-spec.ts` |
-| E19b | Auth guards (401/403) | `test/auth-guards.e2e-spec.ts` |
-| E19c | Trigger service (SUCCESS/FAILURE/timeout/truncamento) | `test/trigger.e2e-spec.ts` |
-| E19d | Scoping execuções | `test/executions-scoping.e2e-spec.ts` |
-
-**Setup:**
-- Vitest + supertest (já no projeto)
-- DB de teste ou bootstrap por suite
-- Helpers: criar 2 tenants, tokens ADMIN/VIEWER
-
-**Critério de done:**
-- [ ] `npm test` / `npm run test:e2e` passa
-- [ ] Cenários: cross-tenant 404, role 403, trigger 2xx/4xx/timeout, truncamento
-
-**Dependências:** E17 (API completa)
-
----
-
-## Resumo por fase (checklist)
-
-| Fase checklist | Entregas |
-|----------------|----------|
-| Fase 1 — Fundação | E01 ✅, E02 ✅, E03 ✅, E04 ✅, E18 ⚠️ (postgres+api) |
-| Fase 2 — Auth | E06 ✅, E07 ✅, E08 ✅, E09 ✅, E10 ✅ |
-| Fase 3 — Integrações | E05 ✅, E11 ✅, E12 ✅, E13 ✅, E14 ✅, E15 ✅ |
-| Fase 4 — Histórico | E16 ✅, E17 ✅ |
-| Fase 6 — Polish (backend) | E19, `.env.example` (E18) |
-
-> Frontend (Fase 5) e nginx no Compose ficam fora deste documento.
+E01–E19 (fundação → testes críticos) estão entregues — detalhe por fase em [Concluído](#concluído-e01e19-por-fase). Backend só falta o frontend (Fase 5, fora deste documento) e itens de bônus.
 
 ---
 
@@ -132,17 +45,6 @@ flowchart TD
 | `@nestjs/throttler` | E10 |
 
 Usar versões mais recentes compatíveis com NestJS 12.
-
----
-
-## Ordem sugerida de execução
-
-```
-E01 → E02 → E03 → E04 → E05 → E06 → E07 → E08 → E09 → E10
-  → E11 → E12 → E13 → E14 → E15 → E16 → E17 → E18 → E19
-```
-
-**Paralelizável:** E03 com E01/E02; E14 com E11–E13; E18 pode iniciar após E04+E03 (antes de E19).
 
 ---
 

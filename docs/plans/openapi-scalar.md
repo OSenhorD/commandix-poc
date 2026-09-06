@@ -1,5 +1,7 @@
 # Plano de Execução — OpenAPI gerado + Scalar
 
+> **Revertido em 2026-09-06** (commit `5af6c9a`, "Retorno a UI padrão do Swagger"): a UI Scalar descrita abaixo (`ui: false`, `raw: ['json']`) foi removida — a implementação atual usa a **Swagger UI padrão** do `@nestjs/swagger` (`SwaggerModule.setup` com UI habilitada). Motivo: simplificar a stack, sem depender de `@scalar/nestjs-api-reference`. Ver `src/openapi/`, `readme.md` § Serviços e [05-api §5.6](../spec/05-api.md#56-documentação-openapi). Documento abaixo preservado como registro histórico da decisão original — não reflete o estado atual, exceto onde marcado.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `executing-plans` ou implementação inline task-by-task. Steps usam checkbox (`- [ ]`) para tracking.
 
 **Goal:** Expor documentação interativa da API Commandix via OpenAPI gerado com [`@nestjs/swagger`](https://docs.nestjs.com/openapi/introduction) e UI Scalar, sem duplicar o contrato de [`05-api.md`](../spec/05-api.md).

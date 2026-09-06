@@ -46,7 +46,7 @@ flowchart LR
     E10[E10 Throttle] --> T10[bootstrap-throttle.e2e-spec.ts]
     E11[E11 Integrations] --> T11[tenant-isolation.e2e-spec.ts]
     E14[E14 HTTP outbound] --> T14[http-outbound.service.spec.ts]
-    E15[E15 Trigger] --> T15[trigger.e2e-spec.ts]
+    E15[E15 Trigger] --> T15[integrations-trigger.e2e-spec.ts]
     E16[E16 Execuções] --> T16[executions-scoping.e2e-spec.ts]
 ```
 
@@ -141,11 +141,11 @@ flowchart LR
 
 ### E15 — Trigger + execução
 
-**Arquivo:** `test/trigger.e2e-spec.ts`
+**Arquivo:** `test/integrations-trigger.e2e-spec.ts`
 
 | Cenário | Esperado |
 |---------|----------|
-| Integração inativa | Erro (`400` ou `404` conforme implementação) |
+| Integração inativa | `400` — ver [05-api §5.3](../spec/05-api.md#post-integrationsidtrigger) |
 | Mock 2xx | `SUCCESS`; execução persistida |
 | Mock 4xx | `FAILURE`; `httpStatusCode` preenchido |
 | Mock timeout | `FAILURE`; `httpStatusCode: null` |
@@ -178,7 +178,7 @@ Objetivo: suite mínima exigida em [10-criterios § Testes críticos](../spec/10
 |-----|------|---------|
 | E19a | Tenant isolation (integrations) | `test/tenant-isolation.e2e-spec.ts` |
 | E19b | Auth guards (401/403) | `test/auth-guards.e2e-spec.ts` |
-| E19c | Trigger (SUCCESS/FAILURE/timeout/truncamento) | `test/trigger.e2e-spec.ts` |
+| E19c | Trigger (SUCCESS/FAILURE/timeout/truncamento) | `test/integrations-trigger.e2e-spec.ts` |
 | E19d | Scoping execuções | `test/executions-scoping.e2e-spec.ts` |
 
 ### Infra de teste (criar antes de E06 e2e)
@@ -191,7 +191,7 @@ nexus-backend/test/
 │   └── auth.helper.ts           # 2 tenants, tokens ADMIN/VIEWER
 ├── tenant-isolation.e2e-spec.ts
 ├── auth-guards.e2e-spec.ts
-├── trigger.e2e-spec.ts
+├── integrations-trigger.e2e-spec.ts
 └── executions-scoping.e2e-spec.ts
 ```
 
@@ -238,7 +238,7 @@ Fase C (E19 consolidado)     →  após E17; refatorar helpers se necessário
 | E10 | `bootstrap-throttle.e2e-spec.ts` |
 | E11–E13 | `tenant-isolation.e2e-spec.ts` |
 | E14 | `http-outbound.service.spec.ts` |
-| E15 | `trigger.e2e-spec.ts` |
+| E15 | `integrations-trigger.e2e-spec.ts` |
 | E16–E17 | `executions-scoping.e2e-spec.ts` |
 | E19 | Consolidação + helpers |
 

@@ -43,6 +43,7 @@ src/
 ├── integrations/   # CRUD + trigger
 ├── executions/     # listagem e detalhe
 ├── database/       # DatabaseModule — wrapper de db (Prisma 8)
+├── openapi/        # configureOpenApi() — Swagger UI + /api/openapi.json (não é módulo Nest)
 ├── prisma/         # contract.prisma, db.ts, seed.ts (não é módulo Nest)
 └── common/         # decorators, filters, guards
     ├── decorators/ # @CurrentUser(), @Roles()

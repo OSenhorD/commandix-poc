@@ -8,7 +8,7 @@ Versões pinadas — ver `nexus-backend/package.json` (`engines.node`) e imagens
 
 | Serviço | Porta (host) | Imagem / build |
 |---------|--------------|----------------|
-| postgres | 5432 (dev) / não exposto (prod) | `postgres:16-alpine` |
+| database | 5432 (dev) / não exposto (prod) | `postgres:16-alpine` |
 | api | 3000 | build `nexus-backend/docker/production/Dockerfile` (prod) / `docker/development/Dockerfile` (dev) — `node:24.16.0-alpine` |
 | frontend | 5173 → 80 | build `nexus-frontend/Dockerfile` (nginx) |
 
@@ -16,27 +16,56 @@ Em produção, o Postgres **não expõe porta no host** — apenas os serviços 
 
 ## 8.2 Variáveis de ambiente
 
-Ver [`.env.example`](../../.env.example) na raiz:
+Copie [`.env.example`](../../.env.example) (raiz do monorepo) → `.env`. Cópia fiel do arquivo — comentários indicam o default aplicado pelos composes quando a variável é omitida:
 
 ```env
-DATABASE_URL=postgresql://commandix:commandix@postgres:5432/commandix
-
+# JWT
 JWT_ACCESS_SECRET=change-me-access
 JWT_REFRESH_SECRET=change-me-refresh
-JWT_ACCESS_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
+# JWT_ACCESS_EXPIRES_IN=15m
+# JWT_REFRESH_EXPIRES_IN=7d
 
+# Database
+# DB_DATABASE=commandix
+# DB_USERNAME=commandix
 DB_PASSWORD=change-me-db-password
+# DB_PORT=5432
 
-PORT=3000
-NODE_ENV=development
+# API
+# API_PORT=3000
+ENABLE_API_DOCS=true
 
-HTTP_TRIGGER_TIMEOUT_MS=30000
+# HTTP trigger
+# HTTP_TRIGGER_TIMEOUT_MS=30000
+
+# Bootstrap rate limit
+# BOOTSTRAP_THROTTLE_TTL=60000
+# BOOTSTRAP_THROTTLE_LIMIT=5
+
+# Frontend — opcional; default no código é /api/v1 (relativo)
+# VITE_API_URL=/api/v1
 ```
+
+`ENABLE_API_DOCS` liga/desliga `/api/docs` e `/api/openapi.json` — `false` → `404` nas duas. Default: ligado. Ver [05-api §5.6](./05-api.md#56-documentação-openapi).
 
 Frontend usa `/api/v1` relativo — ver §8.6. `VITE_API_URL` opcional.
 
 **Produção — obrigatórias:** `docker/production/docker-compose.yml` usa `${VAR:?...}` para `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` e `DB_PASSWORD` — sem fallback fraco; o `docker compose up` falha rápido se alguma faltar no `.env`.
+
+### Variáveis derivadas ou fixadas no Compose
+
+**Não** entram no `.env` — são montadas ou fixadas pelos arquivos de compose:
+
+| Variável | Origem | Valor |
+|----------|--------|-------|
+| `DATABASE_URL` | Montada a partir de `DB_USERNAME`/`DB_PASSWORD`/`DB_DATABASE` + hostname interno `database` | `postgresql://<user>:<pass>@database:5432/<db>` |
+| `TEST_DATABASE_URL` | Compose de desenvolvimento apenas — mesmo host/credenciais, banco `commandix_test` | `postgresql://<user>:<pass>@database:5432/commandix_test` |
+| `NODE_ENV` | Fixado por serviço | `production` / `development` |
+| `PORT` | Fixado — porta interna do processo Nest (não confundir com `API_PORT`, a porta publicada no host) | `3000` |
+| `API_DEBUG_PORT` | Compose de desenvolvimento apenas — porta do inspector Node (`--inspect`) | default `9229` |
+| `FRONTEND_PORT` | Porta publicada do serviço `frontend` (comentado até o frontend existir) | default `5173` |
+
+Host do Postgres é **`database`** (nome do serviço no compose), não `postgres`.
 
 ### JWT — duração dos tokens
 
@@ -121,6 +150,16 @@ server: {
 
 `VITE_API_URL` no `.env` apenas se necessário (ex.: API publicada em porta/host diferente do padrão do Compose).
 
+## 8.7 Arquivos de infra
+
+| Item | Arquivo |
+|------|---------|
+| Compose | `docker/production/docker-compose.yml`, `docker/development/docker-compose.yml` |
+| CI | `.github/workflows/ci.yml` |
+| API | `nexus-backend/docker/production/Dockerfile`/`docker/production/entrypoint.sh` (prod), `docker/development/Dockerfile`/`docker/development/entrypoint.sh` (dev) |
+| Frontend | `nexus-frontend/Dockerfile`, `nginx.conf` |
+| Volume | `postgres_data` |
+
 ## 8.8 CORS
 
 | Ambiente | Frontend | API | CORS na API |
@@ -146,17 +185,7 @@ Com proxy Vite (`/api` → `api:3000` via rede do Docker) e URL relativa `/api/v
 
 nginx faz proxy `/api/` → `api:3000`. Browser só fala com o host do frontend — **sem preflight CORS** para rotas `/api/v1/*`.
 
-## 8.7 Arquivos de infra
-
-| Item | Arquivo |
-|------|---------|
-| Compose | `docker/production/docker-compose.yml`, `docker/development/docker-compose.yml` |
-| CI | `.github/workflows/ci.yml` |
-| API | `nexus-backend/docker/production/Dockerfile`/`docker/production/entrypoint.sh` (prod), `docker/development/Dockerfile`/`docker/development/entrypoint.sh` (dev) |
-| Frontend | `nexus-frontend/Dockerfile`, `nginx.conf` |
-| Volume | `postgres_data` |
-
-## 8.10 CI (GitHub Actions)
+## 8.9 CI (GitHub Actions)
 
 Arquivo: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
 
