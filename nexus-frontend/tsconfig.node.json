@@ -1,6 +1,12 @@
 {
+  "include": ["vite.config.ts"],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     "target": "es2023",
     "lib": ["ES2023"],
     "types": ["node"],
@@ -18,6 +24,5 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
-  },
-  "include": ["vite.config.ts"]
+  }
 }
