@@ -82,10 +82,11 @@ Copie `.env.example` → `.env` na **raiz** do monorepo. Principais variáveis:
 
 | Variável | Default | Uso |
 |----------|---------|-----|
-| `JWT_ACCESS_SECRET` | — | Assinatura do access token |
-| `JWT_REFRESH_SECRET` | — | Assinatura do refresh token |
-| `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` | `commandix` | Postgres no Compose |
-| `DB_PORT` | `5432` | Porta exposta do Postgres |
+| `JWT_ACCESS_SECRET` | — | Assinatura do access token — **obrigatória em produção** (`docker compose up` falha se ausente) |
+| `JWT_REFRESH_SECRET` | — | Assinatura do refresh token — **obrigatória em produção** |
+| `DB_PASSWORD` | — | Senha do Postgres — **obrigatória em produção** |
+| `DB_DATABASE` / `DB_USERNAME` | `commandix` | Postgres no Compose |
+| `DB_PORT` | `5432` | Porta exposta do Postgres — **somente em desenvolvimento**; em produção o Postgres não expõe porta no host |
 | `API_PORT` | `3000` | Porta exposta da API |
 
 No Compose, a API recebe `DATABASE_URL` montada internamente (`database:5432`). Ver [`.env.example`](./.env.example) e [`docs/spec/08-docker.md`](./docs/spec/08-docker.md).

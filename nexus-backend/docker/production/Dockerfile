@@ -7,7 +7,7 @@ WORKDIR /app
 
 ENV PRISMA_DISABLE_TELEMETRY=1
 
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN npm ci
 
 COPY nest-cli.json tsconfig.json tsconfig.build.json prisma.config.ts ./

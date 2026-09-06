@@ -5,9 +5,7 @@ services:
     environment:
       POSTGRES_DB: ${DB_DATABASE:-commandix}
       POSTGRES_USER: ${DB_USERNAME:-commandix}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-commandix}
-    ports:
-      - "${DB_PORT:-5432}:5432"
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
     volumes:
       - database_data:/var/lib/postgresql/data
     networks:
@@ -36,10 +34,10 @@ services:
       PORT: 3000
       PRISMA_DISABLE_TELEMETRY: "1"
 
-      DATABASE_URL: postgresql://${DB_USERNAME:-commandix}:${DB_PASSWORD:-commandix}@database:5432/${DB_DATABASE:-commandix}
+      DATABASE_URL: postgresql://${DB_USERNAME:-commandix}:${DB_PASSWORD:?DB_PASSWORD must be set}@database:5432/${DB_DATABASE:-commandix}
 
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-access-secret}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET must be set}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET must be set}
       JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
 

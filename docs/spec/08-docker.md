@@ -8,9 +8,11 @@ Versões pinadas — ver `nexus-backend/package.json` (`engines.node`) e imagens
 
 | Serviço | Porta (host) | Imagem / build |
 |---------|--------------|----------------|
-| postgres | 5432 | `postgres:16-alpine` |
+| postgres | 5432 (dev) / não exposto (prod) | `postgres:16-alpine` |
 | api | 3000 | build `nexus-backend/docker/production/Dockerfile` (prod) / `docker/development/Dockerfile` (dev) — `node:24.16.0-alpine` |
 | frontend | 5173 → 80 | build `nexus-frontend/Dockerfile` (nginx) |
+
+Em produção, o Postgres **não expõe porta no host** — apenas os serviços da rede do compose acessam via hostname interno `database`.
 
 ## 8.2 Variáveis de ambiente
 
@@ -24,6 +26,8 @@ JWT_REFRESH_SECRET=change-me-refresh
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
 
+DB_PASSWORD=change-me-db-password
+
 PORT=3000
 NODE_ENV=development
 
@@ -31,6 +35,8 @@ HTTP_TRIGGER_TIMEOUT_MS=30000
 ```
 
 Frontend usa `/api/v1` relativo — ver §8.6. `VITE_API_URL` opcional.
+
+**Produção — obrigatórias:** `docker/production/docker-compose.yml` usa `${VAR:?...}` para `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` e `DB_PASSWORD` — sem fallback fraco; o `docker compose up` falha rápido se alguma faltar no `.env`.
 
 ### JWT — duração dos tokens
 
