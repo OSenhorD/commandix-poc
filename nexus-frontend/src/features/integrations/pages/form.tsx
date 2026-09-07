@@ -27,6 +27,7 @@ import {
 
 export function IntegrationFormPage() {
   const { id } = useParams<{ id: string }>();
+
   const isEdit = id !== undefined;
   const navigate = useNavigate();
 
@@ -56,7 +57,7 @@ export function IntegrationFormPage() {
     try {
       if (isEdit) {
         const patch = buildPatchPayload(initialValues, values);
-        // Body vazio devolveria 400 — nada mudou, então nem chama a API.
+
         if (Object.keys(patch).length > 0) {
           await updateMutation.mutateAsync(patch);
           toast.success("Integração atualizada.");

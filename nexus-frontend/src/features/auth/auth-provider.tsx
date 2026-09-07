@@ -49,9 +49,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const bootstrap = useCallback(
     async (input: BootstrapInput) => {
-      // O bootstrap não devolve tokens — cadastra e loga em seguida.
       await bootstrapRequest(input);
-      await login({ email: input.adminEmail, password: input.adminPassword });
+      await login({
+        email: input.adminEmail,
+        password: input.adminPassword,
+      });
     },
     [login],
   );
@@ -66,7 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearSession]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user: data ?? null, isLoading: hasToken && isPending, login, bootstrap, logout }),
+    () => ({
+      user: data ?? null,
+      isLoading: hasToken && isPending,
+      login,
+      bootstrap,
+      logout,
+    }),
     [data, hasToken, isPending, login, bootstrap, logout],
   );
 

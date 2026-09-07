@@ -16,9 +16,6 @@ function authHeaderOf(init: RequestInit | undefined): string | null {
   return new Headers(init?.headers).get("Authorization");
 }
 
-// `vi.fn<typeof fetch>()` em vez de `vi.fn()`: sem o genérico, `mock.calls` é `any[]`
-// e o ESLint (`strictTypeChecked` → no-unsafe-member-access) reprova o arquivo de teste.
-
 describe("apiFetch", () => {
   beforeEach(() => {
     vi.unstubAllGlobals();

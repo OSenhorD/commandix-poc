@@ -44,13 +44,11 @@ export interface BootstrapResponse {
   user: AuthUser;
 }
 
-/** Item da listagem — `customHeaders` e `defaultPayload` NÃO vêm aqui (05-api §5.3). */
 export interface IntegrationListItem {
   id: string;
   name: string;
   type: IntegrationType;
   targetUrl: string;
-  /** Mascarada pela API (ex.: "****-key"). Nunca reenviar este valor. */
   authKey: string | null;
   isActive: boolean;
   createdAt: string;
@@ -73,6 +71,5 @@ export interface ExecutionListItem {
 
 export interface Execution extends ExecutionListItem {
   requestPayload: Record<string, unknown> | null;
-  /** Pode terminar em "… [truncated]" (limite 10 240 bytes). */
   responseBody: string | null;
 }

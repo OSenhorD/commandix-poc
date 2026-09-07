@@ -79,7 +79,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Frontend — imports | Alias `@/` → `src/` **sem** sufixo `.js` — ao contrário do backend, que exige `.js` |
 | Frontend — `erasableSyntaxOnly` | Ligado no `tsconfig.app.json`: **sem `enum`, `namespace` ou parameter property** (`constructor(private x)`). Usar união `as const` e atribuir no corpo do construtor |
 | Frontend — contexto React | Contexto e provider em arquivos separados (`*-context.ts` sem JSX + `*-provider.tsx`) — um arquivo que exporta componente **e** não-componente quebra o Fast Refresh |
-| Frontend — lint | **ESLint 10 (`strictTypeChecked`)** no frontend; **oxlint** no backend. Um linter por pacote, proposital — não unificar |
+| Frontend — lint | **ESLint 10 (`strictTypeChecked`)** no frontend; **oxlint** no backend. Um linter por pacote, proposital — não unificar. Typed lint usa `parserOptions.projectService` + `tsconfigRootDir` via `fileURLToPath` (não `import.meta.dirname`); no editor, `eslint.workingDirectories` aponta para `nexus-frontend`. Sem o programa TS certo, imports como `toast` do sonner viram tipo `error` e o `no-unsafe-call` / `no-unsafe-member-access` disparam |
 | Prettier | Isolado por pacote — `nexus-backend/.prettierrc` (aspas simples, estilo Nest) e `nexus-frontend/.prettierrc` (aspas duplas). Sem `.prettierrc` na raiz; a extensão VS Code resolve a config mais próxima do arquivo |
 | Frontend — sessão | `AuthProvider` (contexto) expõe `{ user, isLoading, login, logout, bootstrap }`; reidratação por `useQuery(["auth","me"])` → `GET /auth/me` |
 | Frontend — estado de lista | Paginação e filtros vivem na **URL** (`useSearchParams`); a query key do TanStack Query deriva da URL — sobrevive ao reload e o link é compartilhável |

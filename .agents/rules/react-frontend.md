@@ -12,7 +12,7 @@ Inventário completo em [`docs/spec/06-stack.md`](../../docs/spec/06-stack.md) �
 
 - **Tailwind 4 é CSS-first** — configurado em `src/index.css`, sem `tailwind.config.js`
 - Os componentes shadcn (estilo `base-lyra`) são **Base UI**, não Radix — nunca importar `@radix-ui/*`
-- **ESLint 10 `strictTypeChecked`** aqui; oxlint no backend. Um linter por pacote, proposital
+- **ESLint 10 `strictTypeChecked`** aqui; oxlint no backend. Um linter por pacote, proposital. Typed lint: `projectService` + `tsconfigRootDir` estável; no editor, working directory = `nexus-frontend`. Mensagens *type that could not be resolved* no `no-unsafe-*` = programa TS não anexado, não o código da tela
 - React Compiler ativo (`babel-plugin-react-compiler` via `@rolldown/plugin-babel`)
 
 ## Estrutura (feature-sliced)
