@@ -2,6 +2,18 @@
 
 Plataforma de automação B2B — módulo de gestão de integrações multi-tenant.
 
+## O que está implementado
+
+- **Autenticação JWT** — `login`, `refresh`, `logout` e `me`; `tenantId` e `role` viajam no access token
+- **RBAC** — `ADMIN` cria, edita, exclui e dispara integrações; `VIEWER` só lê. Gate no backend (guard de role) e no frontend (rota protegida)
+- **CRUD de integrações** — tipos `WEBHOOK`, `REST_API` e `N8N`, com `authKey` (mascarada na resposta), headers customizados, payload padrão e flag de ativação
+- **Disparo manual** — POST na URL de destino com timeout, gravando a execução com status, código HTTP, tempo de resposta e corpo devolvido
+- **Histórico de execuções** — por integração, com filtros de status e período, paginação e tela de detalhe do request/response
+- **Isolamento multi-tenant** — todo acesso filtra pelo `tenantId` do JWT; recurso de outro tenant devolve 404
+- **Bootstrap** — rota pública (com rate limit) que cria um tenant novo e seu primeiro `ADMIN`, para avaliar o fluxo do zero
+
+Tudo é operável pela UI em http://localhost:5173 e pelo Swagger em http://localhost:3000/api/docs.
+
 ## Documentação
 
 | Arquivo | Descrição |
@@ -53,6 +65,8 @@ Dois tenants, senha `Admin123!` para todos os usuários:
 |--------|-------|--------|
 | `Acme Corp` (slug `acme`) | `admin@acme.com` | `viewer@acme.com` |
 | `Globex Industries` (slug `globex`) | `admin@globex.com` | `viewer@globex.com` |
+
+O papel decide o que a API e a UI liberam: `ADMIN` cria, edita, exclui e dispara integrações; `VIEWER` lista integrações e execuções e nada mais. Logando como `viewer@acme.com`, as ações de escrita somem da tela e as rotas correspondentes devolvem `403` — é o gate de role funcionando, não uma tela quebrada.
 
 Cada tenant já vem com **3 integrações** (uma de cada `type`; uma delas inativa, para exercitar o `400` do disparo em integração desativada) e **10 execuções** de histórico, misturando `SUCCESS`, `FAILURE` com código HTTP e falha de rede (`httpStatusCode` nulo). Logar nos dois tenants mostra que cada um só enxerga os próprios dados.
 
@@ -286,7 +300,8 @@ Log completo das decisões em [`AGENTS.md`](./AGENTS.md) § Decisões adotadas. 
 
 - **CI sem validação de Docker Compose** — o workflow valida o backend direto no runner; ninguém garante que `docker compose up` sobe. Ver [`docs/todo/backend/ci-sem-job-docker.md`](./docs/todo/backend/ci-sem-job-docker.md).
 - **`authKey` sem criptografia at-rest** — ver decisão acima.
-- **Bônus não implementado** — cobertura de testes além do mínimo crítico.
+- **Execução de integração `N8N` sempre registra `SUCCESS`** — o workflow **Commandix WhatsApp** responde 200 ao Commandix mesmo quando o Evolution recusa a mensagem (WhatsApp não pareado, número inválido). É deliberado, para o fluxo ser demonstrável sem celular pareado, mas o histórico marca sucesso e o status real do Evolution fica só dentro do `responseBody`, que a plataforma guarda e não interpreta. Refletir o resultado real exigiria o backend ler esse campo — ver [`docs/todo/backend/n8n-execucao-sempre-success.md`](./docs/todo/backend/n8n-execucao-sempre-success.md).
+- **Testes extras (bônus) não implementados** — a suíte cobre o mínimo crítico: isolamento de tenant, guards de auth e role, disparo e scoping de execuções. O outro bônus, o do n8n, **está** implementado — ver § Bônus — n8n.
 - Demais itens da fila em [`docs/todo/`](./docs/todo/README.md).
 
 ## Licença
