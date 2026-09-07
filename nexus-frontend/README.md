@@ -2,7 +2,7 @@
 
 SPA React do Commandix PoC — gestão de integrações multi-tenant. Consome a API NestJS em `/api/v1`.
 
-> **Estado:** scaffold pronto (Vite + React + Tailwind + shadcn). Telas, roteamento e cliente HTTP são as entregas **F01–F12** de [`docs/plans/frontend.md`](../docs/plans/frontend.md).
+> **Estado:** F01–F03 entregues (deps, cliente HTTP, sessão, router e guardas). Telas ainda são placeholder — entregas **F04–F12** em [`docs/plans/frontend.md`](../docs/plans/frontend.md).
 
 ## Stack
 

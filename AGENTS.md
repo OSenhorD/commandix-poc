@@ -13,9 +13,9 @@ Contexto para agentes de IA trabalhando neste repositório.
 | Componente | Status |
 |------------|--------|
 | `nexus-backend/` | **Funcional** — módulos `auth`, `tenants`, `integrations`, `executions`, `common`, `openapi`, `database`; Prisma 8 (contract + migration + seed); Docker (Dockerfile + entrypoint); testes unitários + e2e (falta `test/executions-scoping.e2e-spec.ts`) |
-| `nexus-frontend/` | **Scaffold** — Vite 8 + React 19 + TS 6 + Tailwind 4 + shadcn (`base-lyra`/Base UI, 11 componentes base). Sem router, cliente HTTP nem telas. Plano: [`docs/plans/frontend.md`](./docs/plans/frontend.md) (F01–F12) |
+| `nexus-frontend/` | **Em andamento (F01–F03)** — Vite 8 + React 19 + TS 6 + Tailwind 4 + shadcn; cliente HTTP (`apiFetch` + refresh single-flight), `AuthProvider`, router e guardas. Telas ainda placeholder (F04–F11). Plano: [`docs/plans/frontend.md`](./docs/plans/frontend.md) |
 | Prisma 8 | `contract.prisma` — domínio Commandix; migration `20260903T0509_initial` |
-| Docker Compose | **postgres + api** (`docker compose -f docker/production/docker-compose.yml --project-directory . up --build`); serviço `frontend` pendente (entrega F12) |
+| Docker Compose | **dev:** postgres + api + frontend; **prod:** postgres + api (`frontend` comentado — entrega F12) |
 
 ## Arquitetura alvo
 
@@ -36,7 +36,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Pacote | Diretório | Notas |
 |--------|-----------|-------|
 | API | `nexus-backend/` | NestJS + Prisma 8; `prisma.config.ts` e skills aqui |
-| Frontend | `nexus-frontend/` | A criar |
+| Frontend | `nexus-frontend/` | F01–F03 feitos; telas F04–F12 em [`docs/plans/frontend.md`](./docs/plans/frontend.md) |
 | Spec / rules | raiz | `docs/spec/`, `.agents/rules/` |
 | Skills Prisma | `nexus-backend/.agents/skills/prisma-8/` | Sem symlink na raiz — ler direto neste caminho |
 
@@ -185,7 +185,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 ## Comandos úteis
 
 ```bash
-# Docker — sobe postgres + api + frontend (após implementação)
+# Docker — desenvolvimento já sobe postgres + api + frontend; produção ainda sem frontend (F12)
 docker compose -f docker/production/docker-compose.yml --project-directory . up --build   # produção
 docker compose -f docker/development/docker-compose.yml --project-directory . up --build  # desenvolvimento
 
@@ -238,7 +238,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 | `.agents/rules/*.mdc` | Regras por domínio (raiz do monorepo) |
 | `nexus-backend/.agents/skills/prisma-8/` | Skill Prisma 8 (sync via `npm run skills:sync`) |
 | `readme.md` | Setup, seed, decisões do candidato |
-| `docs/plans/` | Planos de entrega rastreados (`frontend.md` — F01–F12; `testes-criticos.md`) |
+| `docs/plans/` | Planos de entrega rastreados (`frontend.md` — F04–F12 restantes; `testes-criticos.md`) |
 | `docs/todo/` | Melhorias possíveis, erros encontrados, acoplamentos percebidos — não bloqueiam a entrega atual |
 
 ## Fluxo de trabalho sugerido para IA

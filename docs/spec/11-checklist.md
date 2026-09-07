@@ -10,7 +10,7 @@
 - [x] `DatabaseModule` (wrapper do client Prisma)
 - [x] Bootstrap da aplicação NestJS (`main.ts`, prefixo `api/v1`, `GET /health`)
 - [x] Seed idempotente (`src/prisma/seed.ts`)
-- [ ] Docker Compose (`database` + `api` ✅; serviço `frontend` pendente — entrega **F12** de [`docs/plans/frontend.md`](../plans/frontend.md))
+- [ ] Docker Compose (`database` + `api` + `frontend` dev ✅ — F01; `frontend` prod pendente — entrega **F12** de [`docs/plans/frontend.md`](../plans/frontend.md))
 
 ## Fase 2 — Auth
 
@@ -50,7 +50,7 @@
 - [ ] **F09** Integrações — ativar/desativar, excluir e disparar (ADMIN)
 - [ ] **F10** Histórico — listagem por integração com filtros `status`/`from`/`to`
 - [ ] **F11** Histórico — detalhe da execução (`requestPayload`, `responseBody` truncado)
-- [ ] **F12** Docker (Dockerfiles, nginx, serviço `frontend` nos dois composes) + CI + READMEs
+- [ ] **F12** Docker de produção (`frontend` + nginx) + job CI + READMEs
 
 ## Fase 6 — Polish
 

@@ -4,6 +4,10 @@
 
 **Objetivo:** entregar a SPA React do Commandix com o fluxo completo do protótipo — login/logout, bootstrap de tenant, CRUD de integrações, disparo manual e histórico de execuções — consumindo a API NestJS em `/api/v1`, com isolamento de papéis (ADMIN/VIEWER) na UI.
 
+**Já entregue (não reimplementar):** F01 ambiente (deps, Vitest, proxy Vite, serviço `frontend` no compose de desenvolvimento), F02 cliente HTTP (`apiFetch` + refresh single-flight + storage + tipos), F03 sessão e rotas (`AuthProvider`, `ProtectedRoute`, `RoleGate`, placeholders das páginas). Relatórios em `.superpowers/sdd/frontend/`.
+
+**Restante neste plano:** F04–F12.
+
 **Arquitetura:** SPA feature-sliced. `shared/api/client.ts` centraliza o `fetch` (Bearer + refresh single-flight); TanStack Query cuida de cache, paginação e invalidação; React Router 7 protege rotas por autenticação e papel; react-hook-form + zod validam formulários espelhando os DTOs `class-validator` do backend. Paginação e filtros vivem na URL, e a query key deriva dela.
 
 **Stack:** React 19 · TypeScript 6 · Vite 8 · Tailwind CSS 4 (CSS-first) · shadcn estilo `base-lyra` sobre `@base-ui/react` · lucide-react · React Router 7 · TanStack Query v5 · react-hook-form + zod · ESLint 10 · Vitest + Testing Library.
@@ -29,7 +33,7 @@ Valem para **todas** as entregas:
 | Versões | Sempre a última estável de cada dependência (`npm install <pkg>` sem pin) |
 | TypeScript | Estrito, **sem `any`**; ESLint roda `strictTypeChecked` — `Promise` flutuante e `any` implícito quebram o lint |
 | Imports | Alias `@/` → `src/`, **sem** sufixo `.js` (isso é regra do backend, não do Vite) |
-| Estilo | Aspas duplas; Prettier da raiz (`printWidth: 120`, `trailingComma: "all"`) |
+| Estilo | Aspas duplas; Prettier de `nexus-frontend/.prettierrc` (`printWidth: 120`) — isolado do backend |
 | Tailwind | CSS-first em `src/index.css` — **nunca** criar `tailwind.config.js` |
 | Componentes | shadcn estilo `base-lyra` sobre **Base UI**; **nunca** importar Radix |
 | `components/ui/` | Fica em `@/components/ui` — `components.json` fixa o alias; mover quebra o `shadcn add` |
@@ -65,63 +69,33 @@ dc exec frontend npx tsc -b
 
 ---
 
-## Mapa de arquivos
+## Mapa de arquivos (restante)
+
+**Já no repositório (F01–F03):** `docker/development/Dockerfile`, `vite.config.ts`, `src/test/setup.ts`, `src/vite-env.d.ts`, `shared/types/api.ts`, `shared/lib/storage.ts`, `shared/api/{errors,client,query-client}.ts`, `app/{providers,router,protected-route,not-found}.tsx`, `shared/components/role-gate.tsx`, `features/auth/{api,auth-context,auth-provider,use-auth}` e placeholders das páginas F04–F11. Serviço `frontend` no compose de **desenvolvimento**.
 
 | Arquivo | Responsabilidade | Entrega |
 |---------|------------------|---------|
-| `nexus-frontend/docker/development/Dockerfile` | Container de dev (`vite dev --host`) | F01 |
-| `nexus-frontend/vite.config.ts` | Alias, plugins, proxy `/api`, config do Vitest | F01 |
-| `nexus-frontend/src/test/setup.ts` | `@testing-library/jest-dom` + limpeza do `localStorage` | F01 |
-| `src/shared/types/api.ts` | Tipos espelhando os DTOs de `05-api.md` | F02 |
-| `src/shared/lib/storage.ts` | Leitura/escrita dos tokens no `localStorage` (fora do React) | F02 |
-| `src/shared/api/errors.ts` | `ApiError` + normalização da mensagem do Nest | F02 |
-| `src/shared/api/client.ts` | `apiFetch` — Bearer, refresh single-flight, `204`, erros | F02 |
-| `src/shared/api/query-client.ts` | Defaults do TanStack Query | F03 |
-| `src/app/providers.tsx` | Composição de providers | F03 |
-| `src/app/router.tsx` | Rotas | F03 |
-| `src/app/protected-route.tsx` | Guarda de autenticação + papel | F03 |
-| `src/shared/components/role-gate.tsx` | Oculta ações por papel | F03 |
-| `src/features/auth/api.ts` | `login`, `refresh`, `logout`, `getMe`, `bootstrap` | F04 |
-| `src/features/auth/{auth-context.ts,auth-provider.tsx,use-auth.ts}` | Contexto, provider e hook de sessão (separados para o Fast Refresh não quebrar) | F03 |
 | `src/features/auth/schemas.ts` | zod de login e bootstrap | F04/F05 |
-| `src/features/auth/pages/login.tsx` | Tela de login | F04 |
-| `src/features/auth/pages/bootstrap.tsx` | Tela de bootstrap | F05 |
+| `src/features/auth/pages/login.tsx` | Tela de login (hoje placeholder) | F04 |
+| `src/features/auth/pages/bootstrap.tsx` | Tela de bootstrap (hoje placeholder) | F05 |
 | `src/components/layout/app-shell.tsx` | Topbar + `<Outlet/>` | F06 |
 | `src/components/layout/user-menu.tsx` | Email, papel, tema, sair | F06 |
-| `src/components/layout/theme-provider.tsx` | Tema claro/escuro | F06 |
+| `src/shared/lib/theme.ts` + `src/shared/hooks/use-theme.ts` | Tema claro/escuro | F06 |
 | `src/shared/components/data-table.tsx` | Tabela genérica com colunas declarativas | F06 |
 | `src/shared/components/pagination-bar.tsx` | Paginação ligada ao `meta` | F06 |
 | `src/shared/components/{empty-state,error-state}.tsx` | Estados vazio e de erro | F06 |
-| `src/shared/lib/format.ts` | Datas (`Intl`) e duração | F06 |
+| `src/shared/lib/{format,query-string}.ts` | Datas (`Intl`), duração, query string | F06 |
 | `src/shared/hooks/use-list-params.ts` | Paginação/filtros na URL | F06 |
 | `src/features/integrations/api.ts` | Chamadas de integrações | F07 |
 | `src/features/integrations/hooks.ts` | Queries e mutations | F07 |
-| `src/features/integrations/pages/list.tsx` | Listagem | F07 |
+| `src/features/integrations/pages/list.tsx` | Listagem (hoje placeholder) | F07 |
 | `src/features/integrations/components/*` | Badges, form, diálogos | F07–F09 |
 | `src/features/integrations/schemas.ts` | zod do formulário + `buildPatchPayload` | F08 |
 | `src/shared/components/json-field.tsx` | Campo JSON com validação | F08 |
 | `src/features/executions/*` | Histórico e detalhe | F10–F11 |
 | `nexus-frontend/docker/production/{Dockerfile,nginx.conf}` | Build estático + proxy | F12 |
-| `docker/{production,development}/docker-compose.yml` | Serviço `frontend` | F01/F12 |
+| `docker/production/docker-compose.yml` | Serviço `frontend` de produção | F12 |
 | `.github/workflows/ci.yml` | Job `frontend` | F12 |
-
----
-
-## F01 — Ambiente: dependências, Vitest, proxy e container de desenvolvimento
-
-✅ **Concluída** — commits `cc1e0af`..`b4fb596`. Deps de runtime/teste instaladas (TanStack Query, RHF, zod, Vitest, Testing Library); proxy Vite `/api` → `api:3000`; `src/test/setup.ts`; serviço `frontend` adicionado ao compose de desenvolvimento. Dois desvios justificados do texto original (documentados no ledger): `chown` no Dockerfile de dev (permissão do `node_modules` para o usuário não-root) e um override pontual de ESLint em `src/components/ui/**` (2 erros pré-existentes do scaffold shadcn). Detalhe completo: `.superpowers/sdd/frontend/task-1-report.md` e `progress.md`.
-
----
-
-## F02 — Tipos da API, storage e cliente HTTP com refresh single-flight
-
-✅ **Concluída** — commit `a010851`, 7/7 testes passando. Criados `shared/types/api.ts`, `shared/lib/storage.ts` (`tokenStorage`), `shared/api/errors.ts` (`ApiError`, `messageFromBody`), `shared/api/client.ts` (`apiFetch`, refresh single-flight, `setUnauthorizedHandler`). Um desvio justificado: `src/vite-env.d.ts` criado para tipar `import.meta.env.VITE_API_URL` (sem isso, `ImportMetaEnv` cai no fallback `Record<string, any>` do Vite e quebra `no-unsafe-assignment`). Interfaces que as próximas entregas consomem: ver `.superpowers/sdd/frontend/task-2-report.md` e `progress.md`.
-
----
-
-## F03 — Sessão e roteamento: providers, AuthProvider, guardas de rota
-
-✅ **Concluída** — commit `cd4f5e4`, 12/12 testes (7 F02 + 5 novos de `protected-route.test.tsx`). Criados `shared/api/query-client.ts` (`createQueryClient`), `features/auth/{api,auth-context,auth-provider,use-auth}` (`useAuth()` → `{ user, isLoading, login, bootstrap, logout }`), `shared/components/role-gate.tsx` (`RoleGate`), `app/{protected-route,router,providers}.tsx`; `main.tsx` reescrito; `src/App/` removido; 7 páginas placeholder criadas (nomes exportados usados por F04–F11). Um desvio justificado (`apiFetch<void>` → sem o genérico explícito, ver `docs/todo/eslint-no-invalid-void-type-apifetch-generic.md`) e um achado arquitetural parqueado no ledger (`RoleGate` em `shared/` depende de `features/auth` — decisão consciente, ver ruling). Detalhe completo: `.superpowers/sdd/frontend/task-3-report.md` e `progress.md`.
 
 ---
 
@@ -2685,13 +2659,16 @@ O `defaults.run.working-directory` do job sobrescreve o global (`nexus-backend`)
 
 - [ ] **Passo 6: Atualizar a documentação**
 
+O status de F01–F03 (dev compose, cliente HTTP, sessão, rotas) já está refletido nesses arquivos. F12 só fecha o que ainda falta:
+
 | Arquivo | Mudança |
 |---------|---------|
-| [`docs/spec/11-checklist.md`](../spec/11-checklist.md) | Fase 1 — marcar o item de Docker Compose como concluído; Fase 5 — marcar **F12** |
-| [`docs/spec/06-stack.md`](../spec/06-stack.md) | §6.2 — trocar os "Pendente" por "Implementado"; §6.3 — `frontend` deixa de ser parcial |
-| [`readme.md`](../../readme.md) | Tabela de serviços (Frontend deixa de ser "Pendente"), tabela de status, seção de CI (job `frontend`) |
-| [`nexus-frontend/README.md`](../../nexus-frontend/README.md) | Remover o aviso de "scaffold pronto / telas pendentes" |
-| [`AGENTS.md`](../../AGENTS.md) | "Estado atual" — `nexus-frontend/` passa a **Funcional**; Docker Compose passa a postgres + api + frontend |
+| [`docs/spec/11-checklist.md`](../spec/11-checklist.md) | Fase 1 — marcar Docker Compose (incluindo `frontend` de **produção**) como concluído; Fase 5 — marcar **F12** |
+| [`docs/spec/06-stack.md`](../spec/06-stack.md) | §6.2 — telas e RHF/zod deixam de ser pendentes; §6.3 — `frontend` de produção deixa de ser parcial |
+| [`docs/spec/08-docker.md`](../spec/08-docker.md) | §8.9 — job `frontend` deixa de ser "a criar" |
+| [`readme.md`](../../readme.md) | Serviço `frontend` de produção; tabela de status; job `frontend` no CI |
+| [`nexus-frontend/README.md`](../../nexus-frontend/README.md) | Remover o aviso de telas pendentes |
+| [`AGENTS.md`](../../AGENTS.md) | "Estado atual" — `nexus-frontend/` passa a **Funcional**; Compose de produção inclui `frontend` |
 | [`docs/todo/openapi-nginx-proxy-assumption.md`](../todo/openapi-nginx-proxy-assumption.md) | Encerrar: o nginx proxia todo `/api/` |
 
 - [ ] **Passo 7: Validação final**
@@ -2718,29 +2695,27 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 
 ## Ordem de execução
 
+F01–F03 já estão no repositório. Próxima entrega: **F04**.
+
 ```
-F01 ambiente ──▶ F02 client HTTP ──▶ F03 sessão + rotas ──┬──▶ F04 login/logout ──▶ F05 bootstrap
-                                                          │
-                                                          └──▶ F06 shell + componentes
-                                                                     │
-                       F07 integrações (lista) ◀──────────────────────┘
-                            │
-                            ├──▶ F08 formulário
-                            ├──▶ F09 ações (toggle, excluir, disparar)
-                            └──▶ F10 histórico ──▶ F11 detalhe
-                                                        │
-                                                        └──▶ F12 produção + CI + docs
+F04 login/logout ──▶ F05 bootstrap
+F06 shell + componentes          ← independente de F04/F05
+         │
+         └──▶ F07 integrações (lista)
+                   │
+                   ├──▶ F08 formulário
+                   ├──▶ F09 ações (toggle, excluir, disparar)
+                   └──▶ F10 histórico ──▶ F11 detalhe
+                                               │
+                                               └──▶ F12 produção + CI + docs
 ```
 
-**Sequencial:** F01 → F02 → F03. **Paralelizável depois de F03:** F04/F05 e F06 são independentes; F08, F09 e F10 dependem de F07 mas não entre si (F09 e F10 tocam arquivos diferentes; F09 só encosta na coluna de ações da lista, que F08 também edita — se forem em paralelo, F08 primeiro).
+**Paralelizável agora:** F04/F05 e F06 são independentes. F08, F09 e F10 dependem de F07 mas não entre si (F09 e F10 tocam arquivos diferentes; F09 só encosta na coluna de ações da lista, que F08 também edita — se forem em paralelo, F08 primeiro).
 
 ## Mapa entrega → verificação
 
 | Entrega | Como se prova que funcionou |
 |---------|------------------------------|
-| F01 | `curl http://localhost:5173/api/v1/health` pelo container do Vite |
-| F02 | 7 testes de `client.test.ts` (inclui single-flight) |
-| F03 | 5 testes de `protected-route.test.tsx` |
 | F04 | Login + F5 mantém sessão; logout limpa o `localStorage` |
 | F05 | Bootstrap cria tenant e já entra logado; `409` no campo certo |
 | F06 | Shell + tema persistente; menu do usuário com papel |

@@ -31,19 +31,19 @@ Prioridade **baixa** de acabamento visual na avaliação ([10-criterios](./10-cr
 
 | Tecnologia | Nota | Status |
 |------------|------|--------|
-| React 19 + TypeScript 6 | Vite 8; React Compiler via `babel-plugin-react-compiler` + `@rolldown/plugin-babel` | Scaffold pronto |
+| React 19 + TypeScript 6 | Vite 8; React Compiler via `babel-plugin-react-compiler` + `@rolldown/plugin-babel` | Ambiente + sessão + rotas (F01–F03); telas F04–F12 |
 | Tailwind CSS 4 | CSS-first — `@import "tailwindcss"` em `src/index.css`, **sem** `tailwind.config.js` | Configurado |
 | shadcn (estilo `base-lyra`) | Sobre **`@base-ui/react`** (não Radix); `components.json` fixa o alias `@/components/ui` | 11 componentes base |
 | lucide-react | Biblioteca de ícones (`iconLibrary` do `components.json`) | Configurado |
-| React Router 7 | `createBrowserRouter`; rotas protegidas + gate por role | Pendente |
-| TanStack Query v5 | Cache, paginação (`keepPreviousData`), invalidação após mutations | Pendente |
-| react-hook-form + zod | Forms e validação espelhando os DTOs `class-validator` do backend | Pendente |
-| `fetch` (client próprio) | `shared/api/client.ts` — Bearer + 401 → refresh **single-flight** → logout | Pendente |
+| React Router 7 | `createBrowserRouter`; rotas protegidas + gate por role | Implementado (F03) |
+| TanStack Query v5 | Cache, paginação (`keepPreviousData`), invalidação após mutations | QueryClient + `AuthProvider`; listagens em F07+ |
+| react-hook-form + zod | Forms e validação espelhando os DTOs `class-validator` do backend | Instalado; formulários em F04+ |
+| `fetch` (client próprio) | `shared/api/client.ts` — Bearer + 401 → refresh **single-flight** → logout | Implementado (F02) |
 | ESLint 10 (`strictTypeChecked`) | Linter do frontend — o backend usa **oxlint**; um linter por pacote | Configurado |
 | Prettier | Isolado em `nexus-frontend/.prettierrc` (aspas duplas, `printWidth` 120) — não compartilha o do backend | Configurado |
-| Vitest + Testing Library | Só o crítico: client HTTP e gate de role (bônus na avaliação) | Pendente |
+| Vitest + Testing Library | Só o crítico: client HTTP e gate de role (bônus na avaliação) | Implementado (F02 + F03) |
 
-Plano de implementação: [`docs/plans/frontend.md`](../plans/frontend.md) (entregas F01–F12). Padrões e armadilhas do contrato: [`.agents/rules/react-frontend.mdc`](../../.agents/rules/react-frontend.mdc).
+Plano restante: [`docs/plans/frontend.md`](../plans/frontend.md) (entregas F04–F12). Padrões e armadilhas do contrato: [`.agents/rules/react-frontend.mdc`](../../.agents/rules/react-frontend.mdc).
 
 **Telas (escopo completo do protótipo):**
 
@@ -60,7 +60,7 @@ VIEWER: leitura em integrações e histórico — ações de escrita **ocultas**
 
 | Requisito | Status |
 |-----------|--------|
-| Docker Compose: `api`, `frontend`, `database` | **Parcial** — `api` + `database` prontos (produção e desenvolvimento); `frontend` comentado |
+| Docker Compose: `api`, `frontend`, `database` | **Parcial** — `api` + `database` nos dois composes; `frontend` no compose de **desenvolvimento** (F01); `frontend` de produção comentado (F12) |
 | Healthcheck no PostgreSQL antes da API subir | Implementado (`pg_isready` + `depends_on: service_healthy`) |
 | CORS dev (`localhost:5173`) | Implementado em `configureApp()` — ver [08-docker §8.8](./08-docker.md#88-cors) |
 | Migrations no Docker | Implementado — `db migrate` no entrypoint (migrations em `migrations/app/`) |

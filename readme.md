@@ -47,7 +47,7 @@ Aguarde os healthchecks. A API sobe automaticamente com:
 | Docs (Swagger UI) | http://localhost:3000/api/docs | Try-it com JWT (`Authorize` → Bearer) |
 | OpenAPI JSON | http://localhost:3000/api/openapi.json | Documento OpenAPI 3.x gerado via `@nestjs/swagger` |
 | PostgreSQL | `localhost:5432` | user/senha/db default: `commandix` |
-| Frontend | http://localhost:5173 | **Pendente** — `nexus-frontend/` tem só o scaffold; serviço comentado no Compose (entrega F12 de [`docs/plans/frontend.md`](./docs/plans/frontend.md)) |
+| Frontend | http://localhost:5173 | Compose de **desenvolvimento** (F01); telas ainda placeholder (F04–F11). Produção pendente — entrega F12 de [`docs/plans/frontend.md`](./docs/plans/frontend.md) |
 
 ### Credenciais demo (seed)
 
@@ -174,9 +174,9 @@ Node **24.16.0** + Postgres **16** como service. O job de frontend entra na entr
 | Componente | Diretório | Status |
 |------------|-----------|--------|
 | API NestJS | `nexus-backend/` | Em implementação |
-| Frontend React | `nexus-frontend/` | Scaffold (Vite + React 19 + Tailwind 4 + shadcn); telas pendentes — [`docs/plans/frontend.md`](./docs/plans/frontend.md) |
+| Frontend React | `nexus-frontend/` | F01–F03 (ambiente, cliente HTTP, sessão, rotas); telas F04–F12 — [`docs/plans/frontend.md`](./docs/plans/frontend.md) |
 | PostgreSQL + Prisma 8 | `nexus-backend/src/prisma/` | Contract + migrations + seed |
-| Docker Compose | `docker/` | **Postgres + API** (serviço `frontend` pendente — F12) |
+| Docker Compose | `docker/` | Dev: postgres + api + frontend; prod: postgres + api (`frontend` em F12) |
 
 ## Stack
 
