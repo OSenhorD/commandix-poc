@@ -89,7 +89,7 @@ dc exec api npm run test:cov   # com cobertura
 dc exec frontend npm test      # frontend (cliente HTTP e gate de role)
 ```
 
-Os e2e usam o `TEST_DATABASE_URL` que o Compose de desenvolvimento já injeta (banco `commandix_test`). O `seed.e2e-spec.ts` é ignorado se `DATABASE_URL` não estiver definida.
+Os e2e escrevem no banco (seed, tenants, execuções), então `npm run test:e2e` roda o [`scripts/test-e2e.sh`](./nexus-backend/scripts/test-e2e.sh): quando `TEST_DATABASE_URL` existe — o Compose de desenvolvimento a injeta apontando para o banco `commandix_test` — o script aplica `prisma db migrate` nesse banco e roda a suíte contra ele, deixando o banco de desenvolvimento intacto. Sem a variável (CI, banco descartável), cai no `DATABASE_URL`. Para rodar o vitest direto, sem o wrapper: `npm run test:e2e:run`. O `seed.e2e-spec.ts` é ignorado se `DATABASE_URL` não estiver definida.
 
 ### Lint e formatação
 

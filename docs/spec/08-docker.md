@@ -85,7 +85,7 @@ Frontend usa `/api/v1` relativo — ver §8.6. `VITE_API_URL` e `VITE_API_PROXY_
 | Variável | Origem | Valor |
 |----------|--------|-------|
 | `DATABASE_URL` | Montada a partir de `DB_USERNAME`/`DB_PASSWORD`/`DB_DATABASE` + hostname interno `database` | `postgresql://<user>:<pass>@database:5432/<db>` |
-| `TEST_DATABASE_URL` | Compose de desenvolvimento apenas — mesmo host/credenciais, banco `commandix_test` | `postgresql://<user>:<pass>@database:5432/commandix_test` |
+| `TEST_DATABASE_URL` | Compose de desenvolvimento apenas — mesmo host/credenciais, banco `commandix_test`; consumida por `scripts/test-e2e.sh` (`npm run test:e2e`), que migra e roda os e2e nesse banco | `postgresql://<user>:<pass>@database:5432/commandix_test` |
 | `NODE_ENV` | Fixado por serviço | `production` / `development` |
 | `PORT` | Fixado — porta interna do processo Nest (não confundir com `API_PORT`, a porta publicada no host) | `3000` |
 | `API_DEBUG_PORT` | Compose de desenvolvimento apenas — porta do inspector Node (`--inspect`) | default `9229` |
