@@ -187,7 +187,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 ```bash
 # Docker — sobe postgres + api + frontend (após implementação)
 docker compose -f docker/production/docker-compose.yml --project-directory . up --build   # produção
-docker compose -f docker/development/docker-compose.yml --project-directory . up --build    # desenvolvimento
+docker compose -f docker/development/docker-compose.yml --project-directory . up --build  # desenvolvimento
 
 # Frontend — dentro do container `frontend` (dev compose)
 docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run lint
