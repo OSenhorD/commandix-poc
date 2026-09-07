@@ -16,7 +16,7 @@ Versões pinadas — ver `nexus-backend/package.json` (`engines.node`) e imagens
 | evolution-database | — (sem porta publicada) | `postgres:16-alpine`, **dev apenas** |
 | evolution-api | 8080 (**dev apenas**) | `evoapicloud/evolution-api:v2.3.7` |
 
-O serviço `n8n` existe **somente no compose de desenvolvimento** — é o bônus de [09](./09-bonus-n8n.md), um serviço externo que a plataforma dispara, não uma dependência dela. `n8n-import` importa e ativa o workflow versionado em [`docker/n8n/workflows/commandix.json`](../../docker/n8n/workflows/commandix.json) (`n8n import:workflow` + `n8n publish:workflow`) e sai; `n8n` só inicia depois (`depends_on: service_completed_successfully`), garantindo que o workflow demo já esteja ativo assim que a UI abre. Ver §8.2 e [readme](../../readme.md) § Bônus — n8n para o fluxo end-to-end.
+O serviço `n8n` existe **somente no compose de desenvolvimento** — é o bônus de [09](./09-bonus-n8n.md), um serviço externo que a plataforma dispara, não uma dependência dela. `n8n-import` importa e ativa todos os workflows versionados em [`docker/n8n/workflows/*.json`](../../docker/n8n/workflows/) — hoje dois: o eco `commandix.json` e o `commandix-whatsapp.json`, que fala com o Evolution API (`n8n import:workflow` + `n8n publish:workflow`) — e sai; `n8n` só inicia depois (`depends_on: service_completed_successfully`), garantindo que ambos já estejam ativos assim que a UI abre. Ver §8.2 e [readme](../../readme.md) § Bônus — n8n para o fluxo end-to-end.
 
 `evolution-api` é o extra do bônus: uma API REST de WhatsApp que o **workflow do n8n** consome — a plataforma não fala com ela diretamente. Tem banco próprio (`evolution-database`), pelo mesmo motivo do n8n usar SQLite próprio: serviço externo não compartilha o Postgres da aplicação. Ver [readme](../../readme.md) § Bônus — n8n.
 
@@ -135,7 +135,7 @@ Aplica-se **somente** a `POST /tenants/bootstrap`. Resposta `429` quando excedid
 | `EVOLUTION_DB_PASSWORD` | `evolution` | Senha do Postgres dedicado do Evolution (`evolution-database`), que não publica porta no host |
 | `EVOLUTION_INSTANCE` | `commandix` | Nome da instância do WhatsApp que o workflow `Commandix WhatsApp` usa na URL `/message/sendText/{instância}` |
 
-`CACHE_REDIS_ENABLED=false` + `CACHE_LOCAL_ENABLED=true` dispensam o Redis, opcional na v2. `TELEMETRY_ENABLED=false` segue a mesma decisão de `N8N_DIAGNOSTICS_ENABLED`. As sessões do WhatsApp ficam no volume `evolution_dev_data` — apagá-lo desfaz o pareamento e exige ler o QR code de novo.
+`CACHE_REDIS_ENABLED=false` + `CACHE_LOCAL_ENABLED=true` dispensam o Redis, opcional na v2. `TELEMETRY_ENABLED=false` segue a mesma decisão de `N8N_DIAGNOSTICS_ENABLED`. As sessões do WhatsApp ficam persistidas tanto no volume `evolution_dev_data` quanto na tabela do Postgres dedicado (volume `evolution_dev_db_data`) — apagar qualquer um dos dois desfaz o pareamento e exige ler o QR code de novo.
 
 `EVOLUTION_API_URL` é fixada em `http://evolution-api:8080` no serviço `n8n` (como `N8N_WEBHOOK_URL` é no próprio n8n): é o endereço que o workflow usa dentro da rede do Compose. `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` libera as expressões `{{ $env.* }}` no workflow — sem ela a URL do nó HTTP sai incompleta.
 
@@ -158,7 +158,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . up
 3. **Frontend** — após API healthy (`GET /api/v1/health`)
    - prod: nginx servindo o build estático + proxy `/api/`
    - dev: `vite dev --host` com bind mount e proxy `/api` → `api:3000`
-4. **n8n-import** (dev) — sobe em paralelo aos demais serviços; importa o workflow versionado e sai (`restart: "no"`)
+4. **n8n-import** (dev) — sobe em paralelo aos demais serviços; importa os workflows versionados em `docker/n8n/workflows/*.json` e sai (`restart: "no"`)
 5. **n8n** (dev) — depois de `n8n-import` (`depends_on: service_completed_successfully`); healthcheck `GET /healthz`. Independente da API: nem ela espera por ele, nem ele por ela
 6. **evolution-database** e **evolution-api** (dev) — a API espera o banco ficar *healthy* e roda as migrations no entrypoint; healthcheck `GET /`, `start_period` de 40s. Independentes da plataforma: nem a API nem o n8n esperam por eles
 

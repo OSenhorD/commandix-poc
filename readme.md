@@ -71,7 +71,7 @@ O Compose de desenvolvimento precisa estar no ar para os comandos abaixo.
 dc up --build -d        # subir em background
 dc logs -f api          # acompanhar a API
 dc down                 # parar
-dc down -v              # parar e apagar os volumes (reset do banco **e** dos workflows do n8n)
+dc down -v              # parar e apagar os volumes (reset do banco, dos workflows do n8n **e** do pareamento do WhatsApp — exige celular físico e novo QR code)
 dc up database -d       # subir só o banco
 ```
 
@@ -216,7 +216,7 @@ dc exec n8n n8n export:workflow --id=al0kKuoHKErreeDP --output=/tmp/wf.json
 docker cp commandix-poc-n8n-1:/tmp/wf.json docker/n8n/workflows/commandix.json
 ```
 
-O export já sai no formato de lista que o `n8n-import` espera. `dc down -v` (que apaga `n8n_dev_data`) faz o próximo `up` reimportar do zero a partir do JSON versionado — é assim que outro dev sobe com os dados já preenchidos.
+O export já sai no formato de lista que o `n8n-import` espera. Para reimportar sem derrubar o resto do ambiente: `dc up -d --force-recreate n8n-import` seguido de `dc up -d --force-recreate n8n`. `dc down -v` também força a reimportação (apaga `n8n_dev_data`), mas é mais drástico: apaga junto o pareamento do WhatsApp (`evolution_dev_data` e `evolution_dev_db_data`), que não se reconstrói sozinho — exige o celular físico de novo e um novo QR code.
 
 ## Variáveis de ambiente
 
