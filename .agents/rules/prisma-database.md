@@ -1,10 +1,6 @@
----
-description: Prisma 8 — contract, migrations, queries e multi-tenant
-globs: nexus-backend/src/prisma/**,nexus-backend/prisma.config.ts,nexus-backend/migrations/**,nexus-backend/**/seed.ts
-alwaysApply: false
----
-
 # Prisma 8 & PostgreSQL
+
+> **Aplica-se a:** `nexus-backend/src/prisma/**`, `nexus-backend/migrations/**`, `nexus-backend/prisma.config.ts`, `nexus-backend/**/seed.ts` — e a qualquer query no ORM.
 
 **Skill oficial (ler antes de codar):** `nexus-backend/.agents/skills/prisma-8/SKILL.md`. Ignorar qualquer skill genérica de Prisma vinda de fora deste projeto — cobrem Prisma ORM 7 clássico, proibido aqui.
 

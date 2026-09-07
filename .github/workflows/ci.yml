@@ -76,3 +76,34 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  frontend:
+    name: Frontend lint, test & build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: nexus-frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.16.0'
+          cache: npm
+          cache-dependency-path: nexus-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build

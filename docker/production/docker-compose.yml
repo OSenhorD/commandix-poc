@@ -61,17 +61,25 @@ services:
       retries: 10
       start_period: 30s
 
-  # frontend:
-  #   build:
-  #     context: ./nexus-frontend
-  #     dockerfile: Dockerfile
-  #   networks:
-  #     - commandix-production
-  #   ports:
-  #     - "${FRONTEND_PORT:-5173}:80"
-  #   depends_on:
-  #     api:
-  #       condition: service_healthy
+  frontend:
+    build:
+      context: ./nexus-frontend
+      dockerfile: docker/production/Dockerfile
+      network: host
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - commandix-production
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 
 networks:

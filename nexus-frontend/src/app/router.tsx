@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
+import { AppShell } from "@/components/layout/app-shell";
 import { BootstrapPage } from "@/features/auth/pages/bootstrap";
 import { LoginPage } from "@/features/auth/pages/login";
 import { ExecutionDetailPage } from "@/features/executions/pages/detail";
@@ -16,15 +17,20 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
-      { path: "/", element: <Navigate to="/integrations" replace /> },
-      { path: "/integrations", element: <IntegrationsListPage /> },
-      { path: "/integrations/:id/executions", element: <ExecutionsListPage /> },
-      { path: "/executions/:id", element: <ExecutionDetailPage /> },
       {
-        element: <ProtectedRoute roles={["ADMIN"]} />,
+        element: <AppShell />,
         children: [
-          { path: "/integrations/new", element: <IntegrationFormPage /> },
-          { path: "/integrations/:id/edit", element: <IntegrationFormPage /> },
+          { path: "/", element: <Navigate to="/integrations" replace /> },
+          { path: "/integrations", element: <IntegrationsListPage /> },
+          { path: "/integrations/:id/executions", element: <ExecutionsListPage /> },
+          { path: "/executions/:id", element: <ExecutionDetailPage /> },
+          {
+            element: <ProtectedRoute roles={["ADMIN"]} />,
+            children: [
+              { path: "/integrations/new", element: <IntegrationFormPage /> },
+              { path: "/integrations/:id/edit", element: <IntegrationFormPage /> },
+            ],
+          },
         ],
       },
     ],

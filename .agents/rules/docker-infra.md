@@ -1,0 +1,29 @@
+# Docker & Infra
+
+> **Aplica-se a:** `docker/*/docker-compose.yml`, `nexus-backend/docker/**`, `nexus-frontend/docker/**`, `.env.example`.
+
+**Referência completa (serviços, portas, env, startup, CORS, CI):** [`docs/spec/08-docker.md`](../../docs/spec/08-docker.md). Este arquivo só traz o que é regra ao editar infra.
+
+## Layout
+
+- Os **composes** ficam na raiz (`docker/production/`, `docker/development/`); os **Dockerfiles e entrypoints** ficam dentro de cada pacote (`nexus-backend/docker/<env>/`, `nexus-frontend/docker/<env>/`).
+- Por isso todo comando precisa de `--project-directory .` — sem isso, `.env` e os caminhos relativos do compose (`./nexus-backend`, volumes) resolvem errado:
+
+```bash
+docker compose -f docker/development/docker-compose.yml --project-directory . up --build
+```
+
+## Serviços
+
+Os nomes são `database`, `api` e `frontend` — **`database`, não `postgres`**. É esse nome que a `DATABASE_URL` usa como host (`postgresql://…@database:5432/…`) e que o proxy do Vite e o nginx usam para alcançar a API (`http://api:3000`). Nunca `localhost` dentro da rede do Compose.
+
+O serviço `frontend` existe hoje só no compose de **desenvolvimento** (`vite dev --host`); o de produção (nginx) entra na entrega F12.
+
+## Regras ao editar
+
+- **Versões pinadas** — `node:24.16.0-alpine` nos Dockerfiles precisa bater com `engines.node` de `nexus-backend/package.json`; Postgres é `postgres:16-alpine`.
+- **Produção falha rápido:** `docker/production/docker-compose.yml` usa `${VAR:?...}` em `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` e `DB_PASSWORD` — nunca introduzir fallback fraco para esses três.
+- **Produção não publica a porta do Postgres** no host; só desenvolvimento expõe `DB_PORT`.
+- **Ordem do entrypoint:** `db migrate` → seed (sempre, idempotente) → start. Usar `db migrate`, nunca `db update`, em Docker e CI.
+- **Nova variável:** adicionar em `.env.example` **e** na tabela de [08-docker §8.2](../../docs/spec/08-docker.md#82-variáveis-de-ambiente). Variáveis montadas pelo compose (`DATABASE_URL`, `TEST_DATABASE_URL`, `NODE_ENV`, `PORT`) não vão para o `.env`.
+- **Healthcheck:** a API só sobe depois de `pg_isready` no `database` (`depends_on: service_healthy`); o `frontend` só depois de `GET /api/v1/health`.

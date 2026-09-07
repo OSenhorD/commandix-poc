@@ -70,6 +70,20 @@ describe.skipIf(!hasDatabase)('POST /tenants/bootstrap (e2e)', () => {
       .expect(409);
   });
 
+  it('returns 409 when admin email already exists', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/tenants/bootstrap')
+      .send({
+        tenantName: 'Third Corp',
+        tenantSlug: `bootstrap-${Date.now()}-duplicate-email`,
+        adminEmail: email,
+        adminPassword: 'SecurePass1!',
+      })
+      .expect(409);
+
+    expect(response.body.message).toContain('email');
+  });
+
   it('returns 400 for invalid body', async () => {
     await request(app.getHttpServer())
       .post('/api/v1/tenants/bootstrap')
