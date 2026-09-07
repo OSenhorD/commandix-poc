@@ -73,11 +73,21 @@ export function IntegrationsListPage() {
       className: "text-right",
       cell: (row) => (
         <div className="flex items-center justify-end gap-1">
-          <Button variant="ghost" size="sm" render={<Link to={`/integrations/${row.id}/executions`} />}>
+          <Button
+            variant="ghost"
+            size="sm"
+            nativeButton={false}
+            render={<Link to={`/integrations/${row.id}/executions`} />}
+          >
             Histórico
           </Button>
           <RoleGate role="ADMIN">
-            <Button variant="ghost" size="sm" render={<Link to={`/integrations/${row.id}/edit`} />}>
+            <Button
+              variant="ghost"
+              size="sm"
+              nativeButton={false}
+              render={<Link to={`/integrations/${row.id}/edit`} />}
+            >
               Editar
             </Button>
           </RoleGate>
@@ -118,7 +128,7 @@ export function IntegrationsListPage() {
           </Select>
 
           <RoleGate role="ADMIN">
-            <Button render={<Link to="/integrations/new" />}>
+            <Button nativeButton={false} render={<Link to="/integrations/new" />}>
               <Plus className="size-4" />
               Nova integração
             </Button>

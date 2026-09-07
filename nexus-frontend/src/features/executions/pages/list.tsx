@@ -53,7 +53,7 @@ export function ExecutionsListPage() {
       header: "",
       className: "text-right",
       cell: (row) => (
-        <Button variant="ghost" size="sm" render={<Link to={`/executions/${row.id}`} />}>
+        <Button variant="ghost" size="sm" nativeButton={false} render={<Link to={`/executions/${row.id}`} />}>
           Detalhe
         </Button>
       ),
@@ -63,7 +63,7 @@ export function ExecutionsListPage() {
   return (
     <section className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
-        <Button variant="ghost" size="sm" className="w-fit" render={<Link to="/integrations" />}>
+        <Button variant="ghost" size="sm" className="w-fit" nativeButton={false} render={<Link to="/integrations" />}>
           <ArrowLeft className="size-4" />
           Integrações
         </Button>
