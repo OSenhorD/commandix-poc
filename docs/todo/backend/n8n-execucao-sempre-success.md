@@ -3,7 +3,7 @@
 **Lado:** backend
 **Tipo:** refactor
 
-**Contexto:** percebido em 2026-09-07, na entrega do workflow `Commandix WhatsApp` (Evolution API), durante a revisão final de `docs/plans/evolution-api.md` (já concluído e removido).
+**Contexto:** percebido em 2026-09-07, na revisão final da entrega do workflow `Commandix WhatsApp` (Evolution API).
 
 **Descrição:** o nó HTTP Request do workflow `Commandix WhatsApp` usa `neverError: true` + `onError: continueRegularOutput`, para que o n8n sempre responda 200 ao Commandix mesmo sem WhatsApp pareado — decisão deliberada da entrega, documentada no `readme.md` § Bônus — n8n. O efeito colateral: a integração no Commandix sempre registra a execução como `SUCCESS` com `httpStatusCode` 200, mesmo quando a mensagem não foi entregue (WhatsApp não pareado, número inválido etc.). O status real do Evolution (`201` sucesso, `4xx/5xx` erro) só aparece dentro do `responseBody`, que o Commandix guarda mas não interpreta.
 

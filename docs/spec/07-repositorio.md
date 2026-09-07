@@ -7,7 +7,7 @@ Monorepo com dois pacotes (`nexus-backend/`, `nexus-frontend/`) e a infra compar
 ```
 commandix-poc/
 ├── docker/{production,development}/docker-compose.yml   # composes; Dockerfiles ficam nos pacotes
-├── docs/{spec,plans,todo}/
+├── docs/{spec,todo}/                                    # spec técnica + fila de pendências
 ├── .agents/rules/                                       # regras por domínio
 ├── nexus-backend/
 └── nexus-frontend/

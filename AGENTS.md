@@ -10,13 +10,16 @@ Contexto para agentes de IA trabalhando neste repositório.
 
 ## Estado atual
 
+Status por entrega — fonte única: [`docs/spec/11-checklist.md`](./docs/spec/11-checklist.md). Resumo:
+
 | Componente | Status |
 |------------|--------|
-| `nexus-backend/` | **Funcional** — módulos `auth`, `tenants`, `integrations`, `executions`, `common`, `openapi`, `database`; Prisma 8 (contract + migration + seed); Docker (Dockerfile + entrypoint); testes unitários + e2e, incluindo os críticos (tenant isolation, guards, trigger, scoping de execuções) |
-| `nexus-frontend/` | **Funcional** — Vite 8 + React 19 + TS 6 + Tailwind 4 + shadcn; cliente HTTP (`apiFetch` + refresh single-flight); sessão (`AuthProvider`, login/logout, bootstrap); router e guardas; shell e componentes compartilhados; CRUD de integrações, disparo e histórico + detalhe de execuções; Docker de produção (nginx) |
-| Prisma 8 | `contract.prisma` — domínio Commandix; migration `20260903T0509_initial` |
-| Docker Compose | **dev:** `database` + `api` + `frontend` + `n8n-import` + `n8n`; **prod:** `database` + `api` + `frontend` (nginx) |
-| Bônus n8n | **Funcional** — serviço `n8n` no compose de desenvolvimento com **dois** workflows versionados em [`docker/n8n/workflows/`](./docker/n8n/workflows/), importados e ativados pelo `n8n-import` antes do `n8n` subir: `Commandix Demo` (eco) e `Commandix WhatsApp`, que chama o **Evolution API** (extra) e envia WhatsApp de verdade — `Commandix → n8n → Evolution API → WhatsApp`. Fluxo end-to-end no [`readme.md`](./readme.md) § Bônus — n8n |
+| `nexus-backend/` | **Funcional** — módulos `auth`, `tenants`, `integrations`, `executions`, `common`, `openapi`, `database`; Prisma 8 (contract + migrations + seed); Docker; testes unitários + e2e, incluindo os críticos (tenant isolation, guards, trigger, scoping de execuções) |
+| `nexus-frontend/` | **Funcional** — escopo completo do protótipo (login/bootstrap, shell, CRUD de integrações, disparo, histórico + detalhe) e Docker de produção (nginx) |
+| Docker Compose | **dev:** `database` + `api` + `frontend` + `n8n-import` + `n8n` + `evolution-database` + `evolution-api`; **prod:** `database` + `api` + `frontend` (nginx) |
+| Bônus n8n + Evolution | **Funcional** — dois workflows versionados em [`docker/n8n/workflows/`](./docker/n8n/workflows/), importados e ativados pelo `n8n-import`: `Commandix Demo` (eco) e `Commandix WhatsApp` (`Commandix → n8n → Evolution API → WhatsApp`). Fluxo end-to-end no [`readme.md`](./readme.md) § Bônus — n8n |
+
+Em aberto: job de Docker Compose no CI e cobertura de testes além do mínimo crítico — ver [`docs/todo/`](./docs/todo/README.md).
 
 ## Arquitetura alvo
 
@@ -193,19 +196,9 @@ Subir o ambiente, variáveis, testes e o workflow completo do Prisma: [`readme.m
 - Não adicionar TanStack Table, axios ou date-fns — fora do escopo escolhido (tabelas fixas, `fetch`, `Intl`)
 - Não criar `.prettierrc` na raiz — Prettier é isolado por pacote (`nexus-backend/` e `nexus-frontend/`)
 
-## Arquivos de referência
-
-| Arquivo | Conteúdo |
-|---------|----------|
-| `docs/spec/` | Spec funcional, API, schema, checklist |
-| `.agents/rules/*.md` | Regras por domínio — quando ler cada uma: § Regras por domínio |
-| `nexus-backend/.agents/skills/prisma-8/` | Skill Prisma 8 (sync via `npm run skills:sync`) |
-| `readme.md` | Setup, seed, decisões do candidato |
-| `docs/todo/` | Fila viva: `frontend/<slug>.md` ou `backend/<slug>.md`. Item concluído se apaga; ver [`docs/todo/README.md`](./docs/todo/README.md) |
-
 ## Fluxo de trabalho sugerido para IA
 
-1. **Antes de implementar:** se a tarefa não estiver bem explicada (spec/critério de done ambíguo ou incompleto), fazer perguntas relevantes ao usuário antes de codar — não assumir. Se já bem explicada (ticket com escopo, arquivos e critério de done claros, ex.: entregas em `docs/plans/`), pode prosseguir direto
+1. **Antes de implementar:** se a tarefa não estiver bem explicada (spec/critério de done ambíguo ou incompleto), fazer perguntas relevantes ao usuário antes de codar — não assumir. Se já bem explicada (escopo, arquivos e critério de done claros), pode prosseguir direto
 2. Ler o arquivo relevante em `docs/spec/`
 3. Consultar **decisões adotadas** neste arquivo antes de implementar
 4. Verificar [checklist](./docs/spec/11-checklist.md) antes e depois da tarefa
@@ -213,7 +206,7 @@ Subir o ambiente, variáveis, testes e o workflow completo do Prisma: [`readme.m
 6. Abrir a regra de domínio correspondente ao que vai editar — tabela em § Regras por domínio
 7. Implementar com diff mínimo
 8. Rodar testes/lint dentro do container `api` (Compose de desenvolvimento) antes de declarar concluído
-9. **Ao concluir uma entrega:** marcar o item em [`docs/spec/11-checklist.md`](./docs/spec/11-checklist.md); se a entrega tiver um brief em `docs/plans/`, atualizar o índice (mover para "já entregue", tirar a linha da tabela) e **apagar** o brief; apagar também qualquer `docs/todo/<frontend|backend>/<slug>.md` que a entrega tenha absorvido
+9. **Ao concluir uma entrega:** marcar o item em [`docs/spec/11-checklist.md`](./docs/spec/11-checklist.md) e **apagar** qualquer `docs/todo/<frontend|backend>/<slug>.md` que a entrega tenha absorvido
 10. **Ao observar** uma feature, erro ou refactor fora do escopo da entrega atual: criar `docs/todo/<frontend|backend>/<slug>.md` (nunca solto em `docs/todo/`), sem bloquear a entrega. Ver [`docs/todo/README.md`](./docs/todo/README.md)
 11. **Ao observar** um padrão de código, decisão técnica ou comportamento não óbvio da stack (ex.: tipagem de um campo no ORM, convenção implícita repetida em vários arquivos): registrar aqui neste `AGENTS.md`, na seção de **decisões adotadas** ou **convenções**, conforme o caso
 12. Atualizar README apenas quando pedido ou ao finalizar fase

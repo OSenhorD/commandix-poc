@@ -183,7 +183,7 @@ model RefreshToken {
 | `name` | string | sim | |
 | `type` | enum | sim | `WEBHOOK` \| `REST_API` \| `N8N` |
 | `targetUrl` | string | sim | URL de destino |
-| `authKey` | string | não | At-rest: texto ou criptografia — **documentar escolha no README final**; **mascarada na API** |
+| `authKey` | string | não | At-rest: **texto plano** (decisão de PoC, justificada no [`readme.md`](../../readme.md) § Decisões técnicas); **mascarada na API** |
 | `customHeaders` | JSON | não | Objeto chave-valor |
 | `defaultPayload` | JSON | não | Payload padrão para disparos |
 | `isActive` | boolean | sim | Default: `true` |
@@ -215,7 +215,7 @@ model RefreshToken {
 | `expiresAt` | datetime | sim | |
 | `revokedAt` | datetime | não | Preenchido no logout **deste** refresh token (dispositivo atual) |
 
-## 4.4 Seed sugerido
+## 4.4 Seed
 
 Implementado em `nexus-backend/src/prisma/seed.ts` (idempotente). Senha padrão: `Admin123!` (ver [`readme.md`](../../readme.md)).
 

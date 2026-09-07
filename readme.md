@@ -100,6 +100,10 @@ dc exec api npm run format           # Prettier (write) — idem para o frontend
 dc exec api npm run format:check     # Prettier (só verifica) — idem para o frontend
 ```
 
+### Pre-commit
+
+O hook de pre-commit (Husky, na raiz) roda `format`, `lint` e `test:related` **dentro dos containers**, só nos arquivos em stage de cada pacote. O Compose de desenvolvimento precisa estar no ar — sem ele o commit falha avisando qual serviço subir.
+
 ### Prisma 8
 
 Skill de referência: [`nexus-backend/.agents/skills/prisma-8/SKILL.md`](./nexus-backend/.agents/skills/prisma-8/SKILL.md).
@@ -230,6 +234,7 @@ Copie `.env.example` → `.env` na **raiz** do monorepo. Lista completa e variá
 | `DB_DATABASE` / `DB_USERNAME` | `commandix` | Postgres no Compose |
 | `DB_PORT` | `5432` | Porta exposta do Postgres — **só em desenvolvimento**; em produção o banco não publica porta no host |
 | `API_PORT` | `3000` | Porta exposta da API |
+| `FRONTEND_PORT` | `5173` | Porta exposta do frontend |
 | `ENABLE_API_DOCS` | `true` | Liga/desliga `/api/docs` e `/api/openapi.json` (`false` → 404) |
 | `VITE_API_URL` | `/api/v1` | Base do cliente HTTP no browser — override opcional |
 | `VITE_API_PROXY_TARGET` | `http://api:3000` | Alvo do proxy do `vite dev` |
@@ -258,7 +263,7 @@ A validação por Docker Compose ainda não existe — ver [`docs/todo/backend/c
 | API NestJS | `nexus-backend/` | Funcional — auth, tenants, integrações, execuções, OpenAPI, testes críticos |
 | Frontend React | `nexus-frontend/` | Funcional — login/bootstrap, shell, CRUD de integrações, disparo, histórico + detalhe, Docker de produção |
 | PostgreSQL + Prisma 8 | `nexus-backend/src/prisma/` | Contract + migrations + seed |
-| Docker Compose | `docker/` | Dev: `database` + `api` + `frontend` + `n8n-import` + `n8n`; prod: `database` + `api` + `frontend` (nginx) |
+| Docker Compose | `docker/` | Dev: `database` + `api` + `frontend` + `n8n-import` + `n8n` + `evolution-database` + `evolution-api`; prod: `database` + `api` + `frontend` (nginx) |
 
 ## Decisões técnicas
 

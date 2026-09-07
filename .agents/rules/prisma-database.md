@@ -67,7 +67,7 @@ if (!execution || execution.integration.tenantId !== tenantId) {
 ## Schema (domínio Commandix)
 
 - PKs: UUID (`@id @default(uuid())`)
-- Índices: `tenantId`, `integrationId`, `(integrationId, executedAt)`, `status`
+- Índices: `User(tenantId)`, `Integration(tenantId, updatedAt)`, `IntegrationExecution(integrationId, executedAt)`, `RefreshToken(userId)`
 - Enums: `Role`, `IntegrationType`, `ExecutionStatus`
 - JSON: `customHeaders`, `defaultPayload`, `requestPayload`
 - `Tenant.slug` — `@unique`; `Tenant.name` — sem unique
