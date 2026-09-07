@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -27,50 +26,8 @@ import {
 
 export function IntegrationFormPage() {
   const { id } = useParams<{ id: string }>();
-
   const isEdit = id !== undefined;
-  const navigate = useNavigate();
-
   const detail = useIntegration(id);
-  const createMutation = useCreateIntegration();
-  const updateMutation = useUpdateIntegration(id ?? "");
-
-  const initialValues = useMemo(() => (detail.data ? toFormValues(detail.data) : emptyIntegrationForm), [detail.data]);
-
-  const {
-    control,
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<IntegrationFormValues>({
-    resolver: zodResolver(integrationFormSchema),
-    defaultValues: emptyIntegrationForm,
-  });
-
-  useEffect(() => {
-    if (!detail.data) return;
-    reset(initialValues);
-  }, [detail.data, initialValues, reset]);
-
-  const onSubmit = handleSubmit(async (values) => {
-    try {
-      if (isEdit) {
-        const patch = buildPatchPayload(initialValues, values);
-
-        if (Object.keys(patch).length > 0) {
-          await updateMutation.mutateAsync(patch);
-          toast.success("Integração atualizada.");
-        }
-      } else {
-        await createMutation.mutateAsync(buildCreatePayload(values));
-        toast.success("Integração criada.");
-      }
-      await navigate("/integrations");
-    } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Não foi possível salvar a integração.");
-    }
-  });
 
   if (isEdit && detail.isPending) {
     return (
@@ -90,6 +47,60 @@ export function IntegrationFormPage() {
       />
     );
   }
+
+  return (
+    <IntegrationForm
+      isEdit={isEdit}
+      integrationId={id ?? ""}
+      initialValues={detail.data ? toFormValues(detail.data) : emptyIntegrationForm}
+    />
+  );
+}
+
+function IntegrationForm({
+  isEdit,
+  integrationId,
+  initialValues,
+}: {
+  isEdit: boolean;
+  integrationId: string;
+  initialValues: IntegrationFormValues;
+}) {
+  const navigate = useNavigate();
+  const createMutation = useCreateIntegration();
+  const updateMutation = useUpdateIntegration(integrationId);
+
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<IntegrationFormValues>({
+    resolver: zodResolver(integrationFormSchema),
+    defaultValues: initialValues,
+  });
+
+  const onSubmit = handleSubmit(async (values) => {
+    try {
+      if (isEdit) {
+        const patch = buildPatchPayload(initialValues, values);
+
+        if (Object.keys(patch).length === 0) {
+          toast.message("Nenhuma alteração para salvar.");
+          return;
+        }
+
+        await updateMutation.mutateAsync(patch);
+        toast.success("Integração atualizada.");
+      } else {
+        await createMutation.mutateAsync(buildCreatePayload(values));
+        toast.success("Integração criada.");
+      }
+      await navigate("/integrations");
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : "Não foi possível salvar a integração.");
+    }
+  });
 
   return (
     <Card className="mx-auto max-w-2xl">

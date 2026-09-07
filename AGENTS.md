@@ -90,6 +90,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Frontend — estado de lista | Paginação e filtros vivem na **URL** (`useSearchParams`); a query key do TanStack Query deriva da URL — sobrevive ao reload e o link é compartilhável |
 | Frontend — `authKey` no form | **Nunca** pré-preencher no formulário de edição: a API devolve a chave **mascarada** (`****-key`) e salvar isso destrói a credencial. Campo vazio = manter o valor atual |
 | Frontend — PATCH | Enviar **só os campos alterados** (diff contra o valor carregado); `PATCH {}` vazio → `400`; `customHeaders`/`defaultPayload` substituem o objeto inteiro |
+| Frontend — form de edição | Montar o form **só depois** do GET (`defaultValues` já preenchidos). `reset()` após o mount no Input Base UI não captura a digitação — mudar só a URL gerava PATCH vazio e voltava à lista sem gravar |
 | Todo | Feature, erro ou refactor novo em [`docs/todo/<frontend\|backend>/<slug>.md`](./docs/todo/README.md). Ao concluir: marcar checklist (se houver) e **apagar** o arquivo — a fila só guarda o que falta |
 | Frontend — testes | Vitest + Testing Library (jsdom), `fetch` stubado — cobre **só** o cliente HTTP (refresh single-flight) e o gate de role |
 | Frontend — `@testing-library/dom` | Peer **explícito** de `@testing-library/react` v16 — não entra no lockfile se omitido. Sem o pacote, o TypeScript resolve `render`/`screen` como tipo `error` e o ESLint (`strictTypeChecked` → `no-unsafe-return` / `no-unsafe-call`) reprova os testes |

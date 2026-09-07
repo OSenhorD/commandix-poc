@@ -18,6 +18,12 @@ describe("buildPatchPayload", () => {
     expect(buildPatchPayload(initial, { ...initial, name: "Novo nome" })).toEqual({ name: "Novo nome" });
   });
 
+  it("envia só targetUrl quando apenas a URL muda", () => {
+    expect(buildPatchPayload(initial, { ...initial, targetUrl: "https://webhook.site/echo-updated" })).toEqual({
+      targetUrl: "https://webhook.site/echo-updated",
+    });
+  });
+
   it("omite authKey quando o campo está vazio (mantém a chave atual)", () => {
     const patch = buildPatchPayload(initial, { ...initial, isActive: false });
     expect(patch).not.toHaveProperty("authKey");
