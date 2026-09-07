@@ -43,7 +43,7 @@ Prioridade **baixa** de acabamento visual na avaliação ([10-criterios](./10-cr
 | Prettier | Isolado em `nexus-frontend/.prettierrc` (aspas duplas, `printWidth` 120) — não compartilha o do backend | Configurado |
 | Vitest + Testing Library | Só o crítico: client HTTP e gate de role (bônus na avaliação) | Implementado (F02 + F03) |
 
-Plano restante: [`docs/plans/frontend.md`](../plans/frontend.md) (entregas F04–F12). Padrões e armadilhas do contrato: [`.agents/rules/react-frontend.mdc`](../../.agents/rules/react-frontend.mdc).
+Plano restante: índice [`docs/plans/frontend.md`](../plans/frontend.md); brief por entrega em [`docs/plans/frontend/`](../plans/frontend/) (F04–F12). Padrões e armadilhas do contrato: [`.agents/rules/react-frontend.mdc`](../../.agents/rules/react-frontend.mdc).
 
 **Telas (escopo completo do protótipo):**
 

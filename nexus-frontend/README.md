@@ -2,7 +2,7 @@
 
 SPA React do Commandix PoC — gestão de integrações multi-tenant. Consome a API NestJS em `/api/v1`.
 
-> **Estado:** F01–F03 entregues (deps, cliente HTTP, sessão, router e guardas). Telas ainda são placeholder — entregas **F04–F12** em [`docs/plans/frontend.md`](../docs/plans/frontend.md).
+> **Estado:** F01–F03 entregues (deps, cliente HTTP, sessão, router e guardas). Telas ainda são placeholder — entregas **F04–F12** em [`docs/plans/frontend.md`](../docs/plans/frontend.md) (índice) e [`docs/plans/frontend/`](../docs/plans/frontend/) (brief por entrega).
 
 ## Stack
 

@@ -13,7 +13,7 @@ Contexto para agentes de IA trabalhando neste repositório.
 | Componente | Status |
 |------------|--------|
 | `nexus-backend/` | **Funcional** — módulos `auth`, `tenants`, `integrations`, `executions`, `common`, `openapi`, `database`; Prisma 8 (contract + migration + seed); Docker (Dockerfile + entrypoint); testes unitários + e2e (falta `test/executions-scoping.e2e-spec.ts`) |
-| `nexus-frontend/` | **Em andamento (F01–F03)** — Vite 8 + React 19 + TS 6 + Tailwind 4 + shadcn; cliente HTTP (`apiFetch` + refresh single-flight), `AuthProvider`, router e guardas. Telas ainda placeholder (F04–F11). Plano: [`docs/plans/frontend.md`](./docs/plans/frontend.md) |
+| `nexus-frontend/` | **Em andamento (F01–F03)** — Vite 8 + React 19 + TS 6 + Tailwind 4 + shadcn; cliente HTTP (`apiFetch` + refresh single-flight), `AuthProvider`, router e guardas. Telas ainda placeholder (F04–F11). Plano: índice [`docs/plans/frontend.md`](./docs/plans/frontend.md); brief da entrega em [`docs/plans/frontend/`](./docs/plans/frontend/) |
 | Prisma 8 | `contract.prisma` — domínio Commandix; migration `20260903T0509_initial` |
 | Docker Compose | **dev:** postgres + api + frontend; **prod:** postgres + api (`frontend` comentado — entrega F12) |
 
@@ -36,7 +36,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Pacote | Diretório | Notas |
 |--------|-----------|-------|
 | API | `nexus-backend/` | NestJS + Prisma 8; `prisma.config.ts` e skills aqui |
-| Frontend | `nexus-frontend/` | F01–F03 feitos; telas F04–F12 em [`docs/plans/frontend.md`](./docs/plans/frontend.md) |
+| Frontend | `nexus-frontend/` | F01–F03 feitos; telas F04–F12 — índice [`docs/plans/frontend.md`](./docs/plans/frontend.md), brief em [`docs/plans/frontend/`](./docs/plans/frontend/) |
 | Spec / rules | raiz | `docs/spec/`, `.agents/rules/` |
 | Skills Prisma | `nexus-backend/.agents/skills/prisma-8/` | Sem symlink na raiz — ler direto neste caminho |
 
@@ -85,6 +85,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Frontend — estado de lista | Paginação e filtros vivem na **URL** (`useSearchParams`); a query key do TanStack Query deriva da URL — sobrevive ao reload e o link é compartilhável |
 | Frontend — `authKey` no form | **Nunca** pré-preencher no formulário de edição: a API devolve a chave **mascarada** (`****-key`) e salvar isso destrói a credencial. Campo vazio = manter o valor atual |
 | Frontend — PATCH | Enviar **só os campos alterados** (diff contra o valor carregado); `PATCH {}` vazio → `400`; `customHeaders`/`defaultPayload` substituem o objeto inteiro |
+| Frontend — plano | Índice em [`docs/plans/frontend.md`](./docs/plans/frontend.md); brief de cada entrega em `docs/plans/frontend/fXX-*.md`. Agente lê o índice + **somente** o arquivo da entrega atual |
 | Frontend — testes | Vitest + Testing Library (jsdom), `fetch` stubado — cobre **só** o cliente HTTP (refresh single-flight) e o gate de role |
 | Frontend — `@testing-library/dom` | Peer **explícito** de `@testing-library/react` v16 — não entra no lockfile se omitido. Sem o pacote, o TypeScript resolve `render`/`screen` como tipo `error` e o ESLint (`strictTypeChecked` → `no-unsafe-return` / `no-unsafe-call`) reprova os testes |
 | Proxy dev (Vite) | `server.proxy['/api']` → `VITE_API_PROXY_TARGET ?? 'http://api:3000'` (hostname da rede do Compose, nunca `localhost`) |
@@ -154,7 +155,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 
 ### Frontend (React)
 
-**Regras completas:** [`.agents/rules/react-frontend.mdc`](./.agents/rules/react-frontend.mdc). **Plano:** [`docs/plans/frontend.md`](./docs/plans/frontend.md).
+**Regras completas:** [`.agents/rules/react-frontend.mdc`](./.agents/rules/react-frontend.mdc). **Plano:** índice [`docs/plans/frontend.md`](./docs/plans/frontend.md); brief da entrega atual em [`docs/plans/frontend/`](./docs/plans/frontend/) — não ler as outras entregas.
 
 - Stack: React 19 + Vite 8 + TypeScript 6; Tailwind 4 (CSS-first); shadcn `base-lyra` sobre `@base-ui/react`; React Router 7; TanStack Query v5; react-hook-form + zod
 - Estrutura **feature-sliced** — `app/` (providers, router), `shared/` (api, types, lib, componentes transversais), `features/{auth,integrations,executions}/`, `components/ui/` (shadcn, alias fixo)
@@ -238,7 +239,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 | `.agents/rules/*.mdc` | Regras por domínio (raiz do monorepo) |
 | `nexus-backend/.agents/skills/prisma-8/` | Skill Prisma 8 (sync via `npm run skills:sync`) |
 | `readme.md` | Setup, seed, decisões do candidato |
-| `docs/plans/` | Planos de entrega rastreados (`frontend.md` — F04–F12 restantes; `testes-criticos.md`) |
+| `docs/plans/` | Planos de entrega rastreados (`frontend.md` = índice; `frontend/fXX-*.md` = brief por entrega; `testes-criticos.md`) |
 | `docs/todo/` | Melhorias possíveis, erros encontrados, acoplamentos percebidos — não bloqueiam a entrega atual |
 
 ## Fluxo de trabalho sugerido para IA
@@ -251,7 +252,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 6. Seguir regras em `.agents/rules/`
 7. Implementar com diff mínimo
 8. Rodar testes/lint dentro do container `api` (Compose de desenvolvimento) antes de declarar concluído
-9. **Ao concluir uma entrega:** marcar como feita no `.md` correspondente (`docs/plans/*.md` — título + critério de done; [`docs/spec/11-checklist.md`](./docs/spec/11-checklist.md) — item da fase)
+9. **Ao concluir uma entrega:** marcar como feita no arquivo da entrega (`docs/plans/frontend/fXX-*.md` ou `docs/plans/*.md` — critério de done; [`docs/spec/11-checklist.md`](./docs/spec/11-checklist.md) — item da fase)
 10. **Ao observar** uma melhoria possível, erro encontrado ou acoplamento percebido durante o trabalho (mesmo fora do escopo da tarefa atual): registrar em `docs/todo/<item>.md`, sem bloquear a entrega
 11. **Ao observar** um padrão de código, decisão técnica ou comportamento não óbvio da stack (ex.: tipagem de um campo no ORM, convenção implícita repetida em vários arquivos): registrar aqui neste `AGENTS.md`, na seção de **decisões adotadas** ou **convenções**, conforme o caso
 12. Atualizar README apenas quando pedido ou ao finalizar fase

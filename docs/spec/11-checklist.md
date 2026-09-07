@@ -10,7 +10,7 @@
 - [x] `DatabaseModule` (wrapper do client Prisma)
 - [x] Bootstrap da aplicação NestJS (`main.ts`, prefixo `api/v1`, `GET /health`)
 - [x] Seed idempotente (`src/prisma/seed.ts`)
-- [ ] Docker Compose (`database` + `api` + `frontend` dev ✅ — F01; `frontend` prod pendente — entrega **F12** de [`docs/plans/frontend.md`](../plans/frontend.md))
+- [ ] Docker Compose (`database` + `api` + `frontend` dev ✅ — F01; `frontend` prod pendente — entrega **F12** de [`docs/plans/frontend/f12-production.md`](../plans/frontend/f12-production.md))
 
 ## Fase 2 — Auth
 
@@ -34,7 +34,7 @@
 
 ## Fase 5 — Frontend
 
-> Plano detalhado, com critério de done por entrega: [`docs/plans/frontend.md`](../plans/frontend.md).
+> Índice: [`docs/plans/frontend.md`](../plans/frontend.md). Brief e critério de done: um arquivo por entrega em [`docs/plans/frontend/`](../plans/frontend/).
 > Stack: React 19 + Vite 8 + Tailwind 4 + shadcn (`base-lyra`/Base UI) + React Router 7 + TanStack Query v5 + react-hook-form/zod.
 
 - [x] Scaffold Vite + React 19 + TypeScript + Tailwind 4 + shadcn (11 componentes base)
@@ -42,15 +42,15 @@
 - [x] **F02** Tipos da API + cliente HTTP (`shared/api/client.ts`, base `/api/v1`) + storage dos tokens
 - [x] **F02** Interceptor 401 → refresh **single-flight** → logout (+ teste)
 - [x] **F03** Providers, router (`createBrowserRouter`), `ProtectedRoute` e `RoleGate` (+ teste)
-- [ ] **F04** Login + logout + reidratação de sessão (`GET /auth/me`)
-- [ ] **F05** Bootstrap (cadastro de tenant + admin)
-- [ ] **F06** Shell (topbar, tema, toasts) e componentes compartilhados (`DataTable`, paginação, vazio, erro)
-- [ ] **F07** Integrações — listar com filtro `isActive` e paginação (ADMIN + VIEWER)
-- [ ] **F08** Integrações — criar / editar (`authKey` nunca pré-preenchida; PATCH só do que mudou)
-- [ ] **F09** Integrações — ativar/desativar, excluir e disparar (ADMIN)
-- [ ] **F10** Histórico — listagem por integração com filtros `status`/`from`/`to`
-- [ ] **F11** Histórico — detalhe da execução (`requestPayload`, `responseBody` truncado)
-- [ ] **F12** Docker de produção (`frontend` + nginx) + job CI + READMEs
+- [ ] **[F04](../plans/frontend/f04-login.md)** Login + logout + reidratação de sessão (`GET /auth/me`)
+- [ ] **[F05](../plans/frontend/f05-bootstrap.md)** Bootstrap (cadastro de tenant + admin)
+- [ ] **[F06](../plans/frontend/f06-shell.md)** Shell (topbar, tema, toasts) e componentes compartilhados (`DataTable`, paginação, vazio, erro)
+- [ ] **[F07](../plans/frontend/f07-integrations-list.md)** Integrações — listar com filtro `isActive` e paginação (ADMIN + VIEWER)
+- [ ] **[F08](../plans/frontend/f08-integrations-form.md)** Integrações — criar / editar (`authKey` nunca pré-preenchida; PATCH só do que mudou)
+- [ ] **[F09](../plans/frontend/f09-integrations-actions.md)** Integrações — ativar/desativar, excluir e disparar (ADMIN)
+- [ ] **[F10](../plans/frontend/f10-executions-list.md)** Histórico — listagem por integração com filtros `status`/`from`/`to`
+- [ ] **[F11](../plans/frontend/f11-executions-detail.md)** Histórico — detalhe da execução (`requestPayload`, `responseBody` truncado)
+- [ ] **[F12](../plans/frontend/f12-production.md)** Docker de produção (`frontend` + nginx) + job CI + READMEs
 
 ## Fase 6 — Polish
 

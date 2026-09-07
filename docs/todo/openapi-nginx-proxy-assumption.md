@@ -8,4 +8,4 @@
 
 **Sugestão:** Ao criar o serviço `frontend`/proxy em `docker/production/docker-compose.yml`, garantir que o proxy encaminhe todo `/api/` (não apenas `/api/v1/`) para o serviço `api`, cobrindo `/api/docs` e `/api/openapi.json`.
 
-**Encaminhamento (2026-09-06):** coberto pela entrega **F12** de [`docs/plans/frontend.md`](../plans/frontend.md) — o `nginx.conf` do serviço `frontend` proxia todo o prefixo `/api/` (não só `/api/v1/`). Fechar este item ao concluir F12.
+**Encaminhamento (2026-09-06):** coberto pela entrega **F12** de [`docs/plans/frontend/f12-production.md`](../plans/frontend/f12-production.md) — o `nginx.conf` do serviço `frontend` proxia todo o prefixo `/api/` (não só `/api/v1/`). Fechar este item ao concluir F12.
