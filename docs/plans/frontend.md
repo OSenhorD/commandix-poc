@@ -17,10 +17,11 @@
 | F05 | Bootstrap — cadastro de tenant e admin, rate limiting `429`, conflitos `409` nos campos corretos |
 | F06 | Shell e componentes compartilhados — `AppShell` + `UserMenu`, tema claro/escuro persistente, `DataTable`/`PaginationBar`/`EmptyState`/`ErrorState`, `useListParams`, `Toaster` |
 | F07 | Integrações: listagem — `api.ts`/`hooks.ts`, `IntegrationTypeBadge`, tela com filtro `isActive` e paginação na URL |
+| F08 | Integrações: formulário — `schemas.ts` (`buildPatchPayload` diff-based), `json-field.tsx`, criar/editar com `authKey` nunca pré-preenchida |
 
 Briefs concluídos são **apagados**: o histórico fica nesta tabela, no [checklist](../spec/11-checklist.md) e no git.
 
-**Restante:** F08–F12.
+**Restante:** F09–F12.
 
 **Arquitetura:** SPA feature-sliced. `shared/api/client.ts` centraliza o `fetch` (Bearer + refresh single-flight); TanStack Query cuida de cache, paginação e invalidação; React Router 7 protege rotas por autenticação e papel; react-hook-form + zod validam formulários espelhando os DTOs `class-validator` do backend. Paginação e filtros vivem na URL, e a query key deriva dela.
 
@@ -30,7 +31,6 @@ Briefs concluídos são **apagados**: o histórico fica nesta tabela, no [checkl
 
 | # | Brief | Como se prova |
 |---|-------|----------------|
-| F08 | [Integrações: formulário](./frontend/f08-integrations-form.md) | PATCH só do que mudou; `authKey` em branco não é enviada (6 testes) |
 | F09 | [Integrações: ações](./frontend/f09-integrations-actions.md) | Disparo mostra resultado; inativa bloqueia; exclusão avisa do cascade |
 | F10 | [Histórico: listagem](./frontend/f10-executions-list.md) | Filtros `status`/`from`/`to` na URL; `from > to` barrado no cliente |
 | F11 | [Histórico: detalhe](./frontend/f11-executions-detail.md) | `requestPayload`/`responseBody` legíveis; truncamento sinalizado |
@@ -38,10 +38,9 @@ Briefs concluídos são **apagados**: o histórico fica nesta tabela, no [checkl
 
 ### Ordem de execução
 
-Próxima entrega: **F08**. F08, F09 e F10 não dependem entre si — F09 e F10 tocam arquivos diferentes, e F09 só encosta na coluna de ações da lista, que F08 também edita (se forem em paralelo, F08 primeiro).
+Próxima entrega: **F09**. F09 e F10 não dependem entre si — tocam arquivos diferentes.
 
 ```
-F08 formulário
 F09 ações (toggle, excluir, disparar)
 F10 histórico ──▶ F11 detalhe ──▶ F12 produção + CI + docs
 ```
@@ -86,10 +85,7 @@ Tudo de F01–F07 já está no repositório: `app/`, `shared/api/`, `shared/lib/
 
 | Arquivo | Responsabilidade | Entrega |
 |---------|------------------|---------|
-| `src/features/integrations/pages/form.tsx` | Criar/editar (hoje placeholder) | F08 |
-| `src/features/integrations/components/*` (form, diálogos) | Novos componentes de F08–F09 | F08–F09 |
-| `src/features/integrations/schemas.ts` | zod do formulário + `buildPatchPayload` | F08 |
-| `src/shared/components/json-field.tsx` | Campo JSON com validação | F08 |
+| `src/features/integrations/components/*` (diálogos) | Novos componentes de F09 | F09 |
 | `src/features/executions/*` | Histórico e detalhe | F10–F11 |
 | `nexus-frontend/docker/production/{Dockerfile,nginx.conf}` | Build estático + proxy | F12 |
 | `docker/production/docker-compose.yml` | Serviço `frontend` de produção | F12 |

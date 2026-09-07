@@ -47,9 +47,16 @@ export function IntegrationsListPage() {
       header: "",
       className: "text-right",
       cell: (row) => (
-        <Button variant="ghost" size="sm" render={<Link to={`/integrations/${row.id}/executions`} />}>
-          Histórico
-        </Button>
+        <div className="flex justify-end gap-2">
+          <RoleGate role="ADMIN">
+            <Button variant="ghost" size="sm" render={<Link to={`/integrations/${row.id}/edit`} />}>
+              Editar
+            </Button>
+          </RoleGate>
+          <Button variant="ghost" size="sm" render={<Link to={`/integrations/${row.id}/executions`} />}>
+            Histórico
+          </Button>
+        </div>
       ),
     },
   ];

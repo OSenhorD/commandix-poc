@@ -46,7 +46,7 @@
 - [x] **F05** Bootstrap (cadastro de tenant + admin)
 - [x] **F06** Shell (topbar, tema, toasts) e componentes compartilhados (`DataTable`, paginação, vazio, erro)
 - [x] **F07** Integrações — listar com filtro `isActive` e paginação (ADMIN + VIEWER)
-- [ ] **[F08](../plans/frontend/f08-integrations-form.md)** Integrações — criar / editar (`authKey` nunca pré-preenchida; PATCH só do que mudou)
+- [x] **F08** Integrações — criar / editar (`authKey` nunca pré-preenchida; PATCH só do que mudou)
 - [ ] **[F09](../plans/frontend/f09-integrations-actions.md)** Integrações — ativar/desativar, excluir e disparar (ADMIN)
 - [ ] **[F10](../plans/frontend/f10-executions-list.md)** Histórico — listagem por integração com filtros `status`/`from`/`to`
 - [ ] **[F11](../plans/frontend/f11-executions-detail.md)** Histórico — detalhe da execução (`requestPayload`, `responseBody` truncado)
