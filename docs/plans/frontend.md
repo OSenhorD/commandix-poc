@@ -20,10 +20,11 @@
 | F08 | Integrações: formulário — `schemas.ts` (`buildPatchPayload` diff-based), `json-field.tsx`, criar/editar com `authKey` nunca pré-preenchida |
 | F09 | Integrações: ações — ativar/desativar (`Switch` + `PATCH`), disparo com payload opcional e resultado, exclusão com aviso de cascade |
 | F10 | Histórico: listagem — `api.ts`/`hooks.ts` de execuções, `ExecutionStatusBadge`, filtros `status`/`from`/`to` e paginação na URL |
+| F11 | Histórico: detalhe — `CodeBlock` (copiar + aviso de truncamento), tela de detalhe com payload/resposta formatados |
 
 Briefs concluídos são **apagados**: o histórico fica nesta tabela, no [checklist](../spec/11-checklist.md) e no git.
 
-**Restante:** F11–F12.
+**Restante:** F12.
 
 **Arquitetura:** SPA feature-sliced. `shared/api/client.ts` centraliza o `fetch` (Bearer + refresh single-flight); TanStack Query cuida de cache, paginação e invalidação; React Router 7 protege rotas por autenticação e papel; react-hook-form + zod validam formulários espelhando os DTOs `class-validator` do backend. Paginação e filtros vivem na URL, e a query key deriva dela.
 
@@ -33,15 +34,14 @@ Briefs concluídos são **apagados**: o histórico fica nesta tabela, no [checkl
 
 | # | Brief | Como se prova |
 |---|-------|----------------|
-| F11 | [Histórico: detalhe](./frontend/f11-executions-detail.md) | `requestPayload`/`responseBody` legíveis; truncamento sinalizado |
 | F12 | [Produção: Docker, nginx, CI](./frontend/f12-production.md) | Compose de produção com os três serviços; CI verde |
 
 ### Ordem de execução
 
-Próxima entrega: **F11**.
+Próxima entrega: **F12**.
 
 ```
-F11 detalhe ──▶ F12 produção + CI + docs
+F12 produção + CI + docs
 ```
 
 ---
@@ -80,12 +80,10 @@ dc exec frontend npm run typecheck
 
 ## Mapa de arquivos (restante)
 
-Tudo de F01–F07 já está no repositório: `app/`, `shared/api/`, `shared/lib/`, `shared/components/` (data-table, paginação, vazio, erro), `shared/hooks/use-list-params.ts`, `components/layout/`, `features/auth/` completo, `features/integrations/{api,hooks}.ts` + `components/integration-type-badge.tsx` + listagem, e os placeholders das páginas de F08–F11.
+Tudo de F01–F11 já está no repositório: `app/`, `shared/api/`, `shared/lib/`, `shared/components/` (data-table, paginação, vazio, erro, code-block), `shared/hooks/use-list-params.ts`, `components/layout/`, `features/auth/` completo, `features/integrations/{api,hooks}.ts` + `components/integration-type-badge.tsx` + listagem, `features/executions/*` (listagem + detalhe).
 
 | Arquivo | Responsabilidade | Entrega |
 |---------|------------------|---------|
-| `src/features/integrations/components/*` (diálogos) | Novos componentes de F09 | F09 |
-| `src/features/executions/*` | Histórico e detalhe | F10–F11 |
 | `nexus-frontend/docker/production/{Dockerfile,nginx.conf}` | Build estático + proxy | F12 |
 | `docker/production/docker-compose.yml` | Serviço `frontend` de produção | F12 |
 | `.github/workflows/ci.yml` | Job `frontend` | F12 |

@@ -49,7 +49,7 @@
 - [x] **F08** Integrações — criar / editar (`authKey` nunca pré-preenchida; PATCH só do que mudou)
 - [x] **F09** Integrações — ativar/desativar, excluir e disparar (ADMIN)
 - [x] **F10** Histórico — listagem por integração com filtros `status`/`from`/`to`
-- [ ] **[F11](../plans/frontend/f11-executions-detail.md)** Histórico — detalhe da execução (`requestPayload`, `responseBody` truncado)
+- [x] **F11** Histórico — detalhe da execução (`requestPayload`, `responseBody` truncado)
 - [ ] **[F12](../plans/frontend/f12-production.md)** Docker de produção (`frontend` + nginx) + job CI + READMEs
 
 ## Fase 6 — Polish
