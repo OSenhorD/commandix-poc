@@ -16,10 +16,11 @@
 | F04 | Login/logout — `AuthProvider.login`/`logout`, reidratação via `GET /auth/me`, schemas zod + react-hook-form |
 | F05 | Bootstrap — cadastro de tenant e admin, rate limiting `429`, conflitos `409` nos campos corretos |
 | F06 | Shell e componentes compartilhados — `AppShell` + `UserMenu`, tema claro/escuro persistente, `DataTable`/`PaginationBar`/`EmptyState`/`ErrorState`, `useListParams`, `Toaster` |
+| F07 | Integrações: listagem — `api.ts`/`hooks.ts`, `IntegrationTypeBadge`, tela com filtro `isActive` e paginação na URL |
 
 Briefs concluídos são **apagados**: o histórico fica nesta tabela, no [checklist](../spec/11-checklist.md) e no git.
 
-**Restante:** F07–F12.
+**Restante:** F08–F12.
 
 **Arquitetura:** SPA feature-sliced. `shared/api/client.ts` centraliza o `fetch` (Bearer + refresh single-flight); TanStack Query cuida de cache, paginação e invalidação; React Router 7 protege rotas por autenticação e papel; react-hook-form + zod validam formulários espelhando os DTOs `class-validator` do backend. Paginação e filtros vivem na URL, e a query key deriva dela.
 
@@ -29,7 +30,6 @@ Briefs concluídos são **apagados**: o histórico fica nesta tabela, no [checkl
 
 | # | Brief | Como se prova |
 |---|-------|----------------|
-| F07 | [Integrações: listagem](./frontend/f07-integrations-list.md) | Filtro e página na URL; VIEWER sem "Nova integração" |
 | F08 | [Integrações: formulário](./frontend/f08-integrations-form.md) | PATCH só do que mudou; `authKey` em branco não é enviada (6 testes) |
 | F09 | [Integrações: ações](./frontend/f09-integrations-actions.md) | Disparo mostra resultado; inativa bloqueia; exclusão avisa do cascade |
 | F10 | [Histórico: listagem](./frontend/f10-executions-list.md) | Filtros `status`/`from`/`to` na URL; `from > to` barrado no cliente |
@@ -38,13 +38,12 @@ Briefs concluídos são **apagados**: o histórico fica nesta tabela, no [checkl
 
 ### Ordem de execução
 
-Próxima entrega: **F07**. F08, F09 e F10 dependem de F07, mas não entre si — F09 e F10 tocam arquivos diferentes, e F09 só encosta na coluna de ações da lista, que F08 também edita (se forem em paralelo, F08 primeiro).
+Próxima entrega: **F08**. F08, F09 e F10 não dependem entre si — F09 e F10 tocam arquivos diferentes, e F09 só encosta na coluna de ações da lista, que F08 também edita (se forem em paralelo, F08 primeiro).
 
 ```
-F07 integrações (lista)
-      ├──▶ F08 formulário
-      ├──▶ F09 ações (toggle, excluir, disparar)
-      └──▶ F10 histórico ──▶ F11 detalhe ──▶ F12 produção + CI + docs
+F08 formulário
+F09 ações (toggle, excluir, disparar)
+F10 histórico ──▶ F11 detalhe ──▶ F12 produção + CI + docs
 ```
 
 ---
@@ -83,15 +82,12 @@ dc exec frontend npm run typecheck
 
 ## Mapa de arquivos (restante)
 
-Tudo de F01–F06 já está no repositório: `app/`, `shared/api/`, `shared/lib/`, `shared/components/` (data-table, paginação, vazio, erro), `shared/hooks/use-list-params.ts`, `components/layout/`, `features/auth/` completo, e os placeholders das páginas de F07–F11.
+Tudo de F01–F07 já está no repositório: `app/`, `shared/api/`, `shared/lib/`, `shared/components/` (data-table, paginação, vazio, erro), `shared/hooks/use-list-params.ts`, `components/layout/`, `features/auth/` completo, `features/integrations/{api,hooks}.ts` + `components/integration-type-badge.tsx` + listagem, e os placeholders das páginas de F08–F11.
 
 | Arquivo | Responsabilidade | Entrega |
 |---------|------------------|---------|
-| `src/features/integrations/api.ts` | Chamadas de integrações | F07 |
-| `src/features/integrations/hooks.ts` | Queries e mutations | F07 |
-| `src/features/integrations/pages/list.tsx` | Listagem (hoje placeholder) | F07 |
 | `src/features/integrations/pages/form.tsx` | Criar/editar (hoje placeholder) | F08 |
-| `src/features/integrations/components/*` | Badges, form, diálogos | F07–F09 |
+| `src/features/integrations/components/*` (form, diálogos) | Novos componentes de F08–F09 | F08–F09 |
 | `src/features/integrations/schemas.ts` | zod do formulário + `buildPatchPayload` | F08 |
 | `src/shared/components/json-field.tsx` | Campo JSON com validação | F08 |
 | `src/features/executions/*` | Histórico e detalhe | F10–F11 |
