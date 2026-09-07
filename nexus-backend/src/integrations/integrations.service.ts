@@ -97,6 +97,7 @@ export class IntegrationsService {
     const { total } = await this.database.orm.public.Integration.where(
       where,
     ).aggregate((aggregate) => ({ total: aggregate.count() }));
+
     const integrations = await this.database.orm.public.Integration.where(where)
       .select(
         'id',
@@ -108,7 +109,7 @@ export class IntegrationsService {
         'createdAt',
         'updatedAt',
       )
-      .orderBy((integration) => integration.updatedAt.desc())
+      .orderBy([(o) => o.type.asc(), (o) => o.name.asc()])
       .offset(offset)
       .limit(limit)
       .all();

@@ -10,12 +10,16 @@ Contexto para agentes de IA trabalhando neste repositório.
 
 ## Estado atual
 
+Status por entrega — fonte única: [`docs/spec/11-checklist.md`](./docs/spec/11-checklist.md). Resumo:
+
 | Componente | Status |
 |------------|--------|
-| `nexus-backend/` | **Funcional** — módulos `auth`, `tenants`, `integrations`, `executions`, `common`, `openapi`, `database`; Prisma 8 (contract + migration + seed); Docker (Dockerfile + entrypoint); testes unitários + e2e, incluindo os críticos (tenant isolation, guards, trigger, scoping de execuções) |
-| `nexus-frontend/` | **Funcional** — Vite 8 + React 19 + TS 6 + Tailwind 4 + shadcn; cliente HTTP (`apiFetch` + refresh single-flight); sessão (`AuthProvider`, login/logout, bootstrap); router e guardas; shell e componentes compartilhados; CRUD de integrações, disparo e histórico + detalhe de execuções; Docker de produção (nginx) |
-| Prisma 8 | `contract.prisma` — domínio Commandix; migration `20260903T0509_initial` |
-| Docker Compose | **dev:** `database` + `api` + `frontend`; **prod:** `database` + `api` + `frontend` (nginx) |
+| `nexus-backend/` | **Funcional** — módulos `auth`, `tenants`, `integrations`, `executions`, `common`, `openapi`, `database`; Prisma 8 (contract + migrations + seed); Docker; testes unitários + e2e, incluindo os críticos (tenant isolation, guards, trigger, scoping de execuções) |
+| `nexus-frontend/` | **Funcional** — escopo completo do protótipo (login/bootstrap, shell, CRUD de integrações, disparo, histórico + detalhe) e Docker de produção (nginx) |
+| Docker Compose | **dev:** `database` + `api` + `frontend` + `n8n-import` + `n8n` + `evolution-database` + `evolution-api`; **prod:** `database` + `api` + `frontend` (nginx) |
+| Bônus n8n + Evolution | **Funcional** — dois workflows versionados em [`docker/n8n/workflows/`](./docker/n8n/workflows/), importados e ativados pelo `n8n-import`: `Commandix Demo` (eco) e `Commandix WhatsApp` (`Commandix → n8n → Evolution API → WhatsApp`). Fluxo end-to-end no [`readme.md`](./readme.md) § Bônus — n8n |
+
+Em aberto: job de Docker Compose no CI e cobertura de testes além do mínimo crítico — ver [`docs/todo/`](./docs/todo/README.md).
 
 ## Arquitetura alvo
 
@@ -71,6 +75,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Truncamento | `responseBody` limitado a **10 240 bytes** UTF-8 (+ sufixo `… [truncated]` se cortado) |
 | PATCH integração | Parcial — todos os campos opcionais; `authKey` omitido mantém; JSON substitui inteiro |
 | Filtros de data | ISO 8601/RFC 3339; UTC; `from`/`to` **inclusive**; date-only `YYYY-MM-DD` → dia inteiro UTC; `from > to` → 400 |
+| `targetUrl` validação | `@IsUrl({ require_tld: false })` — o default do `class-validator` (`require_tld: true`) rejeita hostnames sem ponto, incluindo o hostname de serviço do Compose (`http://n8n:5678/...`, `http://localhost:...`) que o próprio readme manda colar no campo |
 | Paginação | Envelope `{ data, meta }` — `page`/`limit` (default 20, máx. 100); `meta`: `total`, `totalPages`, `hasNextPage`, `hasPreviousPage` — [05-api §5.0](./docs/spec/05-api.md#50-paginação-listagens) |
 | Listagem integrações | Filtro opcional `isActive`; `updatedAt DESC` — [05-api §5.3](./docs/spec/05-api.md#get-integrations) |
 | Frontend UI | **Escopo completo do protótipo** — login, logout, bootstrap, CRUD integrações (admin), trigger, histórico + detalhe; viewer somente leitura |
@@ -79,7 +84,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Frontend — imports | Alias `@/` → `src/` **sem** sufixo `.js` — ao contrário do backend, que exige `.js` |
 | Frontend — `erasableSyntaxOnly` | Ligado no `tsconfig.app.json`: **sem `enum`, `namespace` ou parameter property** (`constructor(private x)`). Usar união `as const` e atribuir no corpo do construtor |
 | Frontend — contexto React | Contexto e provider em arquivos separados (`*-context.ts` sem JSX + `*-provider.tsx`) — um arquivo que exporta componente **e** não-componente quebra o Fast Refresh |
-| Frontend — lint | **ESLint 10 (`strictTypeChecked`)** no frontend; **oxlint** no backend. Um linter por pacote, proposital — não unificar |
+| Frontend — lint | **ESLint 10 (`strictTypeChecked`)** no frontend; **oxlint** no backend. Um linter por pacote, proposital — não unificar. Typed lint usa `parserOptions.projectService` + `tsconfigRootDir` via `fileURLToPath` (não `import.meta.dirname`); no editor, `eslint.workingDirectories` aponta para `nexus-frontend`. Sem o programa TS certo, imports como `toast` do sonner viram tipo `error` e o `no-unsafe-call` / `no-unsafe-member-access` disparam |
 | Prettier | Isolado por pacote — `nexus-backend/.prettierrc` (aspas simples, estilo Nest) e `nexus-frontend/.prettierrc` (aspas duplas). Sem `.prettierrc` na raiz; a extensão VS Code resolve a config mais próxima do arquivo |
 | Frontend — sessão | `AuthProvider` (contexto) expõe `{ user, isLoading, login, logout, bootstrap }`; reidratação por `useQuery(["auth","me"])` → `GET /auth/me` |
 | Frontend — estado de lista | Paginação e filtros vivem na **URL** (`useSearchParams`); a query key do TanStack Query deriva da URL — sobrevive ao reload e o link é compartilhável |
@@ -100,10 +105,16 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Health | `GET /api/v1/health` → `{ "status": "ok" }` — público; Docker healthcheck |
 | Tokens frontend | `localStorage`, chaves `nexus.accessToken` / `nexus.refreshToken`, acessadas por `shared/lib/storage.ts` — **fora do React**, para o interceptor não depender da árvore de componentes |
 | CORS (dev, container Vite) | `http://localhost:5173` → API `:3000`; ver [08-docker §8.8](./docs/spec/08-docker.md#88-cors) |
-| Seed Docker | Idempotente; pula se tenant `acme` existir |
-| Seed no startup | **Sempre** no entrypoint Docker (`db migrate` → seed → start); idempotente — não re-insere se `acme` já existir; **decisão consciente da PoC**, não padrão de produção |
+| Seed — conteúdo | 2 tenants (`acme`, `globex`) × 2 users (ADMIN + VIEWER) × 3 integrações (um `WEBHOOK`, um `REST_API`, um `N8N`; **uma inativa por tenant**) × 10 execuções — ver [04-modelo-dados §4.4](./docs/spec/04-modelo-dados.md#44-seed) |
+| Seed — idempotência | **Por tenant**: cada slug é checado individualmente e só o que falta é criado; `runSeed()` devolve `'skipped'` só quando todos já existiam. Banco antigo (só `acme`) ganha `globex` na próxima subida, sem `down -v` |
+| Seed — `executedAt` | Deslocamento em **horas a partir do `Date.now()` do seed**, não data fixa — o histórico demo continua recente em qualquer banco novo |
+| Seed no startup | **Sempre** no entrypoint Docker (`db migrate` → seed → start); **decisão consciente da PoC**, não padrão de produção |
 | Node | **24.16.0** — `engines` em `nexus-backend/package.json`; imagem Docker `node:24.16.0-alpine` |
 | Docker Compose (arquivos) | `docker/production/docker-compose.yml` e `docker/development/docker-compose.yml`; Dockerfiles em `nexus-backend/` (`docker/production/Dockerfile`/`docker/development/Dockerfile`) |
+| n8n | `n8nio/n8n:2.37.11`, **só em desenvolvimento**; serviço externo — independente da API (sem `depends_on` entre os dois); SQLite no volume `n8n_dev_data`, não usa o Postgres do projeto; `N8N_WEBHOOK_URL=http://n8n:5678/` para a URL da UI já ser a que a API alcança |
+| n8n-import | Roda antes do `n8n` (`depends_on: service_completed_successfully`); `for f in /workflows/*.json` importa e ativa **todos** os arquivos do diretório via `n8n import:workflow` + `n8n publish:workflow` (o `import:workflow` sempre desativa; `activeState=fromJson` só existe em modo queue/multi-main); `restart: "no"`, mesma `N8N_ENCRYPTION_KEY` do `n8n` |
+| evolution-api | `evoapicloud/evolution-api:v2.3.7`, **só em desenvolvimento**; API REST de WhatsApp consumida pelo **workflow do n8n**, não pelo backend; auth por header `apikey` (`AUTHENTICATION_API_KEY`); sem Redis (`CACHE_LOCAL_ENABLED=true`); UI de pareamento em `/manager`; sessões no volume `evolution_dev_data` |
+| evolution-database | `postgres:16-alpine` dedicado ao Evolution, volume `evolution_dev_db_data`, sem porta publicada — serviço externo não compartilha o Postgres da aplicação |
 | PostgreSQL | **16** (`postgres:16-alpine`) — alvo da app; atende mínimo Prisma Next 15+ |
 | Imports backend | Alias **`@/`** → `src/`; sufixo **`.js`** obrigatório; build com **`tsc-alias`** |
 | CI | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — jobs `validate` (backend) e `frontend` (lint, test, build); **não** há job de Docker Compose |
@@ -140,7 +151,7 @@ As regras em [`.agents/rules/`](./.agents/rules/) são markdown puro, sem metada
 
 ### Banco (Prisma 8)
 
-- Domínio: [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md) §4.1–4.3. Seed idempotente em `src/prisma/seed.ts` (senha `Admin123!`)
+- Domínio: [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md) §4.1–4.3. Seed idempotente em `src/prisma/seed.ts` (§4.4; senha `Admin123!`)
 - Comandos rodam dentro do container `api` (Compose de desenvolvimento), nunca no host — ver [`readme.md`](./readme.md) § Prisma 8
 
 ### Testes
@@ -187,19 +198,9 @@ Subir o ambiente, variáveis, testes e o workflow completo do Prisma: [`readme.m
 - Não adicionar TanStack Table, axios ou date-fns — fora do escopo escolhido (tabelas fixas, `fetch`, `Intl`)
 - Não criar `.prettierrc` na raiz — Prettier é isolado por pacote (`nexus-backend/` e `nexus-frontend/`)
 
-## Arquivos de referência
-
-| Arquivo | Conteúdo |
-|---------|----------|
-| `docs/spec/` | Spec funcional, API, schema, checklist |
-| `.agents/rules/*.md` | Regras por domínio — quando ler cada uma: § Regras por domínio |
-| `nexus-backend/.agents/skills/prisma-8/` | Skill Prisma 8 (sync via `npm run skills:sync`) |
-| `readme.md` | Setup, seed, decisões do candidato |
-| `docs/todo/` | Fila viva: `frontend/<slug>.md` ou `backend/<slug>.md`. Item concluído se apaga; ver [`docs/todo/README.md`](./docs/todo/README.md) |
-
 ## Fluxo de trabalho sugerido para IA
 
-1. **Antes de implementar:** se a tarefa não estiver bem explicada (spec/critério de done ambíguo ou incompleto), fazer perguntas relevantes ao usuário antes de codar — não assumir. Se já bem explicada (ticket com escopo, arquivos e critério de done claros, ex.: entregas em `docs/plans/`), pode prosseguir direto
+1. **Antes de implementar:** se a tarefa não estiver bem explicada (spec/critério de done ambíguo ou incompleto), fazer perguntas relevantes ao usuário antes de codar — não assumir. Se já bem explicada (escopo, arquivos e critério de done claros), pode prosseguir direto
 2. Ler o arquivo relevante em `docs/spec/`
 3. Consultar **decisões adotadas** neste arquivo antes de implementar
 4. Verificar [checklist](./docs/spec/11-checklist.md) antes e depois da tarefa
@@ -207,7 +208,7 @@ Subir o ambiente, variáveis, testes e o workflow completo do Prisma: [`readme.m
 6. Abrir a regra de domínio correspondente ao que vai editar — tabela em § Regras por domínio
 7. Implementar com diff mínimo
 8. Rodar testes/lint dentro do container `api` (Compose de desenvolvimento) antes de declarar concluído
-9. **Ao concluir uma entrega:** marcar o item em [`docs/spec/11-checklist.md`](./docs/spec/11-checklist.md); se a entrega tiver um brief em `docs/plans/`, atualizar o índice (mover para "já entregue", tirar a linha da tabela) e **apagar** o brief; apagar também qualquer `docs/todo/<frontend|backend>/<slug>.md` que a entrega tenha absorvido
+9. **Ao concluir uma entrega:** marcar o item em [`docs/spec/11-checklist.md`](./docs/spec/11-checklist.md) e **apagar** qualquer `docs/todo/<frontend|backend>/<slug>.md` que a entrega tenha absorvido
 10. **Ao observar** uma feature, erro ou refactor fora do escopo da entrega atual: criar `docs/todo/<frontend|backend>/<slug>.md` (nunca solto em `docs/todo/`), sem bloquear a entrega. Ver [`docs/todo/README.md`](./docs/todo/README.md)
 11. **Ao observar** um padrão de código, decisão técnica ou comportamento não óbvio da stack (ex.: tipagem de um campo no ORM, convenção implícita repetida em vários arquivos): registrar aqui neste `AGENTS.md`, na seção de **decisões adotadas** ou **convenções**, conforme o caso
 12. Atualizar README apenas quando pedido ou ao finalizar fase

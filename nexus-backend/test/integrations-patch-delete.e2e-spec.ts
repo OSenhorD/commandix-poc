@@ -82,6 +82,21 @@ describe.skipIf(!hasDatabase)('PATCH/DELETE /integrations (e2e)', () => {
     return response.body.id as string;
   }
 
+  it('POST accepts a targetUrl without a public TLD (Docker service hostname)', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/integrations')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        name: `N8N Docker host ${Date.now()}`,
+        type: 'N8N',
+        targetUrl: 'http://n8n:5678/webhook/commandix',
+        isActive: true,
+      })
+      .expect(201);
+
+    expect(response.body.targetUrl).toBe('http://n8n:5678/webhook/commandix');
+  });
+
   it('PATCH { isActive: false } deactivates the integration', async () => {
     const id = await createIntegration(`Deactivate ${Date.now()}`);
 

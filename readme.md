@@ -2,6 +2,18 @@
 
 Plataforma de automação B2B — módulo de gestão de integrações multi-tenant.
 
+## O que está implementado
+
+- **Autenticação JWT** — `login`, `refresh`, `logout` e `me`; `tenantId` e `role` viajam no access token
+- **RBAC** — `ADMIN` cria, edita, exclui e dispara integrações; `VIEWER` só lê. Gate no backend (guard de role) e no frontend (rota protegida)
+- **CRUD de integrações** — tipos `WEBHOOK`, `REST_API` e `N8N`, com `authKey` (mascarada na resposta), headers customizados, payload padrão e flag de ativação
+- **Disparo manual** — POST na URL de destino com timeout, gravando a execução com status, código HTTP, tempo de resposta e corpo devolvido
+- **Histórico de execuções** — por integração, com filtros de status e período, paginação e tela de detalhe do request/response
+- **Isolamento multi-tenant** — todo acesso filtra pelo `tenantId` do JWT; recurso de outro tenant devolve 404
+- **Bootstrap** — rota pública (com rate limit) que cria um tenant novo e seu primeiro `ADMIN`, para avaliar o fluxo do zero
+
+Tudo é operável pela UI em http://localhost:5173 e pelo Swagger em http://localhost:3000/api/docs.
+
 ## Documentação
 
 | Arquivo | Descrição |
@@ -42,16 +54,23 @@ Aguarde os healthchecks. A API sobe sozinha executando `prisma db migrate` → s
 | OpenAPI JSON | http://localhost:3000/api/openapi.json | Documento OpenAPI 3.x via `@nestjs/swagger` |
 | PostgreSQL | `localhost:5432` | Só no compose de desenvolvimento; user/senha/db default `commandix` |
 | Frontend | http://localhost:5173 | Compose de **desenvolvimento** ou **produção** (nginx servindo o build estático + proxy `/api/`) |
+| n8n | http://localhost:5678 | Bônus; só no compose de **desenvolvimento**. Primeiro acesso pede criar a conta owner |
+| Evolution API | http://localhost:8080 | Extra do bônus; só no compose de **desenvolvimento**. UI de pareamento em `/manager` (login com a `apikey`) |
 
 ### Credenciais demo (seed)
 
-| Campo | Valor |
-|-------|-------|
-| Tenant | `Acme Corp` (slug `acme`) |
-| Admin | `admin@acme.com` / `Admin123!` |
-| Viewer | `viewer@acme.com` / `Admin123!` |
+Dois tenants, senha `Admin123!` para todos os usuários:
 
-O seed roda no entrypoint da API em toda subida e é idempotente: se o tenant `acme` já existir, encerra sem inserir nada.
+| Tenant | Admin | Viewer |
+|--------|-------|--------|
+| `Acme Corp` (slug `acme`) | `admin@acme.com` | `viewer@acme.com` |
+| `Globex Industries` (slug `globex`) | `admin@globex.com` | `viewer@globex.com` |
+
+O papel decide o que a API e a UI liberam: `ADMIN` cria, edita, exclui e dispara integrações; `VIEWER` lista integrações e execuções e nada mais. Logando como `viewer@acme.com`, as ações de escrita somem da tela e as rotas correspondentes devolvem `403` — é o gate de role funcionando, não uma tela quebrada.
+
+Cada tenant já vem com **3 integrações** (uma de cada `type`; uma delas inativa, para exercitar o `400` do disparo em integração desativada) e **10 execuções** de histórico, misturando `SUCCESS`, `FAILURE` com código HTTP e falha de rede (`httpStatusCode` nulo). Logar nos dois tenants mostra que cada um só enxerga os próprios dados.
+
+O seed roda no entrypoint da API em toda subida e é idempotente **por tenant**: cada slug é verificado individualmente e só o que faltar é criado. Detalhe dos dados em [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md#44-seed).
 
 ## Comandos
 
@@ -69,7 +88,7 @@ O Compose de desenvolvimento precisa estar no ar para os comandos abaixo.
 dc up --build -d        # subir em background
 dc logs -f api          # acompanhar a API
 dc down                 # parar
-dc down -v              # parar e apagar o volume do Postgres (reset do banco)
+dc down -v              # parar e apagar os volumes (reset do banco, dos workflows do n8n **e** do pareamento do WhatsApp — exige celular físico e novo QR code)
 dc up database -d       # subir só o banco
 ```
 
@@ -84,7 +103,7 @@ dc exec api npm run test:cov   # com cobertura
 dc exec frontend npm test      # frontend (cliente HTTP e gate de role)
 ```
 
-Os e2e usam o `TEST_DATABASE_URL` que o Compose de desenvolvimento já injeta (banco `commandix_test`). O `seed.e2e-spec.ts` é ignorado se `DATABASE_URL` não estiver definida.
+Os e2e escrevem no banco (seed, tenants, execuções), então `npm run test:e2e` roda o [`scripts/test-e2e.sh`](./nexus-backend/scripts/test-e2e.sh): quando `TEST_DATABASE_URL` existe — o Compose de desenvolvimento a injeta apontando para o banco `commandix_test` — o script aplica `prisma db migrate` nesse banco e roda a suíte contra ele, deixando o banco de desenvolvimento intacto. Sem a variável (CI, banco descartável), cai no `DATABASE_URL`. Para rodar o vitest direto, sem o wrapper: `npm run test:e2e:run`. O `seed.e2e-spec.ts` é ignorado se `DATABASE_URL` não estiver definida.
 
 ### Lint e formatação
 
@@ -97,6 +116,10 @@ dc exec frontend npm run typecheck   # tsc -b
 dc exec api npm run format           # Prettier (write) — idem para o frontend
 dc exec api npm run format:check     # Prettier (só verifica) — idem para o frontend
 ```
+
+### Pre-commit
+
+O hook de pre-commit (Husky, na raiz) roda `format`, `lint` e `test:related` **dentro dos containers**, só nos arquivos em stage de cada pacote. O Compose de desenvolvimento precisa estar no ar — sem ele o commit falha avisando qual serviço subir.
 
 ### Prisma 8
 
@@ -116,6 +139,106 @@ Skill de referência: [`nexus-backend/.agents/skills/prisma-8/SKILL.md`](./nexus
 
 O `docker/production/Dockerfile` da API já executa `contract:emit` e `build`; o entrypoint cuida de migrate + seed + start. No dia a dia o watch mode rebuilda sozinho, mas `dc exec api npm run build` força uma compilação (`nest build` + `tsc-alias`).
 
+## Bônus — n8n
+
+O compose de desenvolvimento sobe um n8n em http://localhost:5678 para exercitar o tipo de integração `N8N`. Ele é um **serviço externo**: a plataforma não depende dele para subir, ele não espera pela API, e não existe no compose de produção.
+
+São **dois workflows versionados**, ambos importados e ativados pelo `n8n-import` antes do `n8n` iniciar (`depends_on: service_completed_successfully`) — não é preciso montar nada na UI para testar:
+
+| Workflow | Webhook (dentro do Compose) | O que faz |
+|----------|------------------------------|-----------|
+| **Commandix Demo** | `http://n8n:5678/webhook/commandix` | Eco: devolve em JSON o payload recebido, com carimbo de tempo |
+| **Commandix WhatsApp** | `http://n8n:5678/webhook/commandix-whatsapp` | Envia o texto por WhatsApp chamando o [Evolution API](https://github.com/evolution-foundation/evolution-api) |
+
+O segundo fecha o fluxo `Commandix → n8n → Evolution API → WhatsApp`: o `defaultPayload` da integração é o que define destinatário (`number`) e conteúdo (`text`). Os arquivos ficam em [`docker/n8n/workflows/`](./docker/n8n/workflows/).
+
+### 1. Primeiro acesso
+
+Abra http://localhost:5678 e crie a conta owner (e-mail e senha quaisquer — ficam no volume `n8n_dev_data`). O n8n removeu o basic auth por variável de ambiente na linha 1.x; a conta owner é o único login. Os workflows **Commandix Demo** e **Commandix WhatsApp** já aparecem na lista, ativos.
+
+### 2. Parear o WhatsApp (Evolution API)
+
+Só é necessário para o workflow **Commandix WhatsApp**. Crie a instância (uma vez só) e conecte o celular:
+
+```bash
+curl -X POST http://localhost:8080/instance/create \
+  -H 'apikey: dev-evolution-api-key' \
+  -H 'Content-Type: application/json' \
+  -d '{"instanceName":"commandix","integration":"WHATSAPP-BAILEYS","qrcode":true}'
+```
+
+Abra http://localhost:8080/manager, entre com a mesma chave (`EVOLUTION_API_KEY`), clique na instância `commandix` e leia o QR code no celular (WhatsApp → **Aparelhos conectados** → **Conectar aparelho**). Para confirmar:
+
+```bash
+curl -s http://localhost:8080/instance/connectionState/commandix -H 'apikey: dev-evolution-api-key'
+```
+
+O pareamento fica no volume `evolution_dev_data` e sobrevive a `dc down`. Sem parear, o disparo continua percorrendo o fluxo inteiro — o n8n responde 200 e a execução registra o erro que o Evolution devolveu, em vez da mensagem.
+
+### 3. Cadastrar a integração
+
+Copie a **Production URL** do nó Webhook de cada workflow (aba do workflow → nó **Webhook**). Graças a `N8N_WEBHOOK_URL` (fixada no compose) ela já sai como `http://n8n:5678/webhook/...` — o hostname que a API enxerga dentro da rede do Compose. Em http://localhost:5173 → **Integrações** → **Nova integração**:
+
+**Eco (Commandix Demo):**
+
+| Campo | Valor |
+|-------|-------|
+| Nome | `n8n demo` |
+| Tipo | `N8N` |
+| URL de destino | `http://n8n:5678/webhook/commandix` |
+| Payload padrão | `{ "pedido": 42 }` |
+
+**WhatsApp (Commandix WhatsApp):**
+
+| Campo | Valor |
+|-------|-------|
+| Nome | `n8n whatsapp` |
+| Tipo | `N8N` |
+| URL de destino | `http://n8n:5678/webhook/commandix-whatsapp` |
+| Payload padrão | `{ "number": "5511999999999", "text": "Olá do Commandix" }` |
+
+> No workflow de WhatsApp, `number` vai só com dígitos, incluindo DDI e DDD. `text` é o corpo da mensagem — se você omitir, o workflow usa um texto padrão.
+
+> Se a URL aparecer com `localhost`, troque por `n8n` antes de salvar — `localhost` dentro do container da API aponta para a própria API, não para o n8n.
+
+### 4. Testar end-to-end
+
+Na lista de integrações, clique em **Disparar**. Em **Execuções**, o registro deve sair com status `SUCCESS`, `httpStatusCode` 200 e o `responseBody` contendo o JSON devolvido pelo nó *Respond to Webhook*. No n8n, a aba **Executions** mostra o mesmo disparo do outro lado.
+
+Disparando a integração `n8n whatsapp`, a execução sai igualmente com `SUCCESS` e `httpStatusCode` 200 — o 200 é do n8n —, mas o `responseBody` traz `"statusCode": 201`, que é o status com que o Evolution aceitou a mensagem, e o WhatsApp do número informado recebe o texto.
+
+Para bater no webhook direto do host, sem passar pela plataforma, use `localhost` no lugar de `n8n`:
+
+```bash
+curl -X POST http://localhost:5678/webhook/commandix \
+  -H 'Content-Type: application/json' \
+  -d '{"pedido":42}'
+```
+
+E para o workflow de WhatsApp:
+
+```bash
+curl -X POST http://localhost:5678/webhook/commandix-whatsapp \
+  -H 'Content-Type: application/json' \
+  -d '{"number":"5511999999999","text":"Teste direto"}'
+```
+
+### Editar o workflow
+
+Editou um workflow na UI e quer versionar a mudança? O `n8n-import` importa **todos** os `.json` do diretório, então basta exportar pelo `id` e salvar no arquivo correspondente:
+
+| Workflow | `id` | Arquivo |
+|----------|------|---------|
+| Commandix Demo | `al0kKuoHKErreeDP` | `docker/n8n/workflows/commandix.json` |
+| Commandix WhatsApp | `29MkQ7cmZw6ZtzY8` | `docker/n8n/workflows/commandix-whatsapp.json` |
+
+```bash
+dc exec n8n n8n export:workflow --id=al0kKuoHKErreeDP --output=/tmp/wf.json
+docker cp commandix-poc-n8n-1:/tmp/wf.json docker/n8n/workflows/commandix.json
+```
+
+O export já sai no formato de lista que o `n8n-import` espera. Para reimportar sem derrubar o resto do ambiente: `dc up -d --force-recreate n8n-import` seguido de `dc up -d --force-recreate n8n`. `dc down -v` também força a reimportação (apaga `n8n_dev_data`), mas é mais drástico: apaga junto o pareamento do WhatsApp (`evolution_dev_data` e `evolution_dev_db_data`), que não se reconstrói sozinho — exige o celular físico de novo e um novo QR code.
+
 ## Variáveis de ambiente
 
 Copie `.env.example` → `.env` na **raiz** do monorepo. Lista completa e variáveis derivadas pelo Compose: [`docs/spec/08-docker.md`](./docs/spec/08-docker.md) §8.2.
@@ -128,9 +251,16 @@ Copie `.env.example` → `.env` na **raiz** do monorepo. Lista completa e variá
 | `DB_DATABASE` / `DB_USERNAME` | `commandix` | Postgres no Compose |
 | `DB_PORT` | `5432` | Porta exposta do Postgres — **só em desenvolvimento**; em produção o banco não publica porta no host |
 | `API_PORT` | `3000` | Porta exposta da API |
+| `FRONTEND_PORT` | `5173` | Porta exposta do frontend |
 | `ENABLE_API_DOCS` | `true` | Liga/desliga `/api/docs` e `/api/openapi.json` (`false` → 404) |
 | `VITE_API_URL` | `/api/v1` | Base do cliente HTTP no browser — override opcional |
 | `VITE_API_PROXY_TARGET` | `http://api:3000` | Alvo do proxy do `vite dev` |
+| `N8N_PORT` | `5678` | Porta exposta do n8n — **só em desenvolvimento** |
+| `N8N_ENCRYPTION_KEY` | `dev-n8n-encryption-key` | Cifra as credenciais do n8n no volume `n8n_dev_data`; trocá-la torna ilegíveis as já gravadas |
+| `EVOLUTION_PORT` | `8080` | Porta exposta do Evolution API — **só em desenvolvimento** |
+| `EVOLUTION_API_KEY` | `dev-evolution-api-key` | Chave global do Evolution, usada no header `apikey`; o mesmo valor vai para o n8n |
+| `EVOLUTION_DB_PASSWORD` | `evolution` | Senha do Postgres dedicado do Evolution |
+| `EVOLUTION_INSTANCE` | `commandix` | Nome da instância do WhatsApp usada pelo workflow `Commandix WhatsApp` |
 
 A API recebe `DATABASE_URL` montada internamente pelo Compose (`database:5432`) — não vai no `.env`.
 
@@ -150,7 +280,7 @@ A validação por Docker Compose ainda não existe — ver [`docs/todo/backend/c
 | API NestJS | `nexus-backend/` | Funcional — auth, tenants, integrações, execuções, OpenAPI, testes críticos |
 | Frontend React | `nexus-frontend/` | Funcional — login/bootstrap, shell, CRUD de integrações, disparo, histórico + detalhe, Docker de produção |
 | PostgreSQL + Prisma 8 | `nexus-backend/src/prisma/` | Contract + migrations + seed |
-| Docker Compose | `docker/` | Dev: `database` + `api` + `frontend`; prod: `database` + `api` + `frontend` (nginx) |
+| Docker Compose | `docker/` | Dev: `database` + `api` + `frontend` + `n8n-import` + `n8n` + `evolution-database` + `evolution-api`; prod: `database` + `api` + `frontend` (nginx) |
 
 ## Decisões técnicas
 
@@ -162,7 +292,7 @@ Log completo das decisões em [`AGENTS.md`](./AGENTS.md) § Decisões adotadas. 
 
 **Disparo HTTP sem retry.** Sempre POST, timeout de 30s, uma tentativa. Retry automático em webhook não idempotente duplicaria efeito no serviço externo; o registro da execução fica com `FAILURE` e o reenvio é manual. `responseBody` é truncado em 10 240 bytes UTF-8 para o histórico não virar depósito de payload.
 
-**Seed no entrypoint, em toda subida.** Garante que `docker compose up` entregue dados demo funcionais ao avaliador. É idempotente (pula se o tenant `acme` existir), mas **não é padrão de produção** — em produção real o seed não roda a cada deploy.
+**Seed no entrypoint, em toda subida.** Garante que `docker compose up` entregue dados demo funcionais ao avaliador — dois tenants, com integrações e histórico, para o isolamento multi-tenant e as telas de listagem/filtro serem avaliáveis sem cadastro manual. É idempotente por tenant (pula os slugs que já existirem), mas **não é padrão de produção** — em produção real o seed não roda a cada deploy.
 
 **Tokens no `localStorage` do frontend.** Escolha de PoC, com a limitação conhecida de exposição a XSS. A alternativa mais defensável seria refresh token em cookie `httpOnly` + `SameSite`, que exigiria mesma origem ou CORS com credenciais. O acesso é isolado em `shared/lib/storage.ts`, então a troca fica contida num arquivo.
 
@@ -170,7 +300,8 @@ Log completo das decisões em [`AGENTS.md`](./AGENTS.md) § Decisões adotadas. 
 
 - **CI sem validação de Docker Compose** — o workflow valida o backend direto no runner; ninguém garante que `docker compose up` sobe. Ver [`docs/todo/backend/ci-sem-job-docker.md`](./docs/todo/backend/ci-sem-job-docker.md).
 - **`authKey` sem criptografia at-rest** — ver decisão acima.
-- **Bônus não implementados** — workflow n8n e cobertura de testes além do mínimo crítico.
+- **Execução de integração `N8N` sempre registra `SUCCESS`** — o workflow **Commandix WhatsApp** responde 200 ao Commandix mesmo quando o Evolution recusa a mensagem (WhatsApp não pareado, número inválido). É deliberado, para o fluxo ser demonstrável sem celular pareado, mas o histórico marca sucesso e o status real do Evolution fica só dentro do `responseBody`, que a plataforma guarda e não interpreta. Refletir o resultado real exigiria o backend ler esse campo — ver [`docs/todo/backend/n8n-execucao-sempre-success.md`](./docs/todo/backend/n8n-execucao-sempre-success.md).
+- **Testes extras (bônus) não implementados** — a suíte cobre o mínimo crítico: isolamento de tenant, guards de auth e role, disparo e scoping de execuções. O outro bônus, o do n8n, **está** implementado — ver § Bônus — n8n.
 - Demais itens da fila em [`docs/todo/`](./docs/todo/README.md).
 
 ## Licença

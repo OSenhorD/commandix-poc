@@ -183,7 +183,7 @@ model RefreshToken {
 | `name` | string | sim | |
 | `type` | enum | sim | `WEBHOOK` \| `REST_API` \| `N8N` |
 | `targetUrl` | string | sim | URL de destino |
-| `authKey` | string | não | At-rest: texto ou criptografia — **documentar escolha no README final**; **mascarada na API** |
+| `authKey` | string | não | At-rest: **texto plano** (decisão de PoC, justificada no [`readme.md`](../../readme.md) § Decisões técnicas); **mascarada na API** |
 | `customHeaders` | JSON | não | Objeto chave-valor |
 | `defaultPayload` | JSON | não | Payload padrão para disparos |
 | `isActive` | boolean | sim | Default: `true` |
@@ -215,17 +215,25 @@ model RefreshToken {
 | `expiresAt` | datetime | sim | |
 | `revokedAt` | datetime | não | Preenchido no logout **deste** refresh token (dispositivo atual) |
 
-## 4.4 Seed sugerido
+## 4.4 Seed
 
 Implementado em `nexus-backend/src/prisma/seed.ts` (idempotente). Senha padrão: `Admin123!` (ver [`readme.md`](../../readme.md)).
 
-Entrypoint Docker **sempre** executa seed após migrate; pula inserção se tenant `acme` já existir ([08-docker](./08-docker.md) §8.5).
+Entrypoint Docker **sempre** executa seed após migrate. A idempotência é **por tenant**: cada slug é verificado individualmente e só o que falta é criado ([08-docker](./08-docker.md) §8.5).
 
 O `VIEWER` abaixo é **dado demo** inserido pelo seed — não há API de convite/criação de usuários ([02-escopo §2.1](./02-escopo-funcional.md)).
 
-| Entidade | Dados |
-|----------|-------|
-| Tenant | `Acme Corp` (slug: `acme`) |
-| User Admin | `admin@acme.com` / `Admin123!` |
-| User Viewer | `viewer@acme.com` / `Admin123!` |
-| Integration | 1 webhook (`Echo Webhook`, tipo `WEBHOOK`) |
+Dois tenants, para o isolamento multi-tenant ser verificável logo após `docker compose up`:
+
+| Tenant | Users | Integrações | Execuções |
+|--------|-------|-------------|-----------|
+| `Acme Corp` (slug `acme`) | `admin@acme.com` (ADMIN), `viewer@acme.com` (VIEWER) | `Echo Webhook` (`WEBHOOK`, ativa), `CRM Sync` (`REST_API`, **inativa**), `n8n Demo Flow` (`N8N`, ativa) | 10 (5 / 3 / 2) |
+| `Globex Industries` (slug `globex`) | `admin@globex.com` (ADMIN), `viewer@globex.com` (VIEWER) | `Order Webhook` (`WEBHOOK`, ativa), `Billing API` (`REST_API`, ativa), `n8n WhatsApp Alerts` (`N8N`, **inativa**) | 10 (5 / 3 / 2) |
+
+Senha de todos os usuários: `Admin123!`.
+
+Escolhas dos dados demo:
+
+- Os três valores de `IntegrationType` aparecem em cada tenant, e **cada tenant tem exatamente uma integração inativa** — exercita a rejeição `400` do trigger em integração inativa.
+- As 20 execuções misturam `SUCCESS` e `FAILURE`, incluindo dois casos de erro de rede (`httpStatusCode: null`, `responseTimeMs` no teto de 30 s) — cobre o filtro por status e a coluna de código HTTP vazia no detalhe.
+- `executedAt` é gravado como deslocamento em horas a partir do momento do seed (1 h a 143 h atrás), então o histórico continua "recente" a cada banco novo e os filtros de data têm dados dentro e fora de qualquer janela curta.

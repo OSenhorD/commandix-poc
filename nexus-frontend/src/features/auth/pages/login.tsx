@@ -78,6 +78,12 @@ export function LoginPage() {
               </Link>
             </p>
           </form>
+
+          <div className="mt-4 rounded-md border border-dashed border-muted-foreground/40 bg-muted/30 p-3 text-xs text-muted-foreground">
+            <p className="font-medium text-foreground">Dados demo</p>
+            <p>Admin: admin@acme.com / Admin123!</p>
+            <p>Viewer: viewer@acme.com / Admin123!</p>
+          </div>
         </CardContent>
       </Card>
     </main>

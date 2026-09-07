@@ -55,8 +55,6 @@ export function toFormValues(integration: Integration): IntegrationFormValues {
     name: integration.name,
     type: integration.type,
     targetUrl: integration.targetUrl,
-    // NUNCA pré-preencher: a API devolve a authKey mascarada ("****-key").
-    // Reenviar esse valor sobrescreveria a credencial real.
     authKey: "",
     customHeaders: stringifyJsonObject(integration.customHeaders),
     defaultPayload: stringifyJsonObject(integration.defaultPayload),
@@ -76,25 +74,36 @@ export function buildCreatePayload(values: IntegrationFormValues): CreateIntegra
   };
 }
 
-/** PATCH parcial: só o que mudou. Body vazio nunca deve ser enviado (a API responde 400). */
 export function buildPatchPayload(
   initial: IntegrationFormValues,
   values: IntegrationFormValues,
 ): UpdateIntegrationInput {
   const patch: UpdateIntegrationInput = {};
 
-  if (values.name !== initial.name) patch.name = values.name;
-  if (values.type !== initial.type) patch.type = values.type;
-  if (values.targetUrl !== initial.targetUrl) patch.targetUrl = values.targetUrl;
-  if (values.isActive !== initial.isActive) patch.isActive = values.isActive;
+  if (values.name !== initial.name) {
+    patch.name = values.name;
+  }
 
-  // Campo em branco significa "manter a chave atual".
-  if (values.authKey !== "") patch.authKey = values.authKey;
+  if (values.type !== initial.type) {
+    patch.type = values.type;
+  }
 
-  // JSON substitui o objeto inteiro (não é merge); limpar o campo envia {}.
+  if (values.targetUrl !== initial.targetUrl) {
+    patch.targetUrl = values.targetUrl;
+  }
+
+  if (values.isActive !== initial.isActive) {
+    patch.isActive = values.isActive;
+  }
+
+  if (values.authKey !== "") {
+    patch.authKey = values.authKey;
+  }
+
   if (values.customHeaders !== initial.customHeaders) {
     patch.customHeaders = (parseJsonObject(values.customHeaders) as Record<string, string> | undefined) ?? {};
   }
+
   if (values.defaultPayload !== initial.defaultPayload) {
     patch.defaultPayload = parseJsonObject(values.defaultPayload) ?? {};
   }

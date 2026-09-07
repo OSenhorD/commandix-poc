@@ -1,0 +1,98 @@
+[
+  {
+    "id": "29MkQ7cmZw6ZtzY8",
+    "name": "Commandix WhatsApp",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "4028231f-2b39-49c8-b5f4-bcdfcede1600",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [0, 0],
+        "webhookId": "f4c31a9a-2dbd-477d-95ed-5fb6dd4e8f97",
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "commandix-whatsapp",
+          "responseMode": "responseNode",
+          "options": {}
+        }
+      },
+      {
+        "id": "9f394493-1151-4a03-abd2-ab050c5da08b",
+        "name": "Preparar mensagem",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [220, 0],
+        "parameters": {
+          "jsCode": "const body = $input.first().json.body ?? {};\n\nreturn [{\n  json: {\n    number: String(body.number ?? ''),\n    text: String(body.text ?? body.message ?? 'Disparo de teste do Commandix'),\n    recebidoEm: new Date().toISOString(),\n  },\n}];"
+        }
+      },
+      {
+        "id": "479c2194-29dd-4869-9d5d-c0fd19a6e288",
+        "name": "Evolution API",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [440, 0],
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "method": "POST",
+          "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $env.EVOLUTION_API_KEY }}"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ number: $json.number, text: $json.text }) }}",
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "fccb993b-8450-4ee0-a766-5fb77a61931b",
+        "name": "Respond to Webhook",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [660, 0],
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify({ origem: 'commandix', instancia: $env.EVOLUTION_INSTANCE, statusCode: $json.statusCode ?? null, resposta: $json.body ?? $json.error ?? null }) }}",
+          "options": {}
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [[{ "node": "Preparar mensagem", "type": "main", "index": 0 }]]
+      },
+      "Preparar mensagem": {
+        "main": [[{ "node": "Evolution API", "type": "main", "index": 0 }]]
+      },
+      "Evolution API": {
+        "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "staticData": null,
+    "nodeGroups": [],
+    "pinData": null,
+    "triggerCount": 1,
+    "tags": []
+  }
+]

@@ -22,7 +22,7 @@ export class CreateIntegrationDto {
   type!: IntegrationTypeEnum;
 
   @ApiProperty({ example: 'https://webhook.site/abc-123' })
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   targetUrl!: string;
 
   @ApiPropertyOptional({ example: 'secret-key' })

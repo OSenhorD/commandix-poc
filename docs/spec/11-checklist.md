@@ -9,7 +9,7 @@
 - [x] Domínio Prisma 8 (`contract.prisma` + migrations)
 - [x] `DatabaseModule` (wrapper do client Prisma)
 - [x] Bootstrap da aplicação NestJS (`main.ts`, prefixo `api/v1`, `GET /health`)
-- [x] Seed idempotente (`src/prisma/seed.ts`)
+- [x] Seed idempotente (`src/prisma/seed.ts`) — 2 tenants × 3 integrações × 10 execuções ([04-modelo-dados §4.4](./04-modelo-dados.md#44-seed))
 - [x] Docker Compose (`database` + `api` + `frontend` dev — F01; `frontend` prod com nginx — F12)
 
 ## Fase 2 — Auth
@@ -57,4 +57,5 @@
 - [x] README com decisões
 - [x] Testes críticos (auth, tenant isolation, trigger, scoping de execuções — ver [10-criterios](./10-criterios.md)) — **obrigatório**
 - [ ] (Bônus) cobertura E2E/unitária extra
-- [ ] (Bônus) n8n workflow
+- [x] (Bônus) n8n workflow
+- [x] (Extra) Evolution API — segundo workflow do n8n enviando WhatsApp real

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -33,10 +34,12 @@ export function UserMenu() {
         {user.email}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="flex items-center justify-between gap-2">
-          Sessão
-          <Badge variant="secondary">{user.role}</Badge>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex items-center justify-between gap-2">
+            Sessão
+            <Badge variant="secondary">{user.role}</Badge>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={toggle}>
           {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}

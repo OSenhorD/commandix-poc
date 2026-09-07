@@ -14,8 +14,6 @@ Não criar arquivo solto em `docs/todo/`. Não criar `todo/` na raiz do repo.
 2. **Entregar** o item.
 3. **Fechar:** marcar o item correspondente em [`docs/spec/11-checklist.md`](../spec/11-checklist.md) (se houver) e **apagar este arquivo**. Item concluído não fica no disco — a fila só tem o que ainda falta.
 
-O mesmo vale para briefs de entrega em `docs/plans/<pacote>/`, quando existirem: ao concluir, marcar o checklist, atualizar o índice do plano (mover para "já entregue" e tirar a linha da tabela) e **apagar** o brief. Se a entrega absorveu um todo, apagar o todo também.
-
 ## Formato
 
 ```markdown

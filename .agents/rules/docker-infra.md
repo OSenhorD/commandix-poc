@@ -17,7 +17,9 @@ docker compose -f docker/development/docker-compose.yml --project-directory . up
 
 Os nomes são `database`, `api` e `frontend` — **`database`, não `postgres`**. É esse nome que a `DATABASE_URL` usa como host (`postgresql://…@database:5432/…`) e que o proxy do Vite e o nginx usam para alcançar a API (`http://api:3000`). Nunca `localhost` dentro da rede do Compose.
 
-O serviço `frontend` existe hoje só no compose de **desenvolvimento** (`vite dev --host`); o de produção (nginx) entra na entrega F12.
+O `frontend` existe nos dois composes: `vite dev --host` em desenvolvimento, nginx servindo o build estático em produção.
+
+Só no compose de **desenvolvimento**: `n8n-import`, `n8n`, `evolution-api` e `evolution-database` — serviços externos ao produto, que a plataforma dispara mas não depende para subir. Não replicar em produção.
 
 ## Regras ao editar
 

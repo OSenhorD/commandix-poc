@@ -7,7 +7,7 @@ Monorepo com dois pacotes (`nexus-backend/`, `nexus-frontend/`) e a infra compar
 ```
 commandix-poc/
 ├── docker/{production,development}/docker-compose.yml   # composes; Dockerfiles ficam nos pacotes
-├── docs/{spec,plans,todo}/
+├── docs/{spec,todo}/                                    # spec técnica + fila de pendências
 ├── .agents/rules/                                       # regras por domínio
 ├── nexus-backend/
 └── nexus-frontend/
@@ -23,6 +23,7 @@ Este documento não repete a árvore completa — ela envelhece mais rápido do 
 | `nexus-backend/docker/*/entrypoint.sh` | Sequência `db migrate` → seed → start. O de produção também é usado como referência do fluxo de CI |
 | `nexus-backend/src/prisma/` | `contract.prisma` (fonte), `contract.json` e `contract.d.ts` (gerados, **commitados**), `db.ts` (runtime) e `seed.ts`. Ver [04-modelo-dados](./04-modelo-dados.md) |
 | `nexus-backend/migrations/app/` | Migrations versionadas — commitadas |
+| `nexus-backend/scripts/test-e2e.sh` | Wrapper do `npm run test:e2e` — migra e roda os e2e no `TEST_DATABASE_URL` (banco `commandix_test`) quando ela existe, para a suíte não escrever no banco de desenvolvimento |
 | `nexus-backend/.agents/skills/prisma-8/` | **Fonte única** da skill Prisma, sincronizada por `npm run skills:sync`. Sem symlink na raiz: ler direto neste caminho |
 | `nexus-frontend/src/components/ui/` | Componentes shadcn. **Não pode** mudar de lugar — `components.json` fixa o alias `@/components/ui` e mover quebra o `shadcn add` |
 | `nexus-frontend/src/{app,shared,features}/` | Estrutura feature-sliced — cada `features/<domínio>/` fecha api, hooks, schemas, componentes e páginas; o que serve mais de uma feature sobe para `shared/` |

@@ -1,3 +1,6 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import js from "@eslint/js";
 import globals from "globals";
 import reactX from "eslint-plugin-react-x";
@@ -6,6 +9,8 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
+
+const tsconfigRootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig([
   globalIgnores(["dist"]),
@@ -24,15 +29,13 @@ export default defineConfig([
     ],
     languageOptions: {
       parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
+        projectService: true,
+        tsconfigRootDir,
       },
       globals: globals.browser,
     },
   },
   {
-    // shadcn (base-lyra) exporta o helper de variantes do cva() junto do componente
-    // (ex.: `export { Button, buttonVariants }`) — padrão do gerador, não do app.
     files: ["src/components/ui/**/*.{ts,tsx}"],
     rules: {
       "react-refresh/only-export-components": "off",

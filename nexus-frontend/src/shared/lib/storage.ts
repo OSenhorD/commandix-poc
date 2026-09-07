@@ -1,7 +1,6 @@
 const ACCESS_TOKEN_KEY = "nexus.accessToken";
 const REFRESH_TOKEN_KEY = "nexus.refreshToken";
 
-/** Acesso aos tokens fora do React — o interceptor não pode depender da árvore de componentes. */
 export const tokenStorage = {
   getAccess(): string | null {
     return localStorage.getItem(ACCESS_TOKEN_KEY);

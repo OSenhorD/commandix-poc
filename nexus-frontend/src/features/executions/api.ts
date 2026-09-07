@@ -6,7 +6,7 @@ export interface ListExecutionsParams {
   page: number;
   limit: number;
   status?: ExecutionStatus;
-  /** ISO 8601 ou YYYY-MM-DD (dia inteiro em UTC). Inclusive. */
+  // ISO 8601 ou YYYY-MM-DD (dia inteiro em UTC). Inclusive.
   from?: string;
   to?: string;
 }
