@@ -143,13 +143,20 @@ Comandos dentro do container `api` (skill: [`nexus-backend/.agents/skills/prisma
 
 ## Lint e formatação
 
+Prettier é **isolado por pacote** (`nexus-backend/.prettierrc` com aspas simples; `nexus-frontend/.prettierrc` com aspas duplas). Sem config na raiz.
+
 ```bash
-# oxlint
+# backend — oxlint
 docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm run lint
-# prettier (write)
+# backend — prettier (write / CI)
 docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm run format
-# prettier (CI — só verifica)
 docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm run format:check
+
+# frontend — ESLint
+docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run lint
+# frontend — prettier (write / CI)
+docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run format
+docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run format:check
 ```
 
 ## CI (GitHub Actions)

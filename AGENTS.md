@@ -80,11 +80,13 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Frontend — `erasableSyntaxOnly` | Ligado no `tsconfig.app.json`: **sem `enum`, `namespace` ou parameter property** (`constructor(private x)`). Usar união `as const` e atribuir no corpo do construtor |
 | Frontend — contexto React | Contexto e provider em arquivos separados (`*-context.ts` sem JSX + `*-provider.tsx`) — um arquivo que exporta componente **e** não-componente quebra o Fast Refresh |
 | Frontend — lint | **ESLint 10 (`strictTypeChecked`)** no frontend; **oxlint** no backend. Um linter por pacote, proposital — não unificar |
+| Prettier | Isolado por pacote — `nexus-backend/.prettierrc` (aspas simples, estilo Nest) e `nexus-frontend/.prettierrc` (aspas duplas). Sem `.prettierrc` na raiz; a extensão VS Code resolve a config mais próxima do arquivo |
 | Frontend — sessão | `AuthProvider` (contexto) expõe `{ user, isLoading, login, logout, bootstrap }`; reidratação por `useQuery(["auth","me"])` → `GET /auth/me` |
 | Frontend — estado de lista | Paginação e filtros vivem na **URL** (`useSearchParams`); a query key do TanStack Query deriva da URL — sobrevive ao reload e o link é compartilhável |
 | Frontend — `authKey` no form | **Nunca** pré-preencher no formulário de edição: a API devolve a chave **mascarada** (`****-key`) e salvar isso destrói a credencial. Campo vazio = manter o valor atual |
 | Frontend — PATCH | Enviar **só os campos alterados** (diff contra o valor carregado); `PATCH {}` vazio → `400`; `customHeaders`/`defaultPayload` substituem o objeto inteiro |
 | Frontend — testes | Vitest + Testing Library (jsdom), `fetch` stubado — cobre **só** o cliente HTTP (refresh single-flight) e o gate de role |
+| Frontend — `@testing-library/dom` | Peer **explícito** de `@testing-library/react` v16 — não entra no lockfile se omitido. Sem o pacote, o TypeScript resolve `render`/`screen` como tipo `error` e o ESLint (`strictTypeChecked` → `no-unsafe-return` / `no-unsafe-call`) reprova os testes |
 | Proxy dev (Vite) | `server.proxy['/api']` → `VITE_API_PROXY_TARGET ?? 'http://api:3000'` (hostname da rede do Compose, nunca `localhost`) |
 | nginx (prod) | Proxia **todo** o prefixo `/api/` — não só `/api/v1/` — para manter `/api/docs` e `/api/openapi.json` acessíveis; SPA com `try_files $uri $uri/ /index.html` |
 | API URL (frontend) | Default **`/api/v1`** (relativo) — nginx (Docker, prod) e proxy Vite (Docker, dev) encaminham para a API |
@@ -104,6 +106,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | PostgreSQL | **16** (`postgres:16-alpine`) — alvo da app; atende mínimo Prisma Next 15+ |
 | Imports backend | Alias **`@/`** → `src/`; sufixo **`.js`** obrigatório; build com **`tsc-alias`** |
 | CI | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — lint, test, build, Docker Compose |
+| Pre-commit (Husky raiz) | `git diff --cached` no host; `format` / `lint` / `test:related` **dentro** dos containers (`api` / `frontend`, `exec -T`). Scripts aceitam arquivos (`npm run lint -- src/foo.ts`); sem args = projeto inteiro (CI). `*.e2e-spec.ts` fora do related. Compose de dev precisa estar no ar |
 
 ## Convenções
 
@@ -162,6 +165,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 - Toda tela com dados tem loading (`Skeleton`), erro (com retry) e vazio
 - Ações de escrita **ocultas** para `VIEWER` (`RoleGate`), e rotas de escrita barradas no router
 - Paginação e filtros na URL (`useSearchParams`)
+- Prettier próprio em `nexus-frontend/.prettierrc` (aspas duplas, `printWidth` 120) — não usar o do backend
 
 **Infra API no frontend:**
 
@@ -185,8 +189,10 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 docker compose -f docker/production/docker-compose.yml --project-directory . up --build   # produção
 docker compose -f docker/development/docker-compose.yml --project-directory . up --build    # desenvolvimento
 
-# Frontend — dentro do container `frontend` (dev compose, após F12)
+# Frontend — dentro do container `frontend` (dev compose)
 docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run lint
+docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run format
+docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run format:check
 docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm test
 docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npx shadcn add <componente>
 
@@ -220,7 +226,9 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 - Não mover `nexus-frontend/src/components/ui/` — o `components.json` fixa esse alias
 - Não usar sufixo `.js` em imports do frontend (é regra do backend, não do Vite)
 - Não pré-preencher `authKey` em formulário de edição — a API devolve mascarada
+- Não omitir `@testing-library/dom` no frontend — peer do RTL v16; sem ele `render`/`screen` viram tipo `error` no ESLint type-checked
 - Não adicionar TanStack Table, axios ou date-fns — fora do escopo escolhido (tabelas fixas, `fetch`, `Intl`)
+- Não criar `.prettierrc` na raiz — Prettier é isolado por pacote (`nexus-backend/` e `nexus-frontend/`)
 
 ## Arquivos de referência
 
