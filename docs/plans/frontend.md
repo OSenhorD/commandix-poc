@@ -6,9 +6,9 @@
 
 **Objetivo:** entregar a SPA React do Commandix com o fluxo completo do protótipo — login/logout, bootstrap de tenant, CRUD de integrações, disparo manual e histórico de execuções — consumindo a API NestJS em `/api/v1`, com isolamento de papéis (ADMIN/VIEWER) na UI.
 
-**Já entregue (não reimplementar):** F01 ambiente (deps, Vitest, proxy Vite, serviço `frontend` no compose de desenvolvimento), F02 cliente HTTP (`apiFetch` + refresh single-flight + storage + tipos), F03 sessão e rotas (`AuthProvider`, `ProtectedRoute`, `RoleGate`, placeholders das páginas), F04 login/logout (`AuthProvider.login`/`logout`, reidratação via `GET /auth/me`, schemas zod, validação com react-hook-form, ver `.superpowers/sdd/frontend/task-4-report.md`), F05 bootstrap (cadastro de tenant e admin, rate limiting `429`, conflitos `409` nos campos corretos, ver `.superpowers/sdd/frontend/task-5-report.md`). Relatórios em `.superpowers/sdd/frontend/`. Briefs concluídos são **apagados** — o histórico fica neste parágrafo e no checklist.
+**Já entregue (não reimplementar):** F01 ambiente (deps, Vitest, proxy Vite, serviço `frontend` no compose de desenvolvimento), F02 cliente HTTP (`apiFetch` + refresh single-flight + storage + tipos), F03 sessão e rotas (`AuthProvider`, `ProtectedRoute`, `RoleGate`, placeholders das páginas), F04 login/logout (`AuthProvider.login`/`logout`, reidratação via `GET /auth/me`, schemas zod, validação com react-hook-form, ver `.superpowers/sdd/frontend/task-4-report.md`), F05 bootstrap (cadastro de tenant e admin, rate limiting `429`, conflitos `409` nos campos corretos, ver `.superpowers/sdd/frontend/task-5-report.md`), F06 shell e componentes compartilhados (`AppShell` com topbar + `UserMenu` (email, papel, tema, sair), tema claro/escuro persistente em `localStorage`, `DataTable`/`PaginationBar`/`EmptyState`/`ErrorState`, `useListParams` na URL, `Toaster` global, ver `.superpowers/sdd/frontend/task-6-report.md`). Relatórios em `.superpowers/sdd/frontend/`. Briefs concluídos são **apagados** — o histórico fica neste parágrafo e no checklist.
 
-**Restante neste plano:** F04–F12.
+**Restante neste plano:** F07–F12.
 
 **Arquitetura:** SPA feature-sliced. `shared/api/client.ts` centraliza o `fetch` (Bearer + refresh single-flight); TanStack Query cuida de cache, paginação e invalidação; React Router 7 protege rotas por autenticação e papel; react-hook-form + zod validam formulários espelhando os DTOs `class-validator` do backend. Paginação e filtros vivem na URL, e a query key deriva dela.
 
@@ -28,7 +28,6 @@
 
 | # | Status | Brief | Como se prova |
 |---|--------|-------|----------------|
-| F06 | pendente | [Shell e componentes compartilhados](./frontend/f06-shell.md) | Shell + tema persistente; menu do usuário com papel |
 | F07 | pendente | [Integrações: listagem](./frontend/f07-integrations-list.md) | Filtro e página na URL; VIEWER sem "Nova integração" |
 | F08 | pendente | [Integrações: formulário](./frontend/f08-integrations-form.md) | PATCH só do que mudou; `authKey` em branco não é enviada (6 testes) |
 | F09 | pendente | [Integrações: ações](./frontend/f09-integrations-actions.md) | Disparo mostra resultado; inativa bloqueia; exclusão avisa do cascade |
