@@ -32,7 +32,7 @@ export class TenantsService {
       }).first();
 
       if (existingSlug) {
-        throw new ConflictException();
+        throw new ConflictException('Tenant slug already exists');
       }
 
       const existingEmail = await tx.orm.public.User.where({
@@ -40,7 +40,7 @@ export class TenantsService {
       }).first();
 
       if (existingEmail) {
-        throw new ConflictException();
+        throw new ConflictException('Admin email already exists');
       }
 
       const tenant = await tx.orm.public.Tenant.create({
