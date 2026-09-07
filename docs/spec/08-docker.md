@@ -169,7 +169,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . up
 | Aspecto | Comportamento |
 |---------|---------------|
 | Objetivo | Garantir dados demo após `docker compose up` em banco vazio |
-| Idempotência | Se tenant `acme` já existir, seed encerra sem inserir nada |
+| Idempotência | Por tenant: cada slug do seed (`acme`, `globex`) é verificado individualmente; os que já existirem são pulados |
 | Restart / redeploy | Seed roda de novo, mas é no-op quando dados demo já existem |
 | Produção real | **Fora de escopo** — em produção típica seed não roda a cada deploy; aqui é conveniência para avaliadores |
 

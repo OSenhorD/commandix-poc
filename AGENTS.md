@@ -105,8 +105,10 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Health | `GET /api/v1/health` → `{ "status": "ok" }` — público; Docker healthcheck |
 | Tokens frontend | `localStorage`, chaves `nexus.accessToken` / `nexus.refreshToken`, acessadas por `shared/lib/storage.ts` — **fora do React**, para o interceptor não depender da árvore de componentes |
 | CORS (dev, container Vite) | `http://localhost:5173` → API `:3000`; ver [08-docker §8.8](./docs/spec/08-docker.md#88-cors) |
-| Seed Docker | Idempotente; pula se tenant `acme` existir |
-| Seed no startup | **Sempre** no entrypoint Docker (`db migrate` → seed → start); idempotente — não re-insere se `acme` já existir; **decisão consciente da PoC**, não padrão de produção |
+| Seed — conteúdo | 2 tenants (`acme`, `globex`) × 2 users (ADMIN + VIEWER) × 3 integrações (um `WEBHOOK`, um `REST_API`, um `N8N`; **uma inativa por tenant**) × 10 execuções — ver [04-modelo-dados §4.4](./docs/spec/04-modelo-dados.md#44-seed) |
+| Seed — idempotência | **Por tenant**: cada slug é checado individualmente e só o que falta é criado; `runSeed()` devolve `'skipped'` só quando todos já existiam. Banco antigo (só `acme`) ganha `globex` na próxima subida, sem `down -v` |
+| Seed — `executedAt` | Deslocamento em **horas a partir do `Date.now()` do seed**, não data fixa — o histórico demo continua recente em qualquer banco novo |
+| Seed no startup | **Sempre** no entrypoint Docker (`db migrate` → seed → start); **decisão consciente da PoC**, não padrão de produção |
 | Node | **24.16.0** — `engines` em `nexus-backend/package.json`; imagem Docker `node:24.16.0-alpine` |
 | Docker Compose (arquivos) | `docker/production/docker-compose.yml` e `docker/development/docker-compose.yml`; Dockerfiles em `nexus-backend/` (`docker/production/Dockerfile`/`docker/development/Dockerfile`) |
 | n8n | `n8nio/n8n:2.37.11`, **só em desenvolvimento**; serviço externo — independente da API (sem `depends_on` entre os dois); SQLite no volume `n8n_dev_data`, não usa o Postgres do projeto; `N8N_WEBHOOK_URL=http://n8n:5678/` para a URL da UI já ser a que a API alcança |
@@ -149,7 +151,7 @@ As regras em [`.agents/rules/`](./.agents/rules/) são markdown puro, sem metada
 
 ### Banco (Prisma 8)
 
-- Domínio: [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md) §4.1–4.3. Seed idempotente em `src/prisma/seed.ts` (senha `Admin123!`)
+- Domínio: [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md) §4.1–4.3. Seed idempotente em `src/prisma/seed.ts` (§4.4; senha `Admin123!`)
 - Comandos rodam dentro do container `api` (Compose de desenvolvimento), nunca no host — ver [`readme.md`](./readme.md) § Prisma 8
 
 ### Testes

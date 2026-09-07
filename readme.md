@@ -47,13 +47,16 @@ Aguarde os healthchecks. A API sobe sozinha executando `prisma db migrate` → s
 
 ### Credenciais demo (seed)
 
-| Campo | Valor |
-|-------|-------|
-| Tenant | `Acme Corp` (slug `acme`) |
-| Admin | `admin@acme.com` / `Admin123!` |
-| Viewer | `viewer@acme.com` / `Admin123!` |
+Dois tenants, senha `Admin123!` para todos os usuários:
 
-O seed roda no entrypoint da API em toda subida e é idempotente: se o tenant `acme` já existir, encerra sem inserir nada.
+| Tenant | Admin | Viewer |
+|--------|-------|--------|
+| `Acme Corp` (slug `acme`) | `admin@acme.com` | `viewer@acme.com` |
+| `Globex Industries` (slug `globex`) | `admin@globex.com` | `viewer@globex.com` |
+
+Cada tenant já vem com **3 integrações** (uma de cada `type`; uma delas inativa, para exercitar o `400` do disparo em integração desativada) e **10 execuções** de histórico, misturando `SUCCESS`, `FAILURE` com código HTTP e falha de rede (`httpStatusCode` nulo). Logar nos dois tenants mostra que cada um só enxerga os próprios dados.
+
+O seed roda no entrypoint da API em toda subida e é idempotente **por tenant**: cada slug é verificado individualmente e só o que faltar é criado. Detalhe dos dados em [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md#44-seed).
 
 ## Comandos
 
@@ -275,7 +278,7 @@ Log completo das decisões em [`AGENTS.md`](./AGENTS.md) § Decisões adotadas. 
 
 **Disparo HTTP sem retry.** Sempre POST, timeout de 30s, uma tentativa. Retry automático em webhook não idempotente duplicaria efeito no serviço externo; o registro da execução fica com `FAILURE` e o reenvio é manual. `responseBody` é truncado em 10 240 bytes UTF-8 para o histórico não virar depósito de payload.
 
-**Seed no entrypoint, em toda subida.** Garante que `docker compose up` entregue dados demo funcionais ao avaliador. É idempotente (pula se o tenant `acme` existir), mas **não é padrão de produção** — em produção real o seed não roda a cada deploy.
+**Seed no entrypoint, em toda subida.** Garante que `docker compose up` entregue dados demo funcionais ao avaliador — dois tenants, com integrações e histórico, para o isolamento multi-tenant e as telas de listagem/filtro serem avaliáveis sem cadastro manual. É idempotente por tenant (pula os slugs que já existirem), mas **não é padrão de produção** — em produção real o seed não roda a cada deploy.
 
 **Tokens no `localStorage` do frontend.** Escolha de PoC, com a limitação conhecida de exposição a XSS. A alternativa mais defensável seria refresh token em cookie `httpOnly` + `SameSite`, que exigiria mesma origem ou CORS com credenciais. O acesso é isolado em `shared/lib/storage.ts`, então a troca fica contida num arquivo.
 
