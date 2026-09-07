@@ -43,6 +43,7 @@ Aguarde os healthchecks. A API sobe sozinha executando `prisma db migrate` → s
 | PostgreSQL | `localhost:5432` | Só no compose de desenvolvimento; user/senha/db default `commandix` |
 | Frontend | http://localhost:5173 | Compose de **desenvolvimento** ou **produção** (nginx servindo o build estático + proxy `/api/`) |
 | n8n | http://localhost:5678 | Bônus; só no compose de **desenvolvimento**. Primeiro acesso pede criar a conta owner |
+| Evolution API | http://localhost:8080 | Extra do bônus; só no compose de **desenvolvimento**. UI de pareamento em `/manager` (login com a `apikey`) |
 
 ### Credenciais demo (seed)
 
@@ -180,6 +181,9 @@ Copie `.env.example` → `.env` na **raiz** do monorepo. Lista completa e variá
 | `VITE_API_PROXY_TARGET` | `http://api:3000` | Alvo do proxy do `vite dev` |
 | `N8N_PORT` | `5678` | Porta exposta do n8n — **só em desenvolvimento** |
 | `N8N_ENCRYPTION_KEY` | `dev-n8n-encryption-key` | Cifra as credenciais do n8n no volume `n8n_dev_data`; trocá-la torna ilegíveis as já gravadas |
+| `EVOLUTION_PORT` | `8080` | Porta exposta do Evolution API — **só em desenvolvimento** |
+| `EVOLUTION_API_KEY` | `dev-evolution-api-key` | Chave global do Evolution, usada no header `apikey`; o mesmo valor vai para o n8n |
+| `EVOLUTION_DB_PASSWORD` | `evolution` | Senha do Postgres dedicado do Evolution |
 
 A API recebe `DATABASE_URL` montada internamente pelo Compose (`database:5432`) — não vai no `.env`.
 

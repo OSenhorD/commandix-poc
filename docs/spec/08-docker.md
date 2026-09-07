@@ -13,8 +13,12 @@ Versões pinadas — ver `nexus-backend/package.json` (`engines.node`) e imagens
 | frontend | 5173 → 80 (prod) / 5173 (dev) | dev: `nexus-frontend/docker/development/Dockerfile` (`vite dev --host`); prod: multi-stage `nexus-frontend/docker/production/Dockerfile` (`npm run build` → nginx servindo `dist/`) |
 | n8n-import | — (sem porta; roda e sai) | `n8nio/n8n:2.37.11`, **dev apenas** |
 | n8n | 5678 (**dev apenas**) | `n8nio/n8n:2.37.11` |
+| evolution-database | — (sem porta publicada) | `postgres:16-alpine`, **dev apenas** |
+| evolution-api | 8080 (**dev apenas**) | `evoapicloud/evolution-api:v2.3.7` |
 
 O serviço `n8n` existe **somente no compose de desenvolvimento** — é o bônus de [09](./09-bonus-n8n.md), um serviço externo que a plataforma dispara, não uma dependência dela. `n8n-import` importa e ativa o workflow versionado em [`docker/n8n/workflows/commandix.json`](../../docker/n8n/workflows/commandix.json) (`n8n import:workflow` + `n8n publish:workflow`) e sai; `n8n` só inicia depois (`depends_on: service_completed_successfully`), garantindo que o workflow demo já esteja ativo assim que a UI abre. Ver §8.2 e [readme](../../readme.md) § Bônus — n8n para o fluxo end-to-end.
+
+`evolution-api` é o extra do bônus: uma API REST de WhatsApp que o **workflow do n8n** consome — a plataforma não fala com ela diretamente. Tem banco próprio (`evolution-database`), pelo mesmo motivo do n8n usar SQLite próprio: serviço externo não compartilha o Postgres da aplicação. Ver [readme](../../readme.md) § Bônus — n8n.
 
 Em produção, o Postgres **não expõe porta no host** — apenas os serviços da rede do compose acessam via hostname interno `database`.
 
@@ -54,6 +58,11 @@ ENABLE_API_DOCS=true
 # n8n — bônus; só no compose de desenvolvimento
 # N8N_PORT=5678
 # N8N_ENCRYPTION_KEY=dev-n8n-encryption-key
+
+# Evolution API — extra do bônus; só no compose de desenvolvimento
+# EVOLUTION_PORT=8080
+# EVOLUTION_API_KEY=dev-evolution-api-key
+# EVOLUTION_DB_PASSWORD=evolution
 ```
 
 `ENABLE_API_DOCS` liga/desliga `/api/docs` e `/api/openapi.json` — `false` → `404` nas duas. Default: ligado. Ver [05-api §5.6](./05-api.md#56-documentação-openapi).
@@ -116,6 +125,16 @@ Aplica-se **somente** a `POST /tenants/bootstrap`. Resposta `429` quando excedid
 
 `N8N_SECURE_COOKIE=false` é necessária para logar no n8n por HTTP em um host que não seja `localhost` (ex.: IP do WSL); sem ela o n8n recusa a sessão.
 
+### Evolution API (extra — desenvolvimento)
+
+| Variável | Default | Uso |
+|----------|---------|-----|
+| `EVOLUTION_PORT` | `8080` | Porta publicada do `evolution-api` (host). Interpolada só no `ports:` — dentro da rede o serviço sempre atende em `8080` |
+| `EVOLUTION_API_KEY` | `dev-evolution-api-key` | Chave global do Evolution (`AUTHENTICATION_API_KEY`), enviada no header `apikey`. Fallback fraco é aceitável **porque o serviço só existe em desenvolvimento**; o mesmo valor é injetado no `n8n` para o workflow autenticar |
+| `EVOLUTION_DB_PASSWORD` | `evolution` | Senha do Postgres dedicado do Evolution (`evolution-database`), que não publica porta no host |
+
+`CACHE_REDIS_ENABLED=false` + `CACHE_LOCAL_ENABLED=true` dispensam o Redis, opcional na v2. `TELEMETRY_ENABLED=false` segue a mesma decisão de `N8N_DIAGNOSTICS_ENABLED`. As sessões do WhatsApp ficam no volume `evolution_dev_data` — apagá-lo desfaz o pareamento e exige ler o QR code de novo.
+
 ## 8.3 Comando único
 
 ```bash
@@ -137,6 +156,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . up
    - dev: `vite dev --host` com bind mount e proxy `/api` → `api:3000`
 4. **n8n-import** (dev) — sobe em paralelo aos demais serviços; importa o workflow versionado e sai (`restart: "no"`)
 5. **n8n** (dev) — depois de `n8n-import` (`depends_on: service_completed_successfully`); healthcheck `GET /healthz`. Independente da API: nem ela espera por ele, nem ele por ela
+6. **evolution-database** e **evolution-api** (dev) — a API espera o banco ficar *healthy* e roda as migrations no entrypoint; healthcheck `GET /`, `start_period` de 40s. Independentes da plataforma: nem a API nem o n8n esperam por eles
 
 ## 8.5 Seed no entrypoint
 
@@ -200,7 +220,7 @@ server: {
 | Frontend | `nexus-frontend/docker/development/Dockerfile`; `production/` (`Dockerfile` + `nginx.conf`) |
 | n8n (dev) | `docker/n8n/workflows/*.json` — workflows versionados, importados pelo `n8n-import` |
 | Volumes (prod) | `database_data` |
-| Volumes (dev) | `database_dev_data`, `api_dev_node_modules`, `frontend_dev_node_modules`, `n8n_dev_data` |
+| Volumes (dev) | `database_dev_data`, `api_dev_node_modules`, `frontend_dev_node_modules`, `n8n_dev_data`, `evolution_dev_data`, `evolution_dev_db_data` |
 
 ## 8.8 CORS
 

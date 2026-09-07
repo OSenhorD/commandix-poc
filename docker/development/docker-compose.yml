@@ -140,6 +140,69 @@ services:
       retries: 10
       start_period: 30s
 
+  evolution-database:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: evolution
+      POSTGRES_USER: evolution
+      POSTGRES_PASSWORD: ${EVOLUTION_DB_PASSWORD:-evolution}
+    volumes:
+      - evolution_dev_db_data:/var/lib/postgresql/data
+    networks:
+      - commandix-dev
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  evolution-api:
+    image: evoapicloud/evolution-api:v2.3.7
+    restart: unless-stopped
+    ports:
+      - "${EVOLUTION_PORT:-8080}:8080"
+    volumes:
+      - evolution_dev_data:/evolution/instances
+    environment:
+      SERVER_PORT: 8080
+      SERVER_URL: http://evolution-api:8080
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY:-dev-evolution-api-key}
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://evolution:${EVOLUTION_DB_PASSWORD:-evolution}@evolution-database:5432/evolution?schema=public
+      DATABASE_CONNECTION_CLIENT_NAME: evolution_commandix
+      CACHE_REDIS_ENABLED: "false"
+      CACHE_LOCAL_ENABLED: "true"
+      TELEMETRY_ENABLED: "false"
+      LOG_LEVEL: ERROR,WARN,INFO
+      LOG_BAILEYS: error
+      DEL_INSTANCE: "false"
+      CONFIG_SESSION_PHONE_CLIENT: Commandix
+      CONFIG_SESSION_PHONE_NAME: Chrome
+      TZ: ${TZ:-America/Sao_Paulo}
+    depends_on:
+      evolution-database:
+        condition: service_healthy
+    networks:
+      - commandix-dev
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8080/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
 networks:
   commandix-dev:
     driver: bridge
@@ -149,3 +212,5 @@ volumes:
   api_dev_node_modules:
   frontend_dev_node_modules:
   n8n_dev_data:
+  evolution_dev_data:
+  evolution_dev_db_data:
