@@ -105,6 +105,7 @@ Campos do form de integração: `name`, `type`, `targetUrl`, `authKey`, `customH
 |-------|---------|
 | **Nunca pré-preencher `authKey` na edição** | A API devolve a chave **mascarada** (`****-key`); gravar isso de volta destrói a credencial. Campo vazio + placeholder "deixe em branco para manter" |
 | **PATCH envia só o que mudou** | `PATCH {}` vazio → `400`; e `customHeaders`/`defaultPayload` **substituem** o objeto inteiro, não fazem merge |
+| **Form de edição: montar só depois do GET** | `reset()` depois do mount no Input Base UI não sincroniza o que o usuário digita — o PATCH sai vazio e a UI navega como se tivesse gravado |
 | **Trigger em integração inativa → `400`** | Não é 404 — desabilitar/explicar a ação na UI quando `isActive: false` |
 | **Cross-tenant → `404`** | Tratar como "não encontrado", sem mensagem de permissão |
 | `responseBody` pode vir truncado | Sufixo `… [truncated]` (limite 10 240 bytes) — sinalizar na UI |
