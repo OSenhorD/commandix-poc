@@ -51,7 +51,6 @@ Dois serviços novos, ambos **só no Compose de desenvolvimento**:
 
 | # | Brief | Como se prova |
 |---|-------|----------------|
-| E01 | [Serviço no Compose](./evolution-api/e01-compose-evolution.md) | `dc up -d` deixa `evolution-api` *healthy*; `POST /instance/create` responde 201 com a `apikey` |
 | E02 | [Segundo workflow n8n → Evolution](./evolution-api/e02-workflow-n8n.md) | Os dois workflows sobem ativos; `/webhook/commandix` segue devolvendo o eco e `/webhook/commandix-whatsapp` entrega a mensagem no WhatsApp |
 
 ### Ordem de execução
