@@ -1,7 +1,6 @@
 # F08 — Integrações: formulário de criação e edição
 
 > **Agente — leia só isto + o índice.** Restrições globais, armadilhas e atalho de comando: [`../frontend.md`](../frontend.md). Não abra as outras entregas.
-> Relatórios SDD: `.superpowers/sdd/frontend/`.
 
 **Arquivos:**
 - Criar: `src/features/integrations/schemas.ts`, `src/shared/components/json-field.tsx`

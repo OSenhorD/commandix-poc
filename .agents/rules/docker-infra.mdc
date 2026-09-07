@@ -1,79 +1,33 @@
 ---
-description: Docker Compose e variáveis de ambiente
-globs: docker/*/docker-compose.yml,nexus-backend/docker/*/Dockerfile,nexus-backend/docker/*/entrypoint.sh,.env.example,nexus-frontend/nginx.conf
+description: Docker Compose, Dockerfiles e variáveis de ambiente
+globs: docker/*/docker-compose.yml,nexus-backend/docker/**,nexus-frontend/docker/**,.env.example
 alwaysApply: false
 ---
 
 # Docker & Infra
 
+**Referência completa (serviços, portas, env, startup, CORS, CI):** [`docs/spec/08-docker.md`](../../docs/spec/08-docker.md). Este arquivo só traz o que é regra ao editar infra.
+
+## Layout
+
+- Os **composes** ficam na raiz (`docker/production/`, `docker/development/`); os **Dockerfiles e entrypoints** ficam dentro de cada pacote (`nexus-backend/docker/<env>/`, `nexus-frontend/docker/<env>/`).
+- Por isso todo comando precisa de `--project-directory .` — sem isso, `.env` e os caminhos relativos do compose (`./nexus-backend`, volumes) resolvem errado:
+
 ```bash
-cp .env.example .env
-
-# Produção
-docker compose -f docker/production/docker-compose.yml --project-directory . up --build
-
-# Desenvolvimento (bind mount + watch)
 docker compose -f docker/development/docker-compose.yml --project-directory . up --build
 ```
 
-`--project-directory .` mantém a resolução do `.env` e dos caminhos relativos (`./nexus-backend`, volumes) a partir da raiz do monorepo, mesmo com o compose dentro de `docker/`.
-
 ## Serviços
 
-| Nome | Build / imagem | Porta |
-|------|----------------|-------|
-| `postgres` | `postgres:16-alpine` | 5432 |
-| `api` | `nexus-backend/docker/production/Dockerfile` (prod) / `nexus-backend/docker/development/Dockerfile` (dev) | 3000 |
-| `frontend` | `nexus-frontend/Dockerfile` (nginx) | 5173 |
+Os nomes são `database`, `api` e `frontend` — **`database`, não `postgres`**. É esse nome que a `DATABASE_URL` usa como host (`postgresql://…@database:5432/…`) e que o proxy do Vite e o nginx usam para alcançar a API (`http://api:3000`). Nunca `localhost` dentro da rede do Compose.
 
-Versões pinadas — alinhar com `engines` e imagens Docker:
+O serviço `frontend` existe hoje só no compose de **desenvolvimento** (`vite dev --host`); o de produção (nginx) entra na entrega F12.
 
-| Componente | Fonte | Versão |
-|------------|-------|--------|
-| Node (`package.json`) | `nexus-backend/package.json` → `engines.node` | `24.16.0` |
-| Node (Docker) | `nexus-backend/docker/production/Dockerfile` | `node:24.16.0-alpine` |
-| PostgreSQL | Compose / spec | `postgres:16-alpine` (app); mínimo PN 15+ |
+## Regras ao editar
 
-## Startup
-
-1. `postgres` — `pg_isready`
-2. `api` — `db migrate` → seed (sempre; idempotente) → `node dist/main.js`
-3. `frontend` — após `GET /api/v1/health`
-
-## Seed
-
-Entrypoint **sempre** executa seed após migrate (qualquer `NODE_ENV`). Idempotente: pula se tenant `acme` existir. Decisão consciente da PoC — ver [08-docker](../../docs/spec/08-docker.md) §8.5.
-
-## Frontend → API (nginx)
-
-Frontend usa URL relativa `/api/v1`. No `nginx.conf`:
-
-```nginx
-location /api/ {
-  proxy_pass http://api:3000/api/;
-}
-```
-
-Sem `VITE_API_URL` absoluto no build Docker.
-
-## Variáveis (`.env.example`)
-
-```env
-JWT_ACCESS_SECRET=change-me-access
-JWT_REFRESH_SECRET=change-me-refresh
-JWT_ACCESS_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
-
-API_PORT=3000
-NODE_ENV=development
-HTTP_TRIGGER_TIMEOUT_MS=30000
-```
-
-## CORS
-
-| Ambiente | Configuração |
-|----------|--------------|
-| Docker dev — container Vite (`:5173`) + container `api` (`:3000`) | `app.enableCors({ origin: 'http://localhost:5173' })` em `main.ts` |
-| Docker prod (nginx proxy `/api/`) | CORS **desnecessário** — mesma origem |
-
-Detalhes: [08-docker §8.8](../../docs/spec/08-docker.md#88-cors).
+- **Versões pinadas** — `node:24.16.0-alpine` nos Dockerfiles precisa bater com `engines.node` de `nexus-backend/package.json`; Postgres é `postgres:16-alpine`.
+- **Produção falha rápido:** `docker/production/docker-compose.yml` usa `${VAR:?...}` em `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` e `DB_PASSWORD` — nunca introduzir fallback fraco para esses três.
+- **Produção não publica a porta do Postgres** no host; só desenvolvimento expõe `DB_PORT`.
+- **Ordem do entrypoint:** `db migrate` → seed (sempre, idempotente) → start. Usar `db migrate`, nunca `db update`, em Docker e CI.
+- **Nova variável:** adicionar em `.env.example` **e** na tabela de [08-docker §8.2](../../docs/spec/08-docker.md#82-variáveis-de-ambiente). Variáveis montadas pelo compose (`DATABASE_URL`, `TEST_DATABASE_URL`, `NODE_ENV`, `PORT`) não vão para o `.env`.
+- **Healthcheck:** a API só sobe depois de `pg_isready` no `database` (`depends_on: service_healthy`); o `frontend` só depois de `GET /api/v1/health`.

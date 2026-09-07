@@ -1,7 +1,6 @@
 # F10 — Histórico: listagem de execuções com filtros
 
 > **Agente — leia só isto + o índice.** Restrições globais, armadilhas e atalho de comando: [`../frontend.md`](../frontend.md). Não abra as outras entregas.
-> Relatórios SDD: `.superpowers/sdd/frontend/`.
 
 **Arquivos:**
 - Criar: `src/features/executions/api.ts`, `src/features/executions/hooks.ts`, `src/features/executions/components/execution-status-badge.tsx`, `src/features/executions/components/execution-filters.tsx`

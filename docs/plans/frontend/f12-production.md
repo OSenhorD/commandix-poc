@@ -1,11 +1,10 @@
 # F12 — Produção: Docker, nginx, CI e fechamento da documentação
 
 > **Agente — leia só isto + o índice.** Restrições globais, armadilhas e atalho de comando: [`../frontend.md`](../frontend.md). Não abra as outras entregas.
-> Relatórios SDD: `.superpowers/sdd/frontend/`.
 
 **Arquivos:**
 - Criar: `nexus-frontend/docker/production/Dockerfile`, `nexus-frontend/docker/production/nginx.conf`
-- Modificar: `docker/production/docker-compose.yml`, `.github/workflows/ci.yml`, `readme.md`, `nexus-frontend/README.md`, `AGENTS.md`, `docs/spec/06-stack.md`, `docs/spec/11-checklist.md`
+- Modificar: `docker/production/docker-compose.yml`, `.github/workflows/ci.yml`, `readme.md`, `nexus-frontend/CLAUDE.md`, `AGENTS.md`, `docs/spec/08-docker.md`, `docs/spec/11-checklist.md`
 - Apagar: `docs/todo/frontend/openapi-nginx-proxy-assumption.md`
 
 **Interfaces:**
@@ -142,17 +141,17 @@ O `defaults.run.working-directory` do job sobrescreve o global (`nexus-backend`)
 
 - [ ] **Passo 6: Atualizar a documentação**
 
-O status de F01–F03 (dev compose, cliente HTTP, sessão, rotas) já está refletido nesses arquivos. F12 só fecha o que ainda falta:
+O status de F01–F06 já está refletido nesses arquivos. F12 só fecha o que ainda falta. **Status vive só no checklist** — os outros documentos descrevem o que existe, sem numerar entrega:
 
 | Arquivo | Mudança |
 |---------|---------|
 | [`docs/spec/11-checklist.md`](../../spec/11-checklist.md) | Fase 1 — marcar Docker Compose (incluindo `frontend` de **produção**) como concluído; Fase 5 — marcar **F12** |
-| [`docs/spec/06-stack.md`](../../spec/06-stack.md) | §6.2 — telas e RHF/zod deixam de ser pendentes; §6.3 — `frontend` de produção deixa de ser parcial |
-| [`docs/spec/08-docker.md`](../../spec/08-docker.md) | §8.9 — job `frontend` deixa de ser "a criar" |
-| [`readme.md`](../../../readme.md) | Serviço `frontend` de produção; tabela de status; job `frontend` no CI |
-| [`nexus-frontend/README.md`](../../../nexus-frontend/README.md) | Remover o aviso de telas pendentes |
+| [`docs/spec/08-docker.md`](../../spec/08-docker.md) | §8.1 e §8.7 — o Dockerfile de produção do frontend deixa de ser "entra na F12"; §8.9 — job `frontend` deixa de ser "a criar" |
+| [`readme.md`](../../../readme.md) | Serviço `frontend` de produção; tabela de status; job `frontend` no CI; retirar o item de F07–F12 dos pontos em aberto |
+| [`nexus-frontend/CLAUDE.md`](../../../nexus-frontend/CLAUDE.md) | Remover o aviso de entregas pendentes |
 | [`AGENTS.md`](../../../AGENTS.md) | "Estado atual" — `nexus-frontend/` passa a **Funcional**; Compose de produção inclui `frontend` |
 | [`docs/todo/frontend/openapi-nginx-proxy-assumption.md`](../../todo/frontend/openapi-nginx-proxy-assumption.md) | **Apagar** o arquivo: o nginx proxia todo `/api/` |
+| [`docs/plans/frontend.md`](../frontend.md) | Última entrega concluída → o índice e o diretório `frontend/` deixam de existir |
 
 - [ ] **Passo 7: Validação final**
 

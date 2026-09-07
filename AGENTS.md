@@ -12,10 +12,10 @@ Contexto para agentes de IA trabalhando neste repositório.
 
 | Componente | Status |
 |------------|--------|
-| `nexus-backend/` | **Funcional** — módulos `auth`, `tenants`, `integrations`, `executions`, `common`, `openapi`, `database`; Prisma 8 (contract + migration + seed); Docker (Dockerfile + entrypoint); testes unitários + e2e (falta `test/executions-scoping.e2e-spec.ts`) |
-| `nexus-frontend/` | **Em andamento (F01–F03)** — Vite 8 + React 19 + TS 6 + Tailwind 4 + shadcn; cliente HTTP (`apiFetch` + refresh single-flight), `AuthProvider`, router e guardas. Telas ainda placeholder (F04–F11). Plano: índice [`docs/plans/frontend.md`](./docs/plans/frontend.md); brief da entrega em [`docs/plans/frontend/`](./docs/plans/frontend/) |
+| `nexus-backend/` | **Funcional** — módulos `auth`, `tenants`, `integrations`, `executions`, `common`, `openapi`, `database`; Prisma 8 (contract + migration + seed); Docker (Dockerfile + entrypoint); testes unitários + e2e, incluindo os críticos (tenant isolation, guards, trigger, scoping de execuções) |
+| `nexus-frontend/` | **Em andamento** — F01–F06 **concluídas**: Vite 8 + React 19 + TS 6 + Tailwind 4 + shadcn; cliente HTTP (`apiFetch` + refresh single-flight); sessão (`AuthProvider`, login/logout, bootstrap); router e guardas; shell e componentes compartilhados. **Pendente: F07–F12** (telas de integrações e histórico, Docker de produção). Plano: índice [`docs/plans/frontend.md`](./docs/plans/frontend.md); brief da entrega em [`docs/plans/frontend/`](./docs/plans/frontend/) |
 | Prisma 8 | `contract.prisma` — domínio Commandix; migration `20260903T0509_initial` |
-| Docker Compose | **dev:** postgres + api + frontend; **prod:** postgres + api (`frontend` comentado — entrega F12) |
+| Docker Compose | **dev:** `database` + `api` + `frontend`; **prod:** `database` + `api` (`frontend` comentado — entrega F12) |
 
 ## Arquitetura alvo
 
@@ -36,7 +36,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Pacote | Diretório | Notas |
 |--------|-----------|-------|
 | API | `nexus-backend/` | NestJS + Prisma 8; `prisma.config.ts` e skills aqui |
-| Frontend | `nexus-frontend/` | F01–F03 feitos; telas F04–F12 — índice [`docs/plans/frontend.md`](./docs/plans/frontend.md), brief em [`docs/plans/frontend/`](./docs/plans/frontend/) |
+| Frontend | `nexus-frontend/` | F01–F06 feitos; F07–F12 pendentes — índice [`docs/plans/frontend.md`](./docs/plans/frontend.md), brief em [`docs/plans/frontend/`](./docs/plans/frontend/) |
 | Spec / rules | raiz | `docs/spec/`, `.agents/rules/` |
 | Skills Prisma | `nexus-backend/.agents/skills/prisma-8/` | Sem symlink na raiz — ler direto neste caminho |
 
@@ -58,7 +58,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | DELETE integração | Hard delete + cascade em execuções |
 | Trigger inativo | Rejeitar com **`400`** — integração deve estar `isActive: true` (existe e é do tenant, então não é 404) |
 | HTTP outbound | **Sempre POST**; timeout 30s; **sem retry** |
-| `authKey` at-rest | Texto ou criptografia — candidato documenta no README final |
+| `authKey` at-rest | **Texto plano** na PoC (sem criptografia) — documentado no [`readme.md`](./readme.md) |
 | Merge payload | Shallow: `{ ...defaultPayload, ...payload }` |
 | `authKey` outbound | `Authorization: Bearer {authKey}` se presente |
 | `authKey` PATCH | Omitido = mantém valor anterior |
@@ -107,7 +107,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Docker Compose (arquivos) | `docker/production/docker-compose.yml` e `docker/development/docker-compose.yml`; Dockerfiles em `nexus-backend/` (`docker/production/Dockerfile`/`docker/development/Dockerfile`) |
 | PostgreSQL | **16** (`postgres:16-alpine`) — alvo da app; atende mínimo Prisma Next 15+ |
 | Imports backend | Alias **`@/`** → `src/`; sufixo **`.js`** obrigatório; build com **`tsc-alias`** |
-| CI | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — lint, test, build, Docker Compose |
+| CI | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — lint, Prettier, test, build. Job de frontend entra na F12; **não** há job de Docker Compose |
 | Pre-commit (Husky raiz) | `git diff --cached` no host; `format` / `lint` / `test:related` **dentro** dos containers (`api` / `frontend`, `exec -T`). Scripts aceitam arquivos (`npm run lint -- src/foo.ts`); sem args = projeto inteiro (CI). `*.e2e-spec.ts` fora do related. Compose de dev precisa estar no ar |
 
 ## Convenções
@@ -123,60 +123,22 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 
 ### Backend (NestJS)
 
-- **Imports ESM:** alias `@/` → `src/` (`tsconfig.json` → `paths: { "@/*": ["./src/*"] }`); sufixo `.js` obrigatório (`import { X } from '@/common/x.js'`)
-- **Build:** `nest build && tsc-alias` reescreve `@/` em caminhos relativos no `dist/` (Node ESM não resolve aliases nativamente)
-- **Relativos (`./`):** permitidos apenas entre arquivos do **mesmo diretório** (ex.: `auth.controller.ts` → `./auth.service.js`)
-- Um módulo por domínio (`auth.module.ts`, `integrations.module.ts`)
-- DTOs com `class-validator`; `ValidationPipe` global com `whitelist: true, transform: true`
-- Global prefix: `api/v1`
-- Guards: `JwtAuthGuard` → `RolesGuard` → tenant scoping no service
-- JWT payload: `{ sub: userId, tenantId, role, email }`
-- Nunca expor `passwordHash`, `tokenHash` ou `authKey` completo nas respostas
-- Mascarar `authKey` na resposta (ex.: `****-key`)
-- Cross-tenant access → `NotFoundException` (404), não 403
+**Regras completas:** [`.agents/rules/nestjs-backend.mdc`](./.agents/rules/nestjs-backend.mdc) — módulos, imports ESM, guards, DTOs, paginação, trigger HTTP.
+
+- Senha com **bcrypt**; refresh token guardado como **hash** no banco. Nunca expor `passwordHash`, `tokenHash` ou `authKey` completo nas respostas
 - Rota com prefixo top-level diferente do resto do módulo (ex.: `GET /executions/:id` vs. `GET /integrations/:integrationId/executions`): criar um **segundo `@Controller()`** no mesmo módulo (pode ficar no mesmo arquivo `*.controller.ts`) e registrar ambos em `controllers: []` — Nest não permite path absoluto por método dentro de um controller com prefixo próprio
 - Validar tenant de uma entidade sem `tenantId` direto (ex.: `IntegrationExecution`) via `.include('relation', (r) => r.select('tenantId'))` no ORM Prisma 8 — evita duas queries separadas; comparar `entity.relation.tenantId !== tenantId` → 404
-- CORS habilitado no **dev (container Vite)** — `origin: 'http://localhost:5173'` (frontend Vite `:5173`, API `:3000`, ambos em containers); prod com nginx: mesma origem, CORS desnecessário
-- `GET /api/v1/health` — healthcheck para Docker
 
 ### Banco (Prisma 8)
 
 - **Skill (obrigatória em tarefas Prisma):** `nexus-backend/.agents/skills/prisma-8/SKILL.md` — abrir a routing table antes de codar
-- Contract: `nexus-backend/src/prisma/contract.prisma`
-- Client: `src/prisma/db.ts` → wrapper NestJS `DatabaseModule` / `DatabaseService`
-- Após editar contract: `npm run contract:emit`
-- Dev (schema em fluxo): `npx prisma db update`
-- Mudanças versionadas (branch/Docker): `npx prisma migration plan --name <slug>` → `npx prisma db migrate`
-- Primeira bootstrap (DB vazio): `npx prisma db init`
-- Todos os comandos acima rodam dentro do container `api` (Compose de desenvolvimento) — nunca no host
-- Migrations: `nexus-backend/migrations/app/` (commitar)
-- Domínio: [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md) §4.1–4.3
-- Seed: `src/prisma/seed.ts` idempotente; senha `Admin123!`; entrypoint Docker sempre executa seed (ver decisão acima)
-- Scripts one-off: `await db.close()` ao final (ver skill `references/runtime.md`)
+- **Regras completas:** [`.agents/rules/prisma-database.mdc`](./.agents/rules/prisma-database.mdc) — layout, workflow de comandos, queries multi-tenant, schema e proibições
+- Domínio: [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md) §4.1–4.3. Seed idempotente em `src/prisma/seed.ts` (senha `Admin123!`)
+- Comandos rodam dentro do container `api` (Compose de desenvolvimento), nunca no host — ver [`readme.md`](./readme.md) § Prisma 8
 
 ### Frontend (React)
 
-**Regras completas:** [`.agents/rules/react-frontend.mdc`](./.agents/rules/react-frontend.mdc). **Plano:** índice [`docs/plans/frontend.md`](./docs/plans/frontend.md); brief da entrega atual em [`docs/plans/frontend/`](./docs/plans/frontend/) — não ler as outras entregas.
-
-- Stack: React 19 + Vite 8 + TypeScript 6; Tailwind 4 (CSS-first); shadcn `base-lyra` sobre `@base-ui/react`; React Router 7; TanStack Query v5; react-hook-form + zod
-- Estrutura **feature-sliced** — `app/` (providers, router), `shared/` (api, types, lib, componentes transversais), `features/{auth,integrations,executions}/`, `components/ui/` (shadcn, alias fixo)
-- Alias `@/` → `src/`, **sem** sufixo `.js`
-- Tipagem estrita, **sem `any`** — ESLint roda regras type-checked
-- **API base:** `import.meta.env.VITE_API_URL ?? '/api/v1'` (URL relativa)
-- Tokens em `localStorage` via `shared/lib/storage.ts`; cliente HTTP em `shared/api/client.ts` com refresh single-flight
-- Toda tela com dados tem loading (`Skeleton`), erro (com retry) e vazio
-- Ações de escrita **ocultas** para `VIEWER` (`RoleGate`), e rotas de escrita barradas no router
-- Paginação e filtros na URL (`useSearchParams`)
-- Prettier próprio em `nexus-frontend/.prettierrc` (aspas duplas, `printWidth` 120) — não usar o do backend
-
-**Infra API no frontend:**
-
-| Ambiente | Como `/api/v1` chega na API |
-|----------|----------------------------|
-| Docker — prod (nginx) | `location /api/` → proxy `http://api:3000/api/` (todo o prefixo `/api/`) |
-| Docker — dev (`vite dev`, container) | `server.proxy['/api']` → `http://api:3000` (rede Docker) |
-
-`VITE_API_URL` é opcional (override); default no código: `/api/v1`. Evita quebrar ao acessar por IP/hostname diferente.
+**Regras completas:** [`.agents/rules/react-frontend.mdc`](./.agents/rules/react-frontend.mdc) — stack, estrutura feature-sliced, auth, TanStack Query, telas por role e armadilhas do contrato. **Plano:** índice [`docs/plans/frontend.md`](./docs/plans/frontend.md); brief da entrega atual em [`docs/plans/frontend/`](./docs/plans/frontend/) — não ler as outras entregas.
 
 ### Testes
 
@@ -186,35 +148,25 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 
 ## Comandos úteis
 
+**Nada roda no host.** Toda verificação é `<compose> exec <serviço> <comando>`, onde `<compose>` é:
+
 ```bash
-# Docker — desenvolvimento já sobe postgres + api + frontend; produção ainda sem frontend (F12)
-docker compose -f docker/production/docker-compose.yml --project-directory . up --build   # produção
-docker compose -f docker/development/docker-compose.yml --project-directory . up --build  # desenvolvimento
-
-# Frontend — dentro do container `frontend` (dev compose)
-docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run lint
-docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run format
-docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run format:check
-docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm test
-docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npx shadcn add <componente>
-
-# Prisma 8 — dentro do container `api` (dev compose; ver skill prisma-8/SKILL.md)
-
-# após editar contract.prisma
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm run contract:emit
-# dev: sync rápido
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api npx prisma db update
-# versionado: gera migration
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api npx prisma migration plan --name x
-# aplica migrations pendentes
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api npx prisma db migrate
+docker compose -f docker/development/docker-compose.yml --project-directory .
 ```
+
+| Serviço | Comandos |
+|---------|----------|
+| `api` | `npm test` · `npm run test:e2e` · `npm run lint` · `npm run format` · `npm run contract:emit` · `npx prisma db migrate` |
+| `frontend` | `npm test` · `npm run lint` · `npm run typecheck` · `npm run format` · `npx shadcn add <componente>` |
+
+Subir o ambiente, variáveis, testes e o workflow completo do Prisma: [`readme.md`](./readme.md).
 
 ## O que NÃO fazer
 
 - Não fixar versões antigas quando existe release mais recente compatível — exceto se o usuário pedir pin explícito
 - Não usar Prisma ORM 7 (`PrismaClient`, `schema.prisma`, `migrate deploy`)
 - Não editar `contract.json` / `contract.d.ts` manualmente
+- Não editar arquivos de `nexus-backend/.agents/skills/prisma-8/` — é a skill oficial, atualizada por `npm run skills:sync` após bump do Prisma
 - Não colocar `DATABASE_URL` em `prisma.config.ts`
 - Não criar abstrações prematuras (repositórios genéricos, CQRS)
 - Não adicionar features fora da spec (OAuth social, 2FA, rate limiting **global/avancado**, CRUD de usuários) — rate limit **básico no bootstrap** está no escopo
@@ -240,7 +192,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 | `.agents/rules/*.mdc` | Regras por domínio (raiz do monorepo) |
 | `nexus-backend/.agents/skills/prisma-8/` | Skill Prisma 8 (sync via `npm run skills:sync`) |
 | `readme.md` | Setup, seed, decisões do candidato |
-| `docs/plans/` | Planos de entrega rastreados (`frontend.md` = índice; `frontend/fXX-*.md` = brief pendente — apagar ao concluir; `testes-criticos.md`) |
+| `docs/plans/` | Planos de entrega rastreados — `frontend.md` é o índice e `frontend/fXX-*.md` o brief de cada entrega pendente (apagar ao concluir) |
 | `docs/todo/` | Fila viva: `frontend/<slug>.md` ou `backend/<slug>.md`. Item concluído se apaga; ver [`docs/todo/README.md`](./docs/todo/README.md) |
 
 ## Fluxo de trabalho sugerido para IA

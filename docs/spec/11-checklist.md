@@ -44,7 +44,7 @@
 - [x] **F03** Providers, router (`createBrowserRouter`), `ProtectedRoute` e `RoleGate` (+ teste)
 - [x] **F04** Login + logout + reidratação de sessão (`GET /auth/me`)
 - [x] **F05** Bootstrap (cadastro de tenant + admin)
-- [x] **[F06](../plans/frontend/f06-shell.md)** Shell (topbar, tema, toasts) e componentes compartilhados (`DataTable`, paginação, vazio, erro)
+- [x] **F06** Shell (topbar, tema, toasts) e componentes compartilhados (`DataTable`, paginação, vazio, erro)
 - [ ] **[F07](../plans/frontend/f07-integrations-list.md)** Integrações — listar com filtro `isActive` e paginação (ADMIN + VIEWER)
 - [ ] **[F08](../plans/frontend/f08-integrations-form.md)** Integrações — criar / editar (`authKey` nunca pré-preenchida; PATCH só do que mudou)
 - [ ] **[F09](../plans/frontend/f09-integrations-actions.md)** Integrações — ativar/desativar, excluir e disparar (ADMIN)

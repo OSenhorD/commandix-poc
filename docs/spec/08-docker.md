@@ -9,8 +9,8 @@ Versões pinadas — ver `nexus-backend/package.json` (`engines.node`) e imagens
 | Serviço | Porta (host) | Imagem / build |
 |---------|--------------|----------------|
 | database | 5432 (dev) / não exposto (prod) | `postgres:16-alpine` |
-| api | 3000 | build `nexus-backend/docker/production/Dockerfile` (prod) / `docker/development/Dockerfile` (dev) — `node:24.16.0-alpine` |
-| frontend | 5173 → 80 (prod) / 5173 (dev) | build `nexus-frontend/docker/production/Dockerfile` (nginx) / `docker/development/Dockerfile` (`vite dev --host`) |
+| api | 3000 | build `nexus-backend/docker/production/Dockerfile` (prod) / `nexus-backend/docker/development/Dockerfile` (dev) — `node:24.16.0-alpine` |
+| frontend | 5173 → 80 (prod) / 5173 (dev) | build `nexus-frontend/docker/development/Dockerfile` (`vite dev --host`); o de produção (nginx) entra na F12 |
 
 Em produção, o Postgres **não expõe porta no host** — apenas os serviços da rede do compose acessam via hostname interno `database`.
 
@@ -125,7 +125,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . up
 | Restart / redeploy | Seed roda de novo, mas é no-op quando dados demo já existem |
 | Produção real | **Fora de escopo** — em produção típica seed não roda a cada deploy; aqui é conveniência para avaliadores |
 
-Implementação: `nexus-backend/docker/production/entrypoint.sh` (prod) / `docker/development/entrypoint.sh` (dev) chama o seed entre migrate e start.
+Implementação: `nexus-backend/docker/production/entrypoint.sh` (prod) / `nexus-backend/docker/development/entrypoint.sh` (dev) chama o seed entre migrate e start.
 
 ## 8.6 Frontend — roteamento da API
 
@@ -172,8 +172,8 @@ server: {
 |------|---------|
 | Compose | `docker/production/docker-compose.yml`, `docker/development/docker-compose.yml` |
 | CI | `.github/workflows/ci.yml` |
-| API | `nexus-backend/docker/production/Dockerfile`/`docker/production/entrypoint.sh` (prod), `docker/development/Dockerfile`/`docker/development/entrypoint.sh` (dev) |
-| Frontend | `nexus-frontend/docker/production/Dockerfile` + `nginx.conf` (prod), `nexus-frontend/docker/development/Dockerfile` (dev) — mesma convenção do backend |
+| API | `nexus-backend/docker/{production,development}/` — `Dockerfile` + `entrypoint.sh` em cada |
+| Frontend | `nexus-frontend/docker/development/Dockerfile`; `production/` (`Dockerfile` + `nginx.conf`) entra na F12 |
 | Volume | `postgres_data` |
 
 ## 8.8 CORS

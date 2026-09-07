@@ -2,83 +2,37 @@
 
 [← Índice](./README.md)
 
+Monorepo com dois pacotes (`nexus-backend/`, `nexus-frontend/`) e a infra compartilhada na raiz.
+
 ```
 commandix-poc/
-├── docs/spec/
-├── AGENTS.md
-├── readme.md
-├── docker/
-│   ├── production/
-│   │   └── docker-compose.yml
-│   └── development/
-│       └── docker-compose.yml
-├── .env.example
-├── .agents/
-│   ├── README.md                   # aponta para a skill em nexus-backend/
-│   └── rules/                      # regras Cursor (monorepo)
+├── docker/{production,development}/docker-compose.yml   # composes; Dockerfiles ficam nos pacotes
+├── docs/{spec,plans,todo}/
+├── .agents/rules/                                       # regras por domínio
 ├── nexus-backend/
-│   ├── prisma.config.ts
-│   ├── tsconfig.json               # paths: "@/*" → "./src/*"
-│   ├── docker/
-│   │   ├── production/
-│   │   │   ├── Dockerfile
-│   │   │   └── entrypoint.sh       # db migrate → seed → node dist/main.js
-│   │   └── development/
-│   │       ├── Dockerfile
-│   │       └── entrypoint.sh       # db migrate → seed → start:debug (watch)
-│   ├── migrations/app/
-│   ├── .agents/skills/prisma-8/    # fonte da skill (skills:sync)
-│   └── src/
-│       ├── database/               # DatabaseModule
-│       └── prisma/
-│           ├── contract.prisma
-│           ├── contract.json
-│           ├── contract.d.ts
-│           ├── db.ts
-│           └── seed.ts
-│       # auth/, tenants/, integrations/, executions/, common/
-├── nexus-frontend/
-│   ├── components.json             # shadcn (estilo base-lyra, alias @/components/ui)
-│   ├── vite.config.ts              # alias @/ + proxy /api → api:3000 (dev)
-│   ├── eslint.config.js            # ESLint 10 strictTypeChecked
-│   ├── docker/
-│   │   ├── production/
-│   │   │   ├── Dockerfile          # build Vite → nginx
-│   │   │   └── nginx.conf          # SPA + proxy /api/ → api:3000
-│   │   └── development/
-│   │       └── Dockerfile          # vite dev --host (bind mount)
-│   └── src/
-│       ├── app/                    # providers, router, protected-route
-│       ├── components/ui/          # shadcn (alias fixo)
-│       ├── shared/                 # api/, types/, lib/, components/
-│       └── features/               # auth/, integrations/, executions/
-└── ...
+└── nexus-frontend/
 ```
 
-## Skills Prisma 8 (monorepo)
+Este documento não repete a árvore completa — ela envelhece mais rápido do que é lida. Abaixo só os caminhos cuja **localização é uma decisão**, não uma convenção óbvia do framework.
 
-| Caminho | Papel |
-|---------|-------|
-| `nexus-backend/.agents/skills/prisma-8/` | **Fonte única** — `npm run skills:sync` |
+## Onde as coisas ficam, e por quê
 
-**Sem symlink na raiz** — ler a skill direto neste caminho (ver [`AGENTS.md`](../../AGENTS.md) § Monorepo).
+| Caminho | Por que está aí |
+|---------|-----------------|
+| `docker/*/docker-compose.yml` | Composes centralizados na raiz; os **Dockerfiles** ficam em cada pacote (`nexus-backend/docker/`, `nexus-frontend/docker/`), perto do que constroem. Por isso todo comando usa `--project-directory .` |
+| `nexus-backend/docker/*/entrypoint.sh` | Sequência `db migrate` → seed → start. O de produção também é usado como referência do fluxo de CI |
+| `nexus-backend/src/prisma/` | `contract.prisma` (fonte), `contract.json` e `contract.d.ts` (gerados, **commitados**), `db.ts` (runtime) e `seed.ts`. Ver [04-modelo-dados](./04-modelo-dados.md) |
+| `nexus-backend/migrations/app/` | Migrations versionadas — commitadas |
+| `nexus-backend/.agents/skills/prisma-8/` | **Fonte única** da skill Prisma, sincronizada por `npm run skills:sync`. Sem symlink na raiz: ler direto neste caminho |
+| `nexus-frontend/src/components/ui/` | Componentes shadcn. **Não pode** mudar de lugar — `components.json` fixa o alias `@/components/ui` e mover quebra o `shadcn add` |
+| `nexus-frontend/src/{app,shared,features}/` | Estrutura feature-sliced — cada `features/<domínio>/` fecha api, hooks, schemas, componentes e páginas; o que serve mais de uma feature sobe para `shared/` |
+| `.agents/rules/*.mdc` | Regras por domínio, separadas do [`AGENTS.md`](../../AGENTS.md) para não carregar tudo em todo contexto |
 
-**Comandos Prisma:** rodam **dentro do container `api`** (Compose de desenvolvimento), nunca no host — o `DATABASE_URL` só existe na rede do Compose:
+## Convenções de import
 
-```bash
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api <comando>
-```
+| Pacote | Alias | Sufixo `.js` |
+|--------|-------|--------------|
+| `nexus-backend` | `@/` → `src/` | **Obrigatório** — Node ESM não resolve alias; o build usa `tsc-alias` |
+| `nexus-frontend` | `@/` → `src/` | **Nunca** — o Vite resolve |
 
-O `cwd` dentro do container já é a raiz do backend (`/app`). Ver [`AGENTS.md`](../../AGENTS.md) § Comandos úteis e [`readme.md`](../../readme.md) § Prisma 8.
-
-**Imports TypeScript:** alias `@/` → `src/`; build (`npm run build`) usa `tsc-alias` para reescrever no `dist/`. Detalhes em [`AGENTS.md`](../../AGENTS.md).
-
-## Referências
-
-| Recurso | Caminho |
-|---------|---------|
-| Skill | `nexus-backend/.agents/skills/prisma-8/SKILL.md` |
-| Contract | `nexus-backend/src/prisma/contract.prisma` |
-| Runtime | `nexus-backend/src/prisma/db.ts` |
-| Migrations | `nexus-backend/migrations/app/` |
-| Config | `nexus-backend/prisma.config.ts` |
+Comandos (Prisma, testes, lint) rodam dentro dos containers — ver [`readme.md`](../../readme.md).

@@ -12,20 +12,12 @@ Acabamento visual é prioridade **baixa** na avaliação ([10-criterios](../../d
 
 ## Stack
 
-| Camada | Tecnologia |
-|--------|------------|
-| Base | React 19 + TypeScript 6 + Vite 8 |
-| Estilo | Tailwind CSS 4 — CSS-first (`@import "tailwindcss"` em `src/index.css`, sem `tailwind.config.js`) |
-| Componentes | shadcn (estilo `base-lyra`) sobre **`@base-ui/react`** — não Radix |
-| Ícones | `lucide-react` |
-| Rotas | React Router 7 (`createBrowserRouter`) |
-| Dados | TanStack Query v5 |
-| Formulários | react-hook-form + zod (`@hookform/resolvers`) |
-| Lint | **ESLint 10** (`strictTypeChecked`) — o backend usa oxlint; linters diferentes por pacote, propositalmente |
-| Compilador | React Compiler (`babel-plugin-react-compiler` via `@rolldown/plugin-babel`) |
-| Testes | Vitest + Testing Library (jsdom) — só o crítico (client HTTP, gate de role) |
+Inventário completo em [`docs/spec/06-stack.md`](../../docs/spec/06-stack.md) §6.2. O que mais tropeça na hora de codar:
 
-Política de versões (sempre a última estável) em [`AGENTS.md`](../../AGENTS.md).
+- **Tailwind 4 é CSS-first** — configurado em `src/index.css`, sem `tailwind.config.js`
+- Os componentes shadcn (estilo `base-lyra`) são **Base UI**, não Radix — nunca importar `@radix-ui/*`
+- **ESLint 10 `strictTypeChecked`** aqui; oxlint no backend. Um linter por pacote, proposital
+- React Compiler ativo (`babel-plugin-react-compiler` via `@rolldown/plugin-babel`)
 
 ## Estrutura (feature-sliced)
 
@@ -36,13 +28,17 @@ nexus-frontend/src/
 │   ├── providers.tsx        # QueryClient + Auth + Theme + Tooltip + Toaster
 │   ├── router.tsx           # createBrowserRouter
 │   └── protected-route.tsx  # redirect /login + gate por role
-├── components/ui/           # shadcn — alias FIXO, ver abaixo
+├── components/
+│   ├── ui/                  # shadcn — alias FIXO, ver abaixo
+│   └── layout/              # app-shell, user-menu
+├── lib/utils.ts             # `cn` do shadcn — fica aqui por causa do components.json
 ├── shared/
 │   ├── api/{client,errors,query-client}.ts
 │   ├── types/api.ts         # DTOs espelhando docs/spec/05-api.md
-│   ├── lib/{utils,storage,format}.ts
+│   ├── lib/{storage,format,query-string,theme}.ts
+│   ├── hooks/{use-list-params,use-theme}.ts
 │   └── components/          # data-table, pagination-bar, empty-state,
-│                            # error-state, json-field, role-gate, confirm-dialog
+│                            # error-state, json-field, role-gate
 └── features/
     ├── auth/         api.ts · auth-context.ts · auth-provider.tsx · use-auth.ts · schemas.ts · pages/
     ├── integrations/ api.ts · hooks.ts · schemas.ts · components/ · pages/

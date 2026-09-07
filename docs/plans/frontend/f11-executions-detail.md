@@ -1,7 +1,6 @@
 # F11 — Histórico: detalhe da execução
 
 > **Agente — leia só isto + o índice.** Restrições globais, armadilhas e atalho de comando: [`../frontend.md`](../frontend.md). Não abra as outras entregas.
-> Relatórios SDD: `.superpowers/sdd/frontend/`.
 
 **Arquivos:**
 - Criar: `src/shared/components/code-block.tsx`

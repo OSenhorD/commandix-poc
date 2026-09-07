@@ -1,7 +1,6 @@
 # F07 — Integrações: listagem com filtro e paginação
 
 > **Agente — leia só isto + o índice.** Restrições globais, armadilhas e atalho de comando: [`../frontend.md`](../frontend.md). Não abra as outras entregas.
-> Relatórios SDD: `.superpowers/sdd/frontend/`.
 
 **Arquivos:**
 - Criar: `src/features/integrations/api.ts`, `src/features/integrations/hooks.ts`, `src/features/integrations/components/integration-type-badge.tsx`

@@ -1,7 +1,6 @@
 # F09 — Integrações: ativar/desativar, excluir e disparar
 
 > **Agente — leia só isto + o índice.** Restrições globais, armadilhas e atalho de comando: [`../frontend.md`](../frontend.md). Não abra as outras entregas.
-> Relatórios SDD: `.superpowers/sdd/frontend/`.
 
 **Arquivos:**
 - Criar: `src/features/integrations/components/delete-integration-dialog.tsx`, `src/features/integrations/components/trigger-integration-dialog.tsx`

@@ -6,25 +6,23 @@ Plataforma de automação B2B — módulo de gestão de integrações multi-tena
 
 | Arquivo | Descrição |
 |---------|-----------|
-| [`docs/spec/`](./docs/spec/README.md) | Spec técnica (funcionalidades, API, schema, checklist) |
-| [`AGENTS.md`](./AGENTS.md) | Contexto para agentes de IA |
-| [`.agents/README.md`](./.agents/README.md) | Skills do monorepo (Prisma 8) |
-| [`.agents/rules/`](./.agents/rules/) | Regras por domínio |
+| [`docs/spec/`](./docs/spec/README.md) | Spec técnica — escopo, arquitetura, modelo de dados, contrato da API, checklist |
+| [`AGENTS.md`](./AGENTS.md) | Contexto e log de decisões para agentes de IA |
+| [`.agents/rules/`](./.agents/rules/) | Regras por domínio (NestJS, Prisma, React, Docker) |
+| [`nexus-backend/.agents/skills/prisma-8/`](./nexus-backend/.agents/skills/prisma-8/SKILL.md) | Skill oficial do Prisma 8 (sincronizada, não editar à mão) |
 
 ## Pré-requisitos
 
-| Ferramenta | Versão |
-|------------|--------|
-| Docker + Docker Compose | Único requisito |
+Docker + Docker Compose. Nada é instalado no host — nem Node, nem npm.
 
-## Início rápido (Docker)
+## Início rápido
 
 ```bash
 cp .env.example .env
 docker compose -f docker/production/docker-compose.yml --project-directory . up --build
 ```
 
-Para desenvolvimento (bind mount do código + watch mode):
+Para desenvolvimento (bind mount do código, watch mode e o serviço `frontend`):
 
 ```bash
 docker compose -f docker/development/docker-compose.yml --project-directory . up --build
@@ -32,11 +30,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . up
 
 `--project-directory .` mantém `.env` e caminhos relativos (`./nexus-backend`, volumes) resolvidos a partir da raiz, mesmo com os arquivos de compose em `docker/`.
 
-Aguarde os healthchecks. A API sobe automaticamente com:
-
-1. `prisma db migrate`
-2. seed idempotente (pula se tenant `acme` já existir)
-3. `node dist/main.js`
+Aguarde os healthchecks. A API sobe sozinha executando `prisma db migrate` → seed idempotente → `node dist/main.js`.
 
 ### Serviços
 
@@ -45,9 +39,9 @@ Aguarde os healthchecks. A API sobe automaticamente com:
 | API | http://localhost:3000/api/v1 | prefixo global NestJS |
 | Health | http://localhost:3000/api/v1/health | `{ "status": "ok" }` |
 | Docs (Swagger UI) | http://localhost:3000/api/docs | Try-it com JWT (`Authorize` → Bearer) |
-| OpenAPI JSON | http://localhost:3000/api/openapi.json | Documento OpenAPI 3.x gerado via `@nestjs/swagger` |
-| PostgreSQL | `localhost:5432` | user/senha/db default: `commandix` |
-| Frontend | http://localhost:5173 | Compose de **desenvolvimento** (F01); telas ainda placeholder (F04–F11). Produção pendente — entrega F12 de [`docs/plans/frontend/f12-production.md`](./docs/plans/frontend/f12-production.md) |
+| OpenAPI JSON | http://localhost:3000/api/openapi.json | Documento OpenAPI 3.x via `@nestjs/swagger` |
+| PostgreSQL | `localhost:5432` | Só no compose de desenvolvimento; user/senha/db default `commandix` |
+| Frontend | http://localhost:5173 | Compose de **desenvolvimento**; o serviço de produção (nginx) entra na entrega F12 |
 
 ### Credenciais demo (seed)
 
@@ -57,176 +51,125 @@ Aguarde os healthchecks. A API sobe automaticamente com:
 | Admin | `admin@acme.com` / `Admin123!` |
 | Viewer | `viewer@acme.com` / `Admin123!` |
 
-### Comandos Docker úteis
+O seed roda no entrypoint da API em toda subida e é idempotente: se o tenant `acme` já existir, encerra sem inserir nada.
+
+## Comandos
+
+Nada roda no host — tudo é `exec` no container. Defina o atalho uma vez por sessão do shell:
 
 ```bash
-# Subir em background (produção; troque o -f para docker/development/docker-compose.yml em desenvolvimento)
-docker compose -f docker/production/docker-compose.yml --project-directory . up --build -d
-
-# Ver logs da API
-docker compose -f docker/production/docker-compose.yml --project-directory . logs -f api
-
-# Parar serviços
-docker compose -f docker/production/docker-compose.yml --project-directory . down
-
-# Parar e apagar volume do Postgres (reset completo do banco)
-docker compose -f docker/production/docker-compose.yml --project-directory . down -v
-
-# Subir só o banco
-docker compose -f docker/production/docker-compose.yml --project-directory . up database -d
+alias dc='docker compose -f docker/development/docker-compose.yml --project-directory .'
 ```
 
-### Variáveis de ambiente
+O Compose de desenvolvimento precisa estar no ar para os comandos abaixo.
 
-Copie `.env.example` → `.env` na **raiz** do monorepo. Principais variáveis:
-
-| Variável | Default | Uso |
-|----------|---------|-----|
-| `JWT_ACCESS_SECRET` | — | Assinatura do access token — **obrigatória em produção** (`docker compose up` falha se ausente) |
-| `JWT_REFRESH_SECRET` | — | Assinatura do refresh token — **obrigatória em produção** |
-| `DB_PASSWORD` | — | Senha do Postgres — **obrigatória em produção** |
-| `DB_DATABASE` / `DB_USERNAME` | `commandix` | Postgres no Compose |
-| `DB_PORT` | `5432` | Porta exposta do Postgres — **somente em desenvolvimento**; em produção o Postgres não expõe porta no host |
-| `API_PORT` | `3000` | Porta exposta da API |
-| `ENABLE_API_DOCS` | `true` | Liga/desliga `/api/docs` e `/api/openapi.json` (`false` → 404) |
-
-No Compose, a API recebe `DATABASE_URL` montada internamente (`database:5432`). Ver [`.env.example`](./.env.example) e [`docs/spec/08-docker.md`](./docs/spec/08-docker.md).
-
-## Desenvolvimento (bind mount + watch mode)
-
-Suba o Compose de desenvolvimento (§ [Início rápido](#início-rápido-docker)) — código montado via bind mount, API reinicia sozinha a cada alteração em `src/` (`nodemon` + debug inspector na porta `9229`).
-
-Comandos abaixo rodam **dentro do container `api`** via `docker compose exec` (sem instalar Node/npm no host):
+### Docker
 
 ```bash
-# Após editar contract.prisma
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm run contract:emit
-
-# Compilar TypeScript (NestJS + tsc-alias) — normalmente não é necessário: o watch mode já builda a cada mudança
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm run build
+dc up --build -d        # subir em background
+dc logs -f api          # acompanhar a API
+dc down                 # parar
+dc down -v              # parar e apagar o volume do Postgres (reset do banco)
+dc up database -d       # subir só o banco
 ```
 
-O **`docker/production/Dockerfile`** da API já executa `contract:emit` e `build` na etapa de build; o entrypoint (`docker/production/entrypoint.sh`) cuida de migrate + seed + start.
+Em produção, troque o `-f` por `docker/production/docker-compose.yml`.
 
-## Testes
-
-Todos os comandos abaixo rodam dentro do container `api` (Compose de desenvolvimento, que já define `DATABASE_URL`/`TEST_DATABASE_URL`):
+### Testes
 
 ```bash
-# unitários (*.spec.ts)
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm test
-# e2e (*.e2e-spec.ts)
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm run test:e2e
-# com cobertura
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm run test:cov
+dc exec api npm test           # unitários (src/**/*.spec.ts)
+dc exec api npm run test:e2e   # e2e (test/*.e2e-spec.ts)
+dc exec api npm run test:cov   # com cobertura
+dc exec frontend npm test      # frontend (cliente HTTP e gate de role)
 ```
 
-| Tipo | Arquivos | Banco necessário? |
-|------|----------|-------------------|
-| Unitários | `src/**/*.spec.ts` | Não |
-| E2E (app, validation) | `test/*.e2e-spec.ts` | Não |
-| E2E (seed) | `test/seed.e2e-spec.ts` | **Sim** — requer `DATABASE_URL`; teste é ignorado se ausente |
+Os e2e usam o `TEST_DATABASE_URL` que o Compose de desenvolvimento já injeta (banco `commandix_test`). O `seed.e2e-spec.ts` é ignorado se `DATABASE_URL` não estiver definida.
 
-## Prisma 8
+### Lint e formatação
 
-Comandos dentro do container `api` (skill: [`nexus-backend/.agents/skills/prisma-8/SKILL.md`](./nexus-backend/.agents/skills/prisma-8/SKILL.md)). Prefixo omitido na tabela: `docker compose -f docker/development/docker-compose.yml --project-directory . exec api`.
+Prettier é **isolado por pacote** — `nexus-backend/.prettierrc` (aspas simples) e `nexus-frontend/.prettierrc` (aspas duplas). Não há config na raiz; a extensão do VS Code resolve a mais próxima do arquivo.
+
+```bash
+dc exec api npm run lint             # oxlint
+dc exec frontend npm run lint        # ESLint 10
+dc exec frontend npm run typecheck   # tsc -b
+dc exec api npm run format           # Prettier (write) — idem para o frontend
+dc exec api npm run format:check     # Prettier (só verifica) — idem para o frontend
+```
+
+### Prisma 8
+
+Skill de referência: [`nexus-backend/.agents/skills/prisma-8/SKILL.md`](./nexus-backend/.agents/skills/prisma-8/SKILL.md).
 
 | Situação | Comando |
 |----------|---------|
-| Após editar `contract.prisma` | `npm run contract:emit` |
-| Dev (schema em fluxo) | `npx prisma db update` |
-| Nova migration versionada | `npx prisma migration plan --name <slug>` → `npx prisma db migrate` |
-| DB vazio (primeira vez) | `npx prisma db init` |
-| Seed manual | `npm run seed` |
+| Após editar `contract.prisma` | `dc exec api npm run contract:emit` |
+| Dev (schema em fluxo) | `dc exec api npx prisma db update` |
+| Nova migration versionada | `dc exec api npx prisma migration plan --name <slug>` → `dc exec api npx prisma db migrate` |
+| DB vazio (primeira vez) | `dc exec api npx prisma db init` |
+| Seed manual | `dc exec api npm run seed` |
 
-**Docker / CI:** usar `db migrate` (não `db update`).
+**Docker / CI:** usar `db migrate`, nunca `db update`.
 
-## Lint e formatação
+### Build
 
-Prettier é **isolado por pacote** (`nexus-backend/.prettierrc` com aspas simples; `nexus-frontend/.prettierrc` com aspas duplas). Sem config na raiz.
+O `docker/production/Dockerfile` da API já executa `contract:emit` e `build`; o entrypoint cuida de migrate + seed + start. No dia a dia o watch mode rebuilda sozinho, mas `dc exec api npm run build` força uma compilação (`nest build` + `tsc-alias`).
 
-```bash
-# backend — oxlint
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm run lint
-# backend — prettier (write / CI)
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm run format
-docker compose -f docker/development/docker-compose.yml --project-directory . exec api npm run format:check
+## Variáveis de ambiente
 
-# frontend — ESLint
-docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run lint
-# frontend — prettier (write / CI)
-docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run format
-docker compose -f docker/development/docker-compose.yml --project-directory . exec frontend npm run format:check
-```
+Copie `.env.example` → `.env` na **raiz** do monorepo. Lista completa e variáveis derivadas pelo Compose: [`docs/spec/08-docker.md`](./docs/spec/08-docker.md) §8.2.
 
-## CI (GitHub Actions)
+| Variável | Default | Uso |
+|----------|---------|-----|
+| `JWT_ACCESS_SECRET` | — | Assinatura do access token — **obrigatória em produção** (`up` falha se ausente) |
+| `JWT_REFRESH_SECRET` | — | Assinatura do refresh token — **obrigatória em produção** |
+| `DB_PASSWORD` | — | Senha do Postgres — **obrigatória em produção** |
+| `DB_DATABASE` / `DB_USERNAME` | `commandix` | Postgres no Compose |
+| `DB_PORT` | `5432` | Porta exposta do Postgres — **só em desenvolvimento**; em produção o banco não publica porta no host |
+| `API_PORT` | `3000` | Porta exposta da API |
+| `ENABLE_API_DOCS` | `true` | Liga/desliga `/api/docs` e `/api/openapi.json` (`false` → 404) |
+| `VITE_API_URL` | `/api/v1` | Base do cliente HTTP no browser — override opcional |
+| `VITE_API_PROXY_TARGET` | `http://api:3000` | Alvo do proxy do `vite dev` |
 
-Workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — push/PR em `main`:
+A API recebe `DATABASE_URL` montada internamente pelo Compose (`database:5432`) — não vai no `.env`.
 
-| Job | O que valida |
-|-----|----------------|
-| **validate** | Backend — `npm ci`, `contract:emit` (+ contract commitado), `prisma db migrate`, lint, Prettier, testes unit/e2e, build |
+## CI
 
-Node **24.16.0** + Postgres **16** como service. O job de frontend entra na entrega F12 ([`docs/plans/frontend/f12-production.md`](./docs/plans/frontend/f12-production.md)); a validação por Docker Compose ainda não existe — ver [`docs/todo/backend/ci-sem-job-docker.md`](./docs/todo/backend/ci-sem-job-docker.md).
+[`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — push/PR em `main`. Job único `validate` (Node 24.16.0 + Postgres 16 como service): `npm ci`, `contract:emit` com checagem de diff, `prisma db migrate`, lint, Prettier, testes unitários e e2e, build.
+
+O job de frontend entra na entrega F12; a validação por Docker Compose ainda não existe — ver [`docs/todo/backend/ci-sem-job-docker.md`](./docs/todo/backend/ci-sem-job-docker.md).
 
 ## Status
 
 | Componente | Diretório | Status |
 |------------|-----------|--------|
-| API NestJS | `nexus-backend/` | Em implementação |
-| Frontend React | `nexus-frontend/` | F01–F03 (ambiente, cliente HTTP, sessão, rotas); telas F04–F12 — [`docs/plans/frontend.md`](./docs/plans/frontend.md) (índice) + [`docs/plans/frontend/`](./docs/plans/frontend/) |
+| API NestJS | `nexus-backend/` | Funcional — auth, tenants, integrações, execuções, OpenAPI, testes críticos |
+| Frontend React | `nexus-frontend/` | F01–F06 (ambiente, cliente HTTP, sessão, rotas, login/bootstrap, shell); F07–F12 em [`docs/plans/frontend.md`](./docs/plans/frontend.md) |
 | PostgreSQL + Prisma 8 | `nexus-backend/src/prisma/` | Contract + migrations + seed |
-| Docker Compose | `docker/` | Dev: postgres + api + frontend; prod: postgres + api (`frontend` em F12) |
-
-## Stack
-
-- **Backend:** NestJS 12, Node 24, TypeScript 6 (ESM), Prisma 8, PostgreSQL, JWT
-- **Frontend:** React 19, TypeScript 6, Vite 8, Tailwind CSS 4, shadcn (estilo `base-lyra` sobre Base UI), React Router 7, TanStack Query v5, react-hook-form + zod
-- **Infra:** Docker Compose (Postgres 16, nginx)
-- **Testes:** Vitest + supertest (backend) — **testes críticos obrigatórios** (tenant isolation, auth, trigger, execuções); Vitest + Testing Library (frontend) no cliente HTTP e no gate de role; cobertura extra = bônus
-
-## Extensões sugeridas (VS Code / Cursor)
-
-Opcionais.
-
-- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
-- [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-- [Prisma](https://marketplace.visualstudio.com/items?itemName=Prisma.prisma)
-- [EditorConfig](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
-- [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens)
-- [Git History](https://marketplace.visualstudio.com/items?itemName=donjayamanne.githistory)
-- [Tailwind CSS](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
-- [Mermaid Chart](https://marketplace.visualstudio.com/items?itemName=MermaidChart.vscode-mermaid-chart)
+| Docker Compose | `docker/` | Dev: `database` + `api` + `frontend`; prod: `database` + `api` (`frontend` na F12) |
 
 ## Decisões técnicas
 
-Decisões completas em [`AGENTS.md`](./AGENTS.md). Resumo:
+Log completo das decisões em [`AGENTS.md`](./AGENTS.md) § Decisões adotadas. As que mais afetam a leitura do código:
 
-| Tópico | Decisão |
-|--------|---------|
-| Versões | Sempre as mais recentes (runtime, frameworks, ORM, Docker) |
-| Imports backend | Alias `@/` → `src/`; sufixo `.js`; `tsc-alias` no build |
-| ORM | Prisma 8 — skill em [`nexus-backend/.agents/skills/prisma-8/`](./nexus-backend/.agents/skills/prisma-8/SKILL.md) |
-| Migrations | `migrations/app/` + `db migrate` no Docker |
-| Schema no Docker | `contract emit` (build) → `db migrate` → seed idempotente (sempre no entrypoint) |
-| Multi-tenancy | `tenantId` no JWT + filtro no service; cross-tenant → 404 |
-| Infra | Docker Compose com um comando (`docker compose -f docker/production/docker-compose.yml --project-directory . up --build`); nada roda fora de container |
-| Trigger HTTP | Sempre POST, timeout 30s, sem retry, `authKey` como Bearer |
-| `authKey` at-rest | Texto plano na PoC (sem criptografia) |
-| Execuções | `responseBody` truncado em 10 240 bytes UTF-8 |
-| Integrações | PATCH parcial; desativar via PATCH; DELETE hard + cascade |
-| Frontend API | URL relativa `/api/v1` + proxy nginx/Vite |
-| CORS | Dev (container Vite): `localhost:5173` → API `:3000`; prod (nginx): mesma origem |
-| Frontend auth | Interceptor 401 → refresh **single-flight** → logout; tokens em `localStorage` |
-| Frontend UI | Escopo completo na UI; acabamento visual usa o default do shadcn (prioridade baixa na avaliação) |
-| Frontend estrutura | Feature-sliced (`app/`, `shared/`, `features/`); dados com TanStack Query; forms com react-hook-form + zod |
-| Frontend `authKey` | Nunca pré-preenchida na edição — a API devolve mascarada; campo vazio mantém o valor |
-| API prefix | `/api/v1` (global prefix no NestJS) |
-| Health | `GET /api/v1/health` → `{ "status": "ok" }` |
-| JWT | Access `15m`, refresh `7d`; claims `{ sub, tenantId, role, email }` |
-| Logout | Apenas dispositivo atual — outras sessões permanecem |
-| Bootstrap | Rate limit básico — 5 req / 60s por IP em `POST /tenants/bootstrap` |
-| Usuários | Criação **somente** no bootstrap (`ADMIN`); sem convite/CRUD |
+**`authKey` at-rest: texto plano.** A credencial de cada integração é gravada sem criptografia. Foi decisão consciente de PoC — criptografia simétrica exigiria uma chave mestra, rotação e um caminho de migração que não agregam ao que está sendo avaliado. A mitigação existente é de exposição, não de armazenamento: a API sempre devolve a chave **mascarada** (`****-key`) e o valor real só sai do banco para montar o header `Authorization: Bearer` do disparo. Em produção isso viraria um campo cifrado com envelope encryption (KMS) ou uma referência a um cofre externo.
+
+**Multi-tenancy por filtro explícito no service.** O `tenantId` vem do JWT e entra em toda query de negócio; nada é lido do body ou da query string. Acesso cross-tenant devolve **404**, nunca 403 — um 403 confirmaria que o recurso existe em outro tenant. Execuções não têm `tenantId` próprio: o escopo é validado pela relação com `Integration`.
+
+**Disparo HTTP sem retry.** Sempre POST, timeout de 30s, uma tentativa. Retry automático em webhook não idempotente duplicaria efeito no serviço externo; o registro da execução fica com `FAILURE` e o reenvio é manual. `responseBody` é truncado em 10 240 bytes UTF-8 para o histórico não virar depósito de payload.
+
+**Seed no entrypoint, em toda subida.** Garante que `docker compose up` entregue dados demo funcionais ao avaliador. É idempotente (pula se o tenant `acme` existir), mas **não é padrão de produção** — em produção real o seed não roda a cada deploy.
+
+**Tokens no `localStorage` do frontend.** Escolha de PoC, com a limitação conhecida de exposição a XSS. A alternativa mais defensável seria refresh token em cookie `httpOnly` + `SameSite`, que exigiria mesma origem ou CORS com credenciais. O acesso é isolado em `shared/lib/storage.ts`, então a troca fica contida num arquivo.
+
+## Pontos em aberto
+
+- **Frontend F07–F12** — telas de integrações e histórico, Docker de produção com nginx e job de frontend no CI. Índice em [`docs/plans/frontend.md`](./docs/plans/frontend.md).
+- **CI sem validação de Docker Compose** — o workflow valida o backend direto no runner; ninguém garante que `docker compose up` sobe. Ver [`docs/todo/backend/ci-sem-job-docker.md`](./docs/todo/backend/ci-sem-job-docker.md).
+- **`authKey` sem criptografia at-rest** — ver decisão acima.
+- **Bônus não implementados** — workflow n8n e cobertura de testes além do mínimo crítico.
+- Demais itens da fila em [`docs/todo/`](./docs/todo/README.md).
 
 ## Licença
 
