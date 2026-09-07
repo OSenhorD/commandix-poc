@@ -26,7 +26,7 @@ Este documento não repete a árvore completa — ela envelhece mais rápido do 
 | `nexus-backend/.agents/skills/prisma-8/` | **Fonte única** da skill Prisma, sincronizada por `npm run skills:sync`. Sem symlink na raiz: ler direto neste caminho |
 | `nexus-frontend/src/components/ui/` | Componentes shadcn. **Não pode** mudar de lugar — `components.json` fixa o alias `@/components/ui` e mover quebra o `shadcn add` |
 | `nexus-frontend/src/{app,shared,features}/` | Estrutura feature-sliced — cada `features/<domínio>/` fecha api, hooks, schemas, componentes e páginas; o que serve mais de uma feature sobe para `shared/` |
-| `.agents/rules/*.mdc` | Regras por domínio, separadas do [`AGENTS.md`](../../AGENTS.md) para não carregar tudo em todo contexto |
+| `.agents/rules/*.md` | Regras por domínio, separadas do [`AGENTS.md`](../../AGENTS.md) para não carregar tudo em todo contexto |
 
 ## Convenções de import
 

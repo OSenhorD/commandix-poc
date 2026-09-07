@@ -23,7 +23,7 @@
 | oxlint | Linter do backend — **não** ESLint; Prettier isolado em `nexus-backend/.prettierrc` (aspas simples) |
 | nodemon | Watch mode do Compose de desenvolvimento (+ inspector na `9229`) |
 
-Padrões de código: [`.agents/rules/nestjs-backend.mdc`](../../.agents/rules/nestjs-backend.mdc).
+Padrões de código: [`.agents/rules/nestjs-backend.md`](../../.agents/rules/nestjs-backend.md).
 
 ## 6.2 Frontend
 
@@ -43,7 +43,7 @@ Acabamento visual é prioridade **baixa** na avaliação ([10-criterios](./10-cr
 | Prettier | Isolado em `nexus-frontend/.prettierrc` (aspas duplas, `printWidth` 120) |
 | Vitest + Testing Library | Só o crítico: client HTTP e gate de role |
 
-Padrões e armadilhas do contrato: [`.agents/rules/react-frontend.mdc`](../../.agents/rules/react-frontend.mdc). Plano de entregas: [`docs/plans/frontend.md`](../plans/frontend.md).
+Padrões e armadilhas do contrato: [`.agents/rules/react-frontend.md`](../../.agents/rules/react-frontend.md). Plano de entregas: [`docs/plans/frontend.md`](../plans/frontend.md).
 
 **Telas (escopo completo do protótipo):**
 

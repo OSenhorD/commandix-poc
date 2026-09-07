@@ -1,10 +1,6 @@
----
-description: Padrões NestJS para nexus-backend
-globs: nexus-backend/**/*.ts
-alwaysApply: false
----
-
 # NestJS Backend
+
+> **Aplica-se a:** `nexus-backend/**/*.ts` — ler antes de escrever ou alterar código do backend.
 
 Decisões: `AGENTS.md`. API: `docs/spec/05-api.md`. Prisma 8 (skill obrigatória para tarefas Prisma): `nexus-backend/.agents/skills/prisma-8/SKILL.md`.
 

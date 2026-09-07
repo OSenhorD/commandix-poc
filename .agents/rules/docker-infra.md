@@ -1,10 +1,6 @@
----
-description: Docker Compose, Dockerfiles e variáveis de ambiente
-globs: docker/*/docker-compose.yml,nexus-backend/docker/**,nexus-frontend/docker/**,.env.example
-alwaysApply: false
----
-
 # Docker & Infra
+
+> **Aplica-se a:** `docker/*/docker-compose.yml`, `nexus-backend/docker/**`, `nexus-frontend/docker/**`, `.env.example`.
 
 **Referência completa (serviços, portas, env, startup, CORS, CI):** [`docs/spec/08-docker.md`](../../docs/spec/08-docker.md). Este arquivo só traz o que é regra ao editar infra.
 

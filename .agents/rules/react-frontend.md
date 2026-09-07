@@ -1,10 +1,6 @@
----
-description: Padrões React para nexus-frontend
-globs: nexus-frontend/**/*.ts,nexus-frontend/**/*.tsx
-alwaysApply: false
----
-
 # React Frontend
+
+> **Aplica-se a:** `nexus-frontend/**/*.{ts,tsx}` — ler antes de escrever ou alterar código do frontend.
 
 **Escopo completo do protótipo:** todas as telas e ações expostas pela API necessárias ao fluxo end-to-end (via UI, não curl). Plano: índice em [`docs/plans/frontend.md`](../../docs/plans/frontend.md); brief da entrega atual em [`docs/plans/frontend/`](../../docs/plans/frontend/) — não ler as outras entregas.
 

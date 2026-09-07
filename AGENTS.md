@@ -110,6 +110,18 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | CI | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — lint, Prettier, test, build. Job de frontend entra na F12; **não** há job de Docker Compose |
 | Pre-commit (Husky raiz) | `git diff --cached` no host; `format` / `lint` / `test:related` **dentro** dos containers (`api` / `frontend`, `exec -T`). Scripts aceitam arquivos (`npm run lint -- src/foo.ts`); sem args = projeto inteiro (CI). `*.e2e-spec.ts` fora do related. Compose de dev precisa estar no ar |
 
+## Regras por domínio — o que ler antes de editar
+
+As regras em [`.agents/rules/`](./.agents/rules/) são markdown puro, sem metadado de IDE: **nenhuma ferramenta as anexa sozinha**. Esta tabela é o roteamento — antes de criar ou alterar um arquivo que casa com o padrão, abra a regra correspondente.
+
+| Vou tocar em… | Ler antes |
+|---------------|-----------|
+| `nexus-backend/**/*.ts` | [`nestjs-backend.md`](./.agents/rules/nestjs-backend.md) — módulos, imports ESM, guards, DTOs, paginação, trigger HTTP |
+| `nexus-backend/src/prisma/**` · `migrations/**` · `prisma.config.ts` · `**/seed.ts` · qualquer query no ORM | [`prisma-database.md`](./.agents/rules/prisma-database.md) **e** a skill `nexus-backend/.agents/skills/prisma-8/SKILL.md` (obrigatória) |
+| `nexus-frontend/**/*.{ts,tsx}` | [`react-frontend.md`](./.agents/rules/react-frontend.md) — stack, estrutura feature-sliced, auth, TanStack Query, armadilhas do contrato |
+| `docker/*/docker-compose.yml` · `*/docker/**` · `.env.example` | [`docker-infra.md`](./.agents/rules/docker-infra.md) — layout, nomes de serviço, regras de env |
+| Qualquer arquivo | Este `AGENTS.md` — § Decisões adotadas e § O que NÃO fazer |
+
 ## Convenções
 
 ### Geral
@@ -123,22 +135,18 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 
 ### Backend (NestJS)
 
-**Regras completas:** [`.agents/rules/nestjs-backend.mdc`](./.agents/rules/nestjs-backend.mdc) — módulos, imports ESM, guards, DTOs, paginação, trigger HTTP.
-
 - Senha com **bcrypt**; refresh token guardado como **hash** no banco. Nunca expor `passwordHash`, `tokenHash` ou `authKey` completo nas respostas
 - Rota com prefixo top-level diferente do resto do módulo (ex.: `GET /executions/:id` vs. `GET /integrations/:integrationId/executions`): criar um **segundo `@Controller()`** no mesmo módulo (pode ficar no mesmo arquivo `*.controller.ts`) e registrar ambos em `controllers: []` — Nest não permite path absoluto por método dentro de um controller com prefixo próprio
 - Validar tenant de uma entidade sem `tenantId` direto (ex.: `IntegrationExecution`) via `.include('relation', (r) => r.select('tenantId'))` no ORM Prisma 8 — evita duas queries separadas; comparar `entity.relation.tenantId !== tenantId` → 404
 
 ### Banco (Prisma 8)
 
-- **Skill (obrigatória em tarefas Prisma):** `nexus-backend/.agents/skills/prisma-8/SKILL.md` — abrir a routing table antes de codar
-- **Regras completas:** [`.agents/rules/prisma-database.mdc`](./.agents/rules/prisma-database.mdc) — layout, workflow de comandos, queries multi-tenant, schema e proibições
 - Domínio: [`docs/spec/04-modelo-dados.md`](./docs/spec/04-modelo-dados.md) §4.1–4.3. Seed idempotente em `src/prisma/seed.ts` (senha `Admin123!`)
 - Comandos rodam dentro do container `api` (Compose de desenvolvimento), nunca no host — ver [`readme.md`](./readme.md) § Prisma 8
 
 ### Frontend (React)
 
-**Regras completas:** [`.agents/rules/react-frontend.mdc`](./.agents/rules/react-frontend.mdc) — stack, estrutura feature-sliced, auth, TanStack Query, telas por role e armadilhas do contrato. **Plano:** índice [`docs/plans/frontend.md`](./docs/plans/frontend.md); brief da entrega atual em [`docs/plans/frontend/`](./docs/plans/frontend/) — não ler as outras entregas.
+**Plano:** índice [`docs/plans/frontend.md`](./docs/plans/frontend.md); brief da entrega atual em [`docs/plans/frontend/`](./docs/plans/frontend/) — não ler as outras entregas.
 
 ### Testes
 
@@ -189,7 +197,7 @@ Subir o ambiente, variáveis, testes e o workflow completo do Prisma: [`readme.m
 | Arquivo | Conteúdo |
 |---------|----------|
 | `docs/spec/` | Spec funcional, API, schema, checklist |
-| `.agents/rules/*.mdc` | Regras por domínio (raiz do monorepo) |
+| `.agents/rules/*.md` | Regras por domínio — quando ler cada uma: § Regras por domínio |
 | `nexus-backend/.agents/skills/prisma-8/` | Skill Prisma 8 (sync via `npm run skills:sync`) |
 | `readme.md` | Setup, seed, decisões do candidato |
 | `docs/plans/` | Planos de entrega rastreados — `frontend.md` é o índice e `frontend/fXX-*.md` o brief de cada entrega pendente (apagar ao concluir) |
@@ -202,7 +210,7 @@ Subir o ambiente, variáveis, testes e o workflow completo do Prisma: [`readme.m
 3. Consultar **decisões adotadas** neste arquivo antes de implementar
 4. Verificar [checklist](./docs/spec/11-checklist.md) antes e depois da tarefa
 5. Tarefas Prisma → ler `nexus-backend/.agents/skills/prisma-8/SKILL.md` primeiro
-6. Seguir regras em `.agents/rules/`
+6. Abrir a regra de domínio correspondente ao que vai editar — tabela em § Regras por domínio
 7. Implementar com diff mínimo
 8. Rodar testes/lint dentro do container `api` (Compose de desenvolvimento) antes de declarar concluído
 9. **Ao concluir uma entrega:** marcar o item em [`docs/spec/11-checklist.md`](./docs/spec/11-checklist.md); atualizar o índice do plano (mover para "já entregue", tirar a linha da tabela); **apagar** o brief (`docs/plans/frontend/fXX-*.md`) e qualquer `docs/todo/<frontend|backend>/<slug>.md` que a entrega tenha absorvido

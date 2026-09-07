@@ -67,7 +67,7 @@ Valem para **todas** as entregas:
 | Ao concluir uma entrega | Marcar o item em [`docs/spec/11-checklist.md`](../spec/11-checklist.md) Fase 5; neste índice, mover a entrega para "já entregue" e tirar a linha da tabela; **apagar** o brief `frontend/fXX-*.md` e o todo correspondente, se houver |
 | Ao observar algo fora do escopo | Criar `docs/todo/<frontend\|backend>/<slug>.md` sem bloquear a entrega — ver [`docs/todo/README.md`](../todo/README.md) |
 
-**Armadilhas do contrato** (`authKey` mascarada, `PATCH {}` → 400, trigger em integração inativa → 400, cross-tenant → 404, `responseBody` truncado): [`.agents/rules/react-frontend.mdc`](../../.agents/rules/react-frontend.mdc) § Armadilhas do contrato. Cada brief repete as que valem para a sua entrega.
+**Armadilhas do contrato** (`authKey` mascarada, `PATCH {}` → 400, trigger em integração inativa → 400, cross-tenant → 404, `responseBody` truncado): [`.agents/rules/react-frontend.md`](../../.agents/rules/react-frontend.md) § Armadilhas do contrato. Cada brief repete as que valem para a sua entrega.
 
 **Atalho de comando** — defina uma vez por sessão:
 
@@ -110,5 +110,5 @@ Tudo de F01–F06 já está no repositório: `app/`, `shared/api/`, `shared/lib/
 | Stack | [`docs/spec/06-stack.md`](../spec/06-stack.md) §6.2 |
 | Infra Docker | [`docs/spec/08-docker.md`](../spec/08-docker.md) §8.1, §8.2, §8.6, §8.7 |
 | Checklist | [`docs/spec/11-checklist.md`](../spec/11-checklist.md) |
-| Padrões e armadilhas React | [`.agents/rules/react-frontend.mdc`](../../.agents/rules/react-frontend.mdc) |
+| Padrões e armadilhas React | [`.agents/rules/react-frontend.md`](../../.agents/rules/react-frontend.md) |
 | Decisões do projeto | [`AGENTS.md`](../../AGENTS.md) |
