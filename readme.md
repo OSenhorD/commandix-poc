@@ -121,38 +121,15 @@ O `docker/production/Dockerfile` da API já executa `contract:emit` e `build`; o
 
 O compose de desenvolvimento sobe um n8n em http://localhost:5678 para exercitar o tipo de integração `N8N`. Ele é um **serviço externo**: a plataforma não depende dele para subir, ele não espera pela API, e não existe no compose de produção.
 
+O workflow demo (Webhook → Code → Respond to Webhook) já sobe **pronto e ativo** — o serviço `n8n-import` importa [`docker/n8n/workflows/commandix.json`](./docker/n8n/workflows/commandix.json) antes do `n8n` iniciar (`depends_on: service_completed_successfully`). Não é preciso montar nada na UI para testar.
+
 ### 1. Primeiro acesso
 
-Abra http://localhost:5678 e crie a conta owner (e-mail e senha quaisquer — ficam no volume `n8n_dev_data`). O n8n removeu o basic auth por variável de ambiente na linha 1.x; a conta owner é o único login.
+Abra http://localhost:5678 e crie a conta owner (e-mail e senha quaisquer — ficam no volume `n8n_dev_data`). O n8n removeu o basic auth por variável de ambiente na linha 1.x; a conta owner é o único login. O workflow **Commandix Demo** já aparece na lista, ativo.
 
-### 2. Montar o workflow
+### 2. Cadastrar a integração
 
-Novo workflow com três nós:
-
-| Nó | Configuração |
-|----|--------------|
-| **Webhook** | Method `POST`; Path à sua escolha (ex.: `commandix`); Respond → `Using 'Respond to Webhook' node` |
-| **Code** | Transforma o payload — exemplo abaixo |
-| **Respond to Webhook** | Respond With `JSON`; Response Body `{{ JSON.stringify($json) }}` |
-
-```javascript
-// nó Code
-return [
-  {
-    json: {
-      recebidoEm: new Date().toISOString(),
-      origem: 'commandix',
-      payload: $input.first().json.body,
-    },
-  },
-];
-```
-
-Salve e **ative** o workflow (toggle *Active*). Sem ativar, só a *Test URL* responde — e ela expira após uma chamada.
-
-### 3. Cadastrar a integração
-
-Copie a **Production URL** do nó Webhook. Graças a `N8N_WEBHOOK_URL` (fixada no compose) ela já sai como `http://n8n:5678/webhook/<path>` — o hostname que a API enxerga dentro da rede do Compose. Em http://localhost:5173 → **Integrações** → **Nova integração**:
+Copie a **Production URL** do nó Webhook (aba **Commandix Demo** → nó **Webhook**). Graças a `N8N_WEBHOOK_URL` (fixada no compose) ela já sai como `http://n8n:5678/webhook/commandix` — o hostname que a API enxerga dentro da rede do Compose. Em http://localhost:5173 → **Integrações** → **Nova integração**:
 
 | Campo | Valor |
 |-------|-------|
@@ -163,7 +140,7 @@ Copie a **Production URL** do nó Webhook. Graças a `N8N_WEBHOOK_URL` (fixada n
 
 > Se a URL aparecer com `localhost`, troque por `n8n` antes de salvar — `localhost` dentro do container da API aponta para a própria API, não para o n8n.
 
-### 4. Testar end-to-end
+### 3. Testar end-to-end
 
 Na lista de integrações, clique em **Disparar**. Em **Execuções**, o registro deve sair com status `SUCCESS`, `httpStatusCode` 200 e o `responseBody` contendo o JSON devolvido pelo nó *Respond to Webhook*. No n8n, a aba **Executions** mostra o mesmo disparo do outro lado.
 
@@ -174,6 +151,17 @@ curl -X POST http://localhost:5678/webhook/commandix \
   -H 'Content-Type: application/json' \
   -d '{"pedido":42}'
 ```
+
+### Editar o workflow
+
+Editou o workflow na UI e quer versionar a mudança? Exporte de dentro do container e sobrescreva o arquivo do repo:
+
+```bash
+dc exec n8n n8n export:workflow --id=al0kKuoHKErreeDP --output=/tmp/wf.json
+docker cp commandix-poc-n8n-1:/tmp/wf.json docker/n8n/workflows/commandix.json
+```
+
+O export já sai no formato de lista que o `n8n-import` espera. `dc down -v` (que apaga `n8n_dev_data`) faz o próximo `up` reimportar do zero a partir do JSON versionado — é assim que outro dev sobe com os dados já preenchidos.
 
 ## Variáveis de ambiente
 
@@ -211,7 +199,7 @@ A validação por Docker Compose ainda não existe — ver [`docs/todo/backend/c
 | API NestJS | `nexus-backend/` | Funcional — auth, tenants, integrações, execuções, OpenAPI, testes críticos |
 | Frontend React | `nexus-frontend/` | Funcional — login/bootstrap, shell, CRUD de integrações, disparo, histórico + detalhe, Docker de produção |
 | PostgreSQL + Prisma 8 | `nexus-backend/src/prisma/` | Contract + migrations + seed |
-| Docker Compose | `docker/` | Dev: `database` + `api` + `frontend` + `n8n`; prod: `database` + `api` + `frontend` (nginx) |
+| Docker Compose | `docker/` | Dev: `database` + `api` + `frontend` + `n8n-import` + `n8n`; prod: `database` + `api` + `frontend` (nginx) |
 
 ## Decisões técnicas
 
@@ -231,7 +219,6 @@ Log completo das decisões em [`AGENTS.md`](./AGENTS.md) § Decisões adotadas. 
 
 - **CI sem validação de Docker Compose** — o workflow valida o backend direto no runner; ninguém garante que `docker compose up` sobe. Ver [`docs/todo/backend/ci-sem-job-docker.md`](./docs/todo/backend/ci-sem-job-docker.md).
 - **`authKey` sem criptografia at-rest** — ver decisão acima.
-- **Bônus n8n parcial** — o serviço sobe no compose de desenvolvimento e o fluxo end-to-end está documentado acima, mas o workflow em si é montado à mão na UI; não há JSON versionado nem import automático.
 - **Bônus não implementado** — cobertura de testes além do mínimo crítico.
 - Demais itens da fila em [`docs/todo/`](./docs/todo/README.md).
 

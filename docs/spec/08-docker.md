@@ -11,9 +11,10 @@ Versões pinadas — ver `nexus-backend/package.json` (`engines.node`) e imagens
 | database | 5432 (dev) / não exposto (prod) | `postgres:16-alpine` |
 | api | 3000 | build `nexus-backend/docker/production/Dockerfile` (prod) / `nexus-backend/docker/development/Dockerfile` (dev) — `node:24.16.0-alpine` |
 | frontend | 5173 → 80 (prod) / 5173 (dev) | dev: `nexus-frontend/docker/development/Dockerfile` (`vite dev --host`); prod: multi-stage `nexus-frontend/docker/production/Dockerfile` (`npm run build` → nginx servindo `dist/`) |
+| n8n-import | — (sem porta; roda e sai) | `n8nio/n8n:2.37.11`, **dev apenas** |
 | n8n | 5678 (**dev apenas**) | `n8nio/n8n:2.37.11` |
 
-O serviço `n8n` existe **somente no compose de desenvolvimento** — é o bônus de [09](./09-bonus-n8n.md), um serviço externo que a plataforma dispara, não uma dependência dela. Ver §8.2 e [readme](../../readme.md) para o fluxo end-to-end.
+O serviço `n8n` existe **somente no compose de desenvolvimento** — é o bônus de [09](./09-bonus-n8n.md), um serviço externo que a plataforma dispara, não uma dependência dela. `n8n-import` importa e ativa o workflow versionado em [`docker/n8n/workflows/commandix.json`](../../docker/n8n/workflows/commandix.json) (`n8n import:workflow` + `n8n publish:workflow`) e sai; `n8n` só inicia depois (`depends_on: service_completed_successfully`), garantindo que o workflow demo já esteja ativo assim que a UI abre. Ver §8.2 e [readme](../../readme.md) § Bônus — n8n para o fluxo end-to-end.
 
 Em produção, o Postgres **não expõe porta no host** — apenas os serviços da rede do compose acessam via hostname interno `database`.
 
@@ -134,7 +135,8 @@ docker compose -f docker/development/docker-compose.yml --project-directory . up
 3. **Frontend** — após API healthy (`GET /api/v1/health`)
    - prod: nginx servindo o build estático + proxy `/api/`
    - dev: `vite dev --host` com bind mount e proxy `/api` → `api:3000`
-4. **n8n** (dev) — sobe em paralelo, sem `depends_on` em nenhum sentido: tem healthcheck `GET /healthz`, mas nem a API espera por ele nem ele pela API
+4. **n8n-import** (dev) — sobe em paralelo aos demais serviços; importa o workflow versionado e sai (`restart: "no"`)
+5. **n8n** (dev) — depois de `n8n-import` (`depends_on: service_completed_successfully`); healthcheck `GET /healthz`. Independente da API: nem ela espera por ele, nem ele por ela
 
 ## 8.5 Seed no entrypoint
 
@@ -196,6 +198,7 @@ server: {
 | CI | `.github/workflows/ci.yml` |
 | API | `nexus-backend/docker/{production,development}/` — `Dockerfile` + `entrypoint.sh` em cada |
 | Frontend | `nexus-frontend/docker/development/Dockerfile`; `production/` (`Dockerfile` + `nginx.conf`) |
+| n8n (dev) | `docker/n8n/workflows/*.json` — workflows versionados, importados pelo `n8n-import` |
 | Volumes (prod) | `database_data` |
 | Volumes (dev) | `database_dev_data`, `api_dev_node_modules`, `frontend_dev_node_modules`, `n8n_dev_data` |
 

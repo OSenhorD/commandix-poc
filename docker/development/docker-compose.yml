@@ -78,6 +78,36 @@ services:
     networks:
       - commandix-dev
 
+  n8n-import:
+    image: n8nio/n8n:2.37.11
+    restart: "no"
+    entrypoint: sh
+    command:
+      - -c
+      - |
+        set -e
+        n8n import:workflow --input=/workflows/commandix.json
+        for id in $$(node -e "
+          const fs = require('fs');
+          for (const f of fs.readdirSync('/workflows')) {
+            if (!f.endsWith('.json')) continue;
+            const data = JSON.parse(fs.readFileSync('/workflows/' + f, 'utf8'));
+            for (const wf of (Array.isArray(data) ? data : [data])) {
+              if (wf.active) console.log(wf.id);
+            }
+          }
+        "); do
+          echo "ativando $$id"
+          n8n publish:workflow --id="$$id"
+        done
+    volumes:
+      - n8n_dev_data:/home/node/.n8n
+      - ./docker/n8n/workflows:/workflows:ro
+    environment:
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-dev-n8n-encryption-key}
+    networks:
+      - commandix-dev
+
   n8n:
     image: n8nio/n8n:2.37.11
     restart: unless-stopped
@@ -92,6 +122,9 @@ services:
       N8N_DIAGNOSTICS_ENABLED: "false"
       GENERIC_TIMEZONE: ${TZ:-America/Sao_Paulo}
       TZ: ${TZ:-America/Sao_Paulo}
+    depends_on:
+      n8n-import:
+        condition: service_completed_successfully
     networks:
       - commandix-dev
     healthcheck:
