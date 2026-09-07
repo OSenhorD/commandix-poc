@@ -1,9 +1,11 @@
 import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { ApiError } from "@/shared/api/errors";
 import { DataTable, type Column } from "@/shared/components/data-table";
 import { EmptyState } from "@/shared/components/empty-state";
 import { ErrorState } from "@/shared/components/error-state";
@@ -13,8 +15,10 @@ import { useListParams } from "@/shared/hooks/use-list-params";
 import { formatDateTime } from "@/shared/lib/format";
 import type { IntegrationListItem } from "@/shared/types/api";
 
+import { DeleteIntegrationDialog } from "../components/delete-integration-dialog";
 import { IntegrationTypeBadge } from "../components/integration-type-badge";
-import { useIntegrations } from "../hooks";
+import { TriggerIntegrationDialog } from "../components/trigger-integration-dialog";
+import { useIntegrations, useToggleIntegration } from "../hooks";
 
 const ACTIVE_FILTER_ALL = "all";
 
@@ -26,6 +30,8 @@ export function IntegrationsListPage() {
 
   const { data, isPending, isError, error, refetch } = useIntegrations({ page, limit, isActive });
 
+  const toggleMutation = useToggleIntegration();
+
   const columns: Column<IntegrationListItem>[] = [
     { key: "name", header: "Nome", cell: (row) => <span className="font-medium">{row.name}</span> },
     { key: "type", header: "Tipo", cell: (row) => <IntegrationTypeBadge type={row.type} /> },
@@ -36,9 +42,28 @@ export function IntegrationsListPage() {
     },
     {
       key: "isActive",
-      header: "Status",
+      header: "Ativa",
       cell: (row) => (
-        <Badge variant={row.isActive ? "default" : "secondary"}>{row.isActive ? "Ativa" : "Inativa"}</Badge>
+        <RoleGate role="ADMIN">
+          <Switch
+            checked={row.isActive}
+            disabled={toggleMutation.isPending}
+            aria-label={row.isActive ? "Desativar integração" : "Ativar integração"}
+            onCheckedChange={(checked) => {
+              toggleMutation.mutate(
+                { id: row.id, isActive: checked },
+                {
+                  onSuccess: () => {
+                    toast.success(checked ? "Integração ativada." : "Integração desativada.");
+                  },
+                  onError: (error) => {
+                    toast.error(error instanceof ApiError ? error.message : "Não foi possível alterar o status.");
+                  },
+                },
+              );
+            }}
+          />
+        </RoleGate>
       ),
     },
     { key: "updatedAt", header: "Atualizada em", cell: (row) => formatDateTime(row.updatedAt) },
@@ -47,15 +72,21 @@ export function IntegrationsListPage() {
       header: "",
       className: "text-right",
       cell: (row) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex items-center justify-end gap-1">
+          <Button variant="ghost" size="sm" render={<Link to={`/integrations/${row.id}/executions`} />}>
+            Histórico
+          </Button>
           <RoleGate role="ADMIN">
             <Button variant="ghost" size="sm" render={<Link to={`/integrations/${row.id}/edit`} />}>
               Editar
             </Button>
           </RoleGate>
-          <Button variant="ghost" size="sm" render={<Link to={`/integrations/${row.id}/executions`} />}>
-            Histórico
-          </Button>
+          <RoleGate role="ADMIN">
+            <TriggerIntegrationDialog integration={row} />
+          </RoleGate>
+          <RoleGate role="ADMIN">
+            <DeleteIntegrationDialog integration={row} />
+          </RoleGate>
         </div>
       ),
     },

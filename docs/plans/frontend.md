@@ -18,6 +18,7 @@
 | F06 | Shell e componentes compartilhados — `AppShell` + `UserMenu`, tema claro/escuro persistente, `DataTable`/`PaginationBar`/`EmptyState`/`ErrorState`, `useListParams`, `Toaster` |
 | F07 | Integrações: listagem — `api.ts`/`hooks.ts`, `IntegrationTypeBadge`, tela com filtro `isActive` e paginação na URL |
 | F08 | Integrações: formulário — `schemas.ts` (`buildPatchPayload` diff-based), `json-field.tsx`, criar/editar com `authKey` nunca pré-preenchida |
+| F09 | Integrações: ações — ativar/desativar (`Switch` + `PATCH`), disparo com payload opcional e resultado, exclusão com aviso de cascade |
 
 Briefs concluídos são **apagados**: o histórico fica nesta tabela, no [checklist](../spec/11-checklist.md) e no git.
 
@@ -31,17 +32,15 @@ Briefs concluídos são **apagados**: o histórico fica nesta tabela, no [checkl
 
 | # | Brief | Como se prova |
 |---|-------|----------------|
-| F09 | [Integrações: ações](./frontend/f09-integrations-actions.md) | Disparo mostra resultado; inativa bloqueia; exclusão avisa do cascade |
 | F10 | [Histórico: listagem](./frontend/f10-executions-list.md) | Filtros `status`/`from`/`to` na URL; `from > to` barrado no cliente |
 | F11 | [Histórico: detalhe](./frontend/f11-executions-detail.md) | `requestPayload`/`responseBody` legíveis; truncamento sinalizado |
 | F12 | [Produção: Docker, nginx, CI](./frontend/f12-production.md) | Compose de produção com os três serviços; CI verde |
 
 ### Ordem de execução
 
-Próxima entrega: **F09**. F09 e F10 não dependem entre si — tocam arquivos diferentes.
+Próxima entrega: **F10**.
 
 ```
-F09 ações (toggle, excluir, disparar)
 F10 histórico ──▶ F11 detalhe ──▶ F12 produção + CI + docs
 ```
 
