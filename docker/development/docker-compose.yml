@@ -78,6 +78,35 @@ services:
     networks:
       - commandix-dev
 
+  n8n:
+    image: n8nio/n8n:2.37.11
+    restart: unless-stopped
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    volumes:
+      - n8n_dev_data:/home/node/.n8n
+    environment:
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-dev-n8n-encryption-key}
+      N8N_WEBHOOK_URL: http://n8n:5678/
+      N8N_SECURE_COOKIE: "false"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      GENERIC_TIMEZONE: ${TZ:-America/Sao_Paulo}
+      TZ: ${TZ:-America/Sao_Paulo}
+    networks:
+      - commandix-dev
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:5678/healthz').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
 networks:
   commandix-dev:
     driver: bridge
@@ -86,3 +115,4 @@ volumes:
   database_dev_data:
   api_dev_node_modules:
   frontend_dev_node_modules:
+  n8n_dev_data:

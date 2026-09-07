@@ -15,7 +15,8 @@ Contexto para agentes de IA trabalhando neste repositório.
 | `nexus-backend/` | **Funcional** — módulos `auth`, `tenants`, `integrations`, `executions`, `common`, `openapi`, `database`; Prisma 8 (contract + migration + seed); Docker (Dockerfile + entrypoint); testes unitários + e2e, incluindo os críticos (tenant isolation, guards, trigger, scoping de execuções) |
 | `nexus-frontend/` | **Funcional** — Vite 8 + React 19 + TS 6 + Tailwind 4 + shadcn; cliente HTTP (`apiFetch` + refresh single-flight); sessão (`AuthProvider`, login/logout, bootstrap); router e guardas; shell e componentes compartilhados; CRUD de integrações, disparo e histórico + detalhe de execuções; Docker de produção (nginx) |
 | Prisma 8 | `contract.prisma` — domínio Commandix; migration `20260903T0509_initial` |
-| Docker Compose | **dev:** `database` + `api` + `frontend`; **prod:** `database` + `api` + `frontend` (nginx) |
+| Docker Compose | **dev:** `database` + `api` + `frontend` + `n8n`; **prod:** `database` + `api` + `frontend` (nginx) |
+| Bônus n8n | **Parcial** — serviço `n8n` no compose de desenvolvimento + fluxo end-to-end documentado no [`readme.md`](./readme.md) § Bônus — n8n; workflow montado na UI, sem JSON versionado |
 
 ## Arquitetura alvo
 
@@ -104,6 +105,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Seed no startup | **Sempre** no entrypoint Docker (`db migrate` → seed → start); idempotente — não re-insere se `acme` já existir; **decisão consciente da PoC**, não padrão de produção |
 | Node | **24.16.0** — `engines` em `nexus-backend/package.json`; imagem Docker `node:24.16.0-alpine` |
 | Docker Compose (arquivos) | `docker/production/docker-compose.yml` e `docker/development/docker-compose.yml`; Dockerfiles em `nexus-backend/` (`docker/production/Dockerfile`/`docker/development/Dockerfile`) |
+| n8n | `n8nio/n8n:2.37.11`, **só em desenvolvimento**; serviço externo — sem `depends_on` em nenhum sentido; SQLite no volume `n8n_dev_data`, não usa o Postgres do projeto; `N8N_WEBHOOK_URL=http://n8n:5678/` para a URL da UI já ser a que a API alcança |
 | PostgreSQL | **16** (`postgres:16-alpine`) — alvo da app; atende mínimo Prisma Next 15+ |
 | Imports backend | Alias **`@/`** → `src/`; sufixo **`.js`** obrigatório; build com **`tsc-alias`** |
 | CI | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — jobs `validate` (backend) e `frontend` (lint, test, build); **não** há job de Docker Compose |

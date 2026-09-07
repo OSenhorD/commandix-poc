@@ -42,6 +42,7 @@ Aguarde os healthchecks. A API sobe sozinha executando `prisma db migrate` → s
 | OpenAPI JSON | http://localhost:3000/api/openapi.json | Documento OpenAPI 3.x via `@nestjs/swagger` |
 | PostgreSQL | `localhost:5432` | Só no compose de desenvolvimento; user/senha/db default `commandix` |
 | Frontend | http://localhost:5173 | Compose de **desenvolvimento** ou **produção** (nginx servindo o build estático + proxy `/api/`) |
+| n8n | http://localhost:5678 | Bônus; só no compose de **desenvolvimento**. Primeiro acesso pede criar a conta owner |
 
 ### Credenciais demo (seed)
 
@@ -69,7 +70,7 @@ O Compose de desenvolvimento precisa estar no ar para os comandos abaixo.
 dc up --build -d        # subir em background
 dc logs -f api          # acompanhar a API
 dc down                 # parar
-dc down -v              # parar e apagar o volume do Postgres (reset do banco)
+dc down -v              # parar e apagar os volumes (reset do banco **e** dos workflows do n8n)
 dc up database -d       # subir só o banco
 ```
 
@@ -116,6 +117,64 @@ Skill de referência: [`nexus-backend/.agents/skills/prisma-8/SKILL.md`](./nexus
 
 O `docker/production/Dockerfile` da API já executa `contract:emit` e `build`; o entrypoint cuida de migrate + seed + start. No dia a dia o watch mode rebuilda sozinho, mas `dc exec api npm run build` força uma compilação (`nest build` + `tsc-alias`).
 
+## Bônus — n8n
+
+O compose de desenvolvimento sobe um n8n em http://localhost:5678 para exercitar o tipo de integração `N8N`. Ele é um **serviço externo**: a plataforma não depende dele para subir, ele não espera pela API, e não existe no compose de produção.
+
+### 1. Primeiro acesso
+
+Abra http://localhost:5678 e crie a conta owner (e-mail e senha quaisquer — ficam no volume `n8n_dev_data`). O n8n removeu o basic auth por variável de ambiente na linha 1.x; a conta owner é o único login.
+
+### 2. Montar o workflow
+
+Novo workflow com três nós:
+
+| Nó | Configuração |
+|----|--------------|
+| **Webhook** | Method `POST`; Path à sua escolha (ex.: `commandix`); Respond → `Using 'Respond to Webhook' node` |
+| **Code** | Transforma o payload — exemplo abaixo |
+| **Respond to Webhook** | Respond With `JSON`; Response Body `{{ JSON.stringify($json) }}` |
+
+```javascript
+// nó Code
+return [
+  {
+    json: {
+      recebidoEm: new Date().toISOString(),
+      origem: 'commandix',
+      payload: $input.first().json.body,
+    },
+  },
+];
+```
+
+Salve e **ative** o workflow (toggle *Active*). Sem ativar, só a *Test URL* responde — e ela expira após uma chamada.
+
+### 3. Cadastrar a integração
+
+Copie a **Production URL** do nó Webhook. Graças a `N8N_WEBHOOK_URL` (fixada no compose) ela já sai como `http://n8n:5678/webhook/<path>` — o hostname que a API enxerga dentro da rede do Compose. Em http://localhost:5173 → **Integrações** → **Nova integração**:
+
+| Campo | Valor |
+|-------|-------|
+| Nome | `n8n demo` |
+| Tipo | `N8N` |
+| URL de destino | `http://n8n:5678/webhook/commandix` |
+| Payload padrão | `{ "pedido": 42 }` |
+
+> Se a URL aparecer com `localhost`, troque por `n8n` antes de salvar — `localhost` dentro do container da API aponta para a própria API, não para o n8n.
+
+### 4. Testar end-to-end
+
+Na lista de integrações, clique em **Disparar**. Em **Execuções**, o registro deve sair com status `SUCCESS`, `httpStatusCode` 200 e o `responseBody` contendo o JSON devolvido pelo nó *Respond to Webhook*. No n8n, a aba **Executions** mostra o mesmo disparo do outro lado.
+
+Para bater no webhook direto do host, sem passar pela plataforma, use `localhost` no lugar de `n8n`:
+
+```bash
+curl -X POST http://localhost:5678/webhook/commandix \
+  -H 'Content-Type: application/json' \
+  -d '{"pedido":42}'
+```
+
 ## Variáveis de ambiente
 
 Copie `.env.example` → `.env` na **raiz** do monorepo. Lista completa e variáveis derivadas pelo Compose: [`docs/spec/08-docker.md`](./docs/spec/08-docker.md) §8.2.
@@ -131,6 +190,8 @@ Copie `.env.example` → `.env` na **raiz** do monorepo. Lista completa e variá
 | `ENABLE_API_DOCS` | `true` | Liga/desliga `/api/docs` e `/api/openapi.json` (`false` → 404) |
 | `VITE_API_URL` | `/api/v1` | Base do cliente HTTP no browser — override opcional |
 | `VITE_API_PROXY_TARGET` | `http://api:3000` | Alvo do proxy do `vite dev` |
+| `N8N_PORT` | `5678` | Porta exposta do n8n — **só em desenvolvimento** |
+| `N8N_ENCRYPTION_KEY` | `dev-n8n-encryption-key` | Cifra as credenciais do n8n no volume `n8n_dev_data`; trocá-la torna ilegíveis as já gravadas |
 
 A API recebe `DATABASE_URL` montada internamente pelo Compose (`database:5432`) — não vai no `.env`.
 
@@ -150,7 +211,7 @@ A validação por Docker Compose ainda não existe — ver [`docs/todo/backend/c
 | API NestJS | `nexus-backend/` | Funcional — auth, tenants, integrações, execuções, OpenAPI, testes críticos |
 | Frontend React | `nexus-frontend/` | Funcional — login/bootstrap, shell, CRUD de integrações, disparo, histórico + detalhe, Docker de produção |
 | PostgreSQL + Prisma 8 | `nexus-backend/src/prisma/` | Contract + migrations + seed |
-| Docker Compose | `docker/` | Dev: `database` + `api` + `frontend`; prod: `database` + `api` + `frontend` (nginx) |
+| Docker Compose | `docker/` | Dev: `database` + `api` + `frontend` + `n8n`; prod: `database` + `api` + `frontend` (nginx) |
 
 ## Decisões técnicas
 
@@ -170,7 +231,8 @@ Log completo das decisões em [`AGENTS.md`](./AGENTS.md) § Decisões adotadas. 
 
 - **CI sem validação de Docker Compose** — o workflow valida o backend direto no runner; ninguém garante que `docker compose up` sobe. Ver [`docs/todo/backend/ci-sem-job-docker.md`](./docs/todo/backend/ci-sem-job-docker.md).
 - **`authKey` sem criptografia at-rest** — ver decisão acima.
-- **Bônus não implementados** — workflow n8n e cobertura de testes além do mínimo crítico.
+- **Bônus n8n parcial** — o serviço sobe no compose de desenvolvimento e o fluxo end-to-end está documentado acima, mas o workflow em si é montado à mão na UI; não há JSON versionado nem import automático.
+- **Bônus não implementado** — cobertura de testes além do mínimo crítico.
 - Demais itens da fila em [`docs/todo/`](./docs/todo/README.md).
 
 ## Licença
