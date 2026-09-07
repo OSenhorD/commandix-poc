@@ -58,3 +58,4 @@
 - [x] Testes críticos (auth, tenant isolation, trigger, scoping de execuções — ver [10-criterios](./10-criterios.md)) — **obrigatório**
 - [ ] (Bônus) cobertura E2E/unitária extra
 - [x] (Bônus) n8n workflow
+- [x] (Extra) Evolution API — segundo workflow do n8n enviando WhatsApp real

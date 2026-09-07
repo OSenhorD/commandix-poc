@@ -122,15 +122,43 @@ O `docker/production/Dockerfile` da API já executa `contract:emit` e `build`; o
 
 O compose de desenvolvimento sobe um n8n em http://localhost:5678 para exercitar o tipo de integração `N8N`. Ele é um **serviço externo**: a plataforma não depende dele para subir, ele não espera pela API, e não existe no compose de produção.
 
-O workflow demo (Webhook → Code → Respond to Webhook) já sobe **pronto e ativo** — o serviço `n8n-import` importa [`docker/n8n/workflows/commandix.json`](./docker/n8n/workflows/commandix.json) antes do `n8n` iniciar (`depends_on: service_completed_successfully`). Não é preciso montar nada na UI para testar.
+São **dois workflows versionados**, ambos importados e ativados pelo `n8n-import` antes do `n8n` iniciar (`depends_on: service_completed_successfully`) — não é preciso montar nada na UI para testar:
+
+| Workflow | Webhook (dentro do Compose) | O que faz |
+|----------|------------------------------|-----------|
+| **Commandix Demo** | `http://n8n:5678/webhook/commandix` | Eco: devolve em JSON o payload recebido, com carimbo de tempo |
+| **Commandix WhatsApp** | `http://n8n:5678/webhook/commandix-whatsapp` | Envia o texto por WhatsApp chamando o [Evolution API](https://github.com/evolution-foundation/evolution-api) |
+
+O segundo fecha o fluxo `Commandix → n8n → Evolution API → WhatsApp`: o `defaultPayload` da integração é o que define destinatário (`number`) e conteúdo (`text`). Os arquivos ficam em [`docker/n8n/workflows/`](./docker/n8n/workflows/).
 
 ### 1. Primeiro acesso
 
-Abra http://localhost:5678 e crie a conta owner (e-mail e senha quaisquer — ficam no volume `n8n_dev_data`). O n8n removeu o basic auth por variável de ambiente na linha 1.x; a conta owner é o único login. O workflow **Commandix Demo** já aparece na lista, ativo.
+Abra http://localhost:5678 e crie a conta owner (e-mail e senha quaisquer — ficam no volume `n8n_dev_data`). O n8n removeu o basic auth por variável de ambiente na linha 1.x; a conta owner é o único login. Os workflows **Commandix Demo** e **Commandix WhatsApp** já aparecem na lista, ativos.
 
-### 2. Cadastrar a integração
+### 2. Parear o WhatsApp (Evolution API)
 
-Copie a **Production URL** do nó Webhook (aba **Commandix Demo** → nó **Webhook**). Graças a `N8N_WEBHOOK_URL` (fixada no compose) ela já sai como `http://n8n:5678/webhook/commandix` — o hostname que a API enxerga dentro da rede do Compose. Em http://localhost:5173 → **Integrações** → **Nova integração**:
+Só é necessário para o workflow **Commandix WhatsApp**. Crie a instância (uma vez só) e conecte o celular:
+
+```bash
+curl -X POST http://localhost:8080/instance/create \
+  -H 'apikey: dev-evolution-api-key' \
+  -H 'Content-Type: application/json' \
+  -d '{"instanceName":"commandix","integration":"WHATSAPP-BAILEYS","qrcode":true}'
+```
+
+Abra http://localhost:8080/manager, entre com a mesma chave (`EVOLUTION_API_KEY`), clique na instância `commandix` e leia o QR code no celular (WhatsApp → **Aparelhos conectados** → **Conectar aparelho**). Para confirmar:
+
+```bash
+curl -s http://localhost:8080/instance/connectionState/commandix -H 'apikey: dev-evolution-api-key'
+```
+
+O pareamento fica no volume `evolution_dev_data` e sobrevive a `dc down`. Sem parear, o disparo continua percorrendo o fluxo inteiro — o n8n responde 200 e a execução registra o erro que o Evolution devolveu, em vez da mensagem.
+
+### 3. Cadastrar a integração
+
+Copie a **Production URL** do nó Webhook de cada workflow (aba do workflow → nó **Webhook**). Graças a `N8N_WEBHOOK_URL` (fixada no compose) ela já sai como `http://n8n:5678/webhook/...` — o hostname que a API enxerga dentro da rede do Compose. Em http://localhost:5173 → **Integrações** → **Nova integração**:
+
+**Eco (Commandix Demo):**
 
 | Campo | Valor |
 |-------|-------|
@@ -139,11 +167,24 @@ Copie a **Production URL** do nó Webhook (aba **Commandix Demo** → nó **Webh
 | URL de destino | `http://n8n:5678/webhook/commandix` |
 | Payload padrão | `{ "pedido": 42 }` |
 
+**WhatsApp (Commandix WhatsApp):**
+
+| Campo | Valor |
+|-------|-------|
+| Nome | `n8n whatsapp` |
+| Tipo | `N8N` |
+| URL de destino | `http://n8n:5678/webhook/commandix-whatsapp` |
+| Payload padrão | `{ "number": "5511999999999", "text": "Olá do Commandix" }` |
+
+> No workflow de WhatsApp, `number` vai só com dígitos, incluindo DDI e DDD. `text` é o corpo da mensagem — se você omitir, o workflow usa um texto padrão.
+
 > Se a URL aparecer com `localhost`, troque por `n8n` antes de salvar — `localhost` dentro do container da API aponta para a própria API, não para o n8n.
 
-### 3. Testar end-to-end
+### 4. Testar end-to-end
 
 Na lista de integrações, clique em **Disparar**. Em **Execuções**, o registro deve sair com status `SUCCESS`, `httpStatusCode` 200 e o `responseBody` contendo o JSON devolvido pelo nó *Respond to Webhook*. No n8n, a aba **Executions** mostra o mesmo disparo do outro lado.
+
+Disparando a integração `n8n whatsapp`, a execução sai igualmente com `SUCCESS` e `httpStatusCode` 200 — o 200 é do n8n —, mas o `responseBody` traz `"statusCode": 201`, que é o status com que o Evolution aceitou a mensagem, e o WhatsApp do número informado recebe o texto.
 
 Para bater no webhook direto do host, sem passar pela plataforma, use `localhost` no lugar de `n8n`:
 
@@ -153,9 +194,22 @@ curl -X POST http://localhost:5678/webhook/commandix \
   -d '{"pedido":42}'
 ```
 
+E para o workflow de WhatsApp:
+
+```bash
+curl -X POST http://localhost:5678/webhook/commandix-whatsapp \
+  -H 'Content-Type: application/json' \
+  -d '{"number":"5511999999999","text":"Teste direto"}'
+```
+
 ### Editar o workflow
 
-Editou o workflow na UI e quer versionar a mudança? Exporte de dentro do container e sobrescreva o arquivo do repo:
+Editou um workflow na UI e quer versionar a mudança? O `n8n-import` importa **todos** os `.json` do diretório, então basta exportar pelo `id` e salvar no arquivo correspondente:
+
+| Workflow | `id` | Arquivo |
+|----------|------|---------|
+| Commandix Demo | `al0kKuoHKErreeDP` | `docker/n8n/workflows/commandix.json` |
+| Commandix WhatsApp | `29MkQ7cmZw6ZtzY8` | `docker/n8n/workflows/commandix-whatsapp.json` |
 
 ```bash
 dc exec n8n n8n export:workflow --id=al0kKuoHKErreeDP --output=/tmp/wf.json
@@ -184,6 +238,7 @@ Copie `.env.example` → `.env` na **raiz** do monorepo. Lista completa e variá
 | `EVOLUTION_PORT` | `8080` | Porta exposta do Evolution API — **só em desenvolvimento** |
 | `EVOLUTION_API_KEY` | `dev-evolution-api-key` | Chave global do Evolution, usada no header `apikey`; o mesmo valor vai para o n8n |
 | `EVOLUTION_DB_PASSWORD` | `evolution` | Senha do Postgres dedicado do Evolution |
+| `EVOLUTION_INSTANCE` | `commandix` | Nome da instância do WhatsApp usada pelo workflow `Commandix WhatsApp` |
 
 A API recebe `DATABASE_URL` montada internamente pelo Compose (`database:5432`) — não vai no `.env`.
 

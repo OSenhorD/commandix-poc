@@ -16,7 +16,7 @@ Contexto para agentes de IA trabalhando neste repositório.
 | `nexus-frontend/` | **Funcional** — Vite 8 + React 19 + TS 6 + Tailwind 4 + shadcn; cliente HTTP (`apiFetch` + refresh single-flight); sessão (`AuthProvider`, login/logout, bootstrap); router e guardas; shell e componentes compartilhados; CRUD de integrações, disparo e histórico + detalhe de execuções; Docker de produção (nginx) |
 | Prisma 8 | `contract.prisma` — domínio Commandix; migration `20260903T0509_initial` |
 | Docker Compose | **dev:** `database` + `api` + `frontend` + `n8n-import` + `n8n`; **prod:** `database` + `api` + `frontend` (nginx) |
-| Bônus n8n | **Funcional** — serviço `n8n` no compose de desenvolvimento; workflow demo versionado em [`docker/n8n/workflows/commandix.json`](./docker/n8n/workflows/commandix.json), importado e ativado automaticamente pelo `n8n-import` antes do `n8n` subir; fluxo end-to-end documentado no [`readme.md`](./readme.md) § Bônus — n8n |
+| Bônus n8n | **Funcional** — serviço `n8n` no compose de desenvolvimento com **dois** workflows versionados em [`docker/n8n/workflows/`](./docker/n8n/workflows/), importados e ativados pelo `n8n-import` antes do `n8n` subir: `Commandix Demo` (eco) e `Commandix WhatsApp`, que chama o **Evolution API** (extra) e envia WhatsApp de verdade — `Commandix → n8n → Evolution API → WhatsApp`. Fluxo end-to-end no [`readme.md`](./readme.md) § Bônus — n8n |
 
 ## Arquitetura alvo
 
@@ -107,7 +107,9 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Node | **24.16.0** — `engines` em `nexus-backend/package.json`; imagem Docker `node:24.16.0-alpine` |
 | Docker Compose (arquivos) | `docker/production/docker-compose.yml` e `docker/development/docker-compose.yml`; Dockerfiles em `nexus-backend/` (`docker/production/Dockerfile`/`docker/development/Dockerfile`) |
 | n8n | `n8nio/n8n:2.37.11`, **só em desenvolvimento**; serviço externo — independente da API (sem `depends_on` entre os dois); SQLite no volume `n8n_dev_data`, não usa o Postgres do projeto; `N8N_WEBHOOK_URL=http://n8n:5678/` para a URL da UI já ser a que a API alcança |
-| n8n-import | Roda antes do `n8n` (`depends_on: service_completed_successfully`); importa e ativa `docker/n8n/workflows/*.json` via `n8n import:workflow` + `n8n publish:workflow` (o `import:workflow` sempre desativa; `activeState=fromJson` só existe em modo queue/multi-main); `restart: "no"`, mesma `N8N_ENCRYPTION_KEY` do `n8n` |
+| n8n-import | Roda antes do `n8n` (`depends_on: service_completed_successfully`); `for f in /workflows/*.json` importa e ativa **todos** os arquivos do diretório via `n8n import:workflow` + `n8n publish:workflow` (o `import:workflow` sempre desativa; `activeState=fromJson` só existe em modo queue/multi-main); `restart: "no"`, mesma `N8N_ENCRYPTION_KEY` do `n8n` |
+| evolution-api | `evoapicloud/evolution-api:v2.3.7`, **só em desenvolvimento**; API REST de WhatsApp consumida pelo **workflow do n8n**, não pelo backend; auth por header `apikey` (`AUTHENTICATION_API_KEY`); sem Redis (`CACHE_LOCAL_ENABLED=true`); UI de pareamento em `/manager`; sessões no volume `evolution_dev_data` |
+| evolution-database | `postgres:16-alpine` dedicado ao Evolution, volume `evolution_dev_db_data`, sem porta publicada — serviço externo não compartilha o Postgres da aplicação |
 | PostgreSQL | **16** (`postgres:16-alpine`) — alvo da app; atende mínimo Prisma Next 15+ |
 | Imports backend | Alias **`@/`** → `src/`; sufixo **`.js`** obrigatório; build com **`tsc-alias`** |
 | CI | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — jobs `validate` (backend) e `frontend` (lint, test, build); **não** há job de Docker Compose |

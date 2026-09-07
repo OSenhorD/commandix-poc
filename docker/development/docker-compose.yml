@@ -86,7 +86,10 @@ services:
       - -c
       - |
         set -e
-        n8n import:workflow --input=/workflows/commandix.json
+        for f in /workflows/*.json; do
+          echo "importando $$f"
+          n8n import:workflow --input="$$f"
+        done
         for id in $$(node -e "
           const fs = require('fs');
           for (const f of fs.readdirSync('/workflows')) {
@@ -122,6 +125,10 @@ services:
       N8N_DIAGNOSTICS_ENABLED: "false"
       GENERIC_TIMEZONE: ${TZ:-America/Sao_Paulo}
       TZ: ${TZ:-America/Sao_Paulo}
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      EVOLUTION_API_URL: http://evolution-api:8080
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY:-dev-evolution-api-key}
+      EVOLUTION_INSTANCE: ${EVOLUTION_INSTANCE:-commandix}
     depends_on:
       n8n-import:
         condition: service_completed_successfully

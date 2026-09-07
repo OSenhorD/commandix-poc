@@ -63,6 +63,7 @@ ENABLE_API_DOCS=true
 # EVOLUTION_PORT=8080
 # EVOLUTION_API_KEY=dev-evolution-api-key
 # EVOLUTION_DB_PASSWORD=evolution
+# EVOLUTION_INSTANCE=commandix
 ```
 
 `ENABLE_API_DOCS` liga/desliga `/api/docs` e `/api/openapi.json` — `false` → `404` nas duas. Default: ligado. Ver [05-api §5.6](./05-api.md#56-documentação-openapi).
@@ -132,8 +133,11 @@ Aplica-se **somente** a `POST /tenants/bootstrap`. Resposta `429` quando excedid
 | `EVOLUTION_PORT` | `8080` | Porta publicada do `evolution-api` (host). Interpolada só no `ports:` — dentro da rede o serviço sempre atende em `8080` |
 | `EVOLUTION_API_KEY` | `dev-evolution-api-key` | Chave global do Evolution (`AUTHENTICATION_API_KEY`), enviada no header `apikey`. Fallback fraco é aceitável **porque o serviço só existe em desenvolvimento**; o mesmo valor é injetado no `n8n` para o workflow autenticar |
 | `EVOLUTION_DB_PASSWORD` | `evolution` | Senha do Postgres dedicado do Evolution (`evolution-database`), que não publica porta no host |
+| `EVOLUTION_INSTANCE` | `commandix` | Nome da instância do WhatsApp que o workflow `Commandix WhatsApp` usa na URL `/message/sendText/{instância}` |
 
 `CACHE_REDIS_ENABLED=false` + `CACHE_LOCAL_ENABLED=true` dispensam o Redis, opcional na v2. `TELEMETRY_ENABLED=false` segue a mesma decisão de `N8N_DIAGNOSTICS_ENABLED`. As sessões do WhatsApp ficam no volume `evolution_dev_data` — apagá-lo desfaz o pareamento e exige ler o QR code de novo.
+
+`EVOLUTION_API_URL` é fixada em `http://evolution-api:8080` no serviço `n8n` (como `N8N_WEBHOOK_URL` é no próprio n8n): é o endereço que o workflow usa dentro da rede do Compose. `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` libera as expressões `{{ $env.* }}` no workflow — sem ela a URL do nó HTTP sai incompleta.
 
 ## 8.3 Comando único
 
