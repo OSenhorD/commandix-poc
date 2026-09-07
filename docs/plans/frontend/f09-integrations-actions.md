@@ -367,7 +367,7 @@ Substituir a coluna `actions` e trocar a coluna `isActive` por um `Switch` contr
 - [ ] Exclusão com confirmação que menciona o cascade das execuções
 - [ ] VIEWER sem nenhuma ação de escrita visível
 - [ ] Lint, typecheck e testes verdes
-- [ ] Marcar **F09** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md)
+- [ ] Marcar **F09** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md); atualizar [`docs/plans/frontend.md`](../frontend.md) (mover para "já entregue", tirar a linha da tabela); **apagar este arquivo**
 
 ---
 

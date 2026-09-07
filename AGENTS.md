@@ -85,7 +85,8 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Frontend — estado de lista | Paginação e filtros vivem na **URL** (`useSearchParams`); a query key do TanStack Query deriva da URL — sobrevive ao reload e o link é compartilhável |
 | Frontend — `authKey` no form | **Nunca** pré-preencher no formulário de edição: a API devolve a chave **mascarada** (`****-key`) e salvar isso destrói a credencial. Campo vazio = manter o valor atual |
 | Frontend — PATCH | Enviar **só os campos alterados** (diff contra o valor carregado); `PATCH {}` vazio → `400`; `customHeaders`/`defaultPayload` substituem o objeto inteiro |
-| Frontend — plano | Índice em [`docs/plans/frontend.md`](./docs/plans/frontend.md); brief de cada entrega em `docs/plans/frontend/fXX-*.md`. Agente lê o índice + **somente** o arquivo da entrega atual |
+| Frontend — plano | Índice em [`docs/plans/frontend.md`](./docs/plans/frontend.md); brief de cada entrega em `docs/plans/frontend/fXX-*.md`. Agente lê o índice + **somente** o arquivo da entrega atual. Ao concluir: checklist + apagar o brief |
+| Todo | Feature, erro ou refactor novo em [`docs/todo/<frontend\|backend>/<slug>.md`](./docs/todo/README.md). Ao concluir: marcar checklist (se houver) e **apagar** o arquivo — a fila só guarda o que falta |
 | Frontend — testes | Vitest + Testing Library (jsdom), `fetch` stubado — cobre **só** o cliente HTTP (refresh single-flight) e o gate de role |
 | Frontend — `@testing-library/dom` | Peer **explícito** de `@testing-library/react` v16 — não entra no lockfile se omitido. Sem o pacote, o TypeScript resolve `render`/`screen` como tipo `error` e o ESLint (`strictTypeChecked` → `no-unsafe-return` / `no-unsafe-call`) reprova os testes |
 | Proxy dev (Vite) | `server.proxy['/api']` → `VITE_API_PROXY_TARGET ?? 'http://api:3000'` (hostname da rede do Compose, nunca `localhost`) |
@@ -239,8 +240,8 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 | `.agents/rules/*.mdc` | Regras por domínio (raiz do monorepo) |
 | `nexus-backend/.agents/skills/prisma-8/` | Skill Prisma 8 (sync via `npm run skills:sync`) |
 | `readme.md` | Setup, seed, decisões do candidato |
-| `docs/plans/` | Planos de entrega rastreados (`frontend.md` = índice; `frontend/fXX-*.md` = brief por entrega; `testes-criticos.md`) |
-| `docs/todo/` | Melhorias possíveis, erros encontrados, acoplamentos percebidos — não bloqueiam a entrega atual |
+| `docs/plans/` | Planos de entrega rastreados (`frontend.md` = índice; `frontend/fXX-*.md` = brief pendente — apagar ao concluir; `testes-criticos.md`) |
+| `docs/todo/` | Fila viva: `frontend/<slug>.md` ou `backend/<slug>.md`. Item concluído se apaga; ver [`docs/todo/README.md`](./docs/todo/README.md) |
 
 ## Fluxo de trabalho sugerido para IA
 
@@ -252,7 +253,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 6. Seguir regras em `.agents/rules/`
 7. Implementar com diff mínimo
 8. Rodar testes/lint dentro do container `api` (Compose de desenvolvimento) antes de declarar concluído
-9. **Ao concluir uma entrega:** marcar como feita no arquivo da entrega (`docs/plans/frontend/fXX-*.md` ou `docs/plans/*.md` — critério de done; [`docs/spec/11-checklist.md`](./docs/spec/11-checklist.md) — item da fase)
-10. **Ao observar** uma melhoria possível, erro encontrado ou acoplamento percebido durante o trabalho (mesmo fora do escopo da tarefa atual): registrar em `docs/todo/<item>.md`, sem bloquear a entrega
+9. **Ao concluir uma entrega:** marcar o item em [`docs/spec/11-checklist.md`](./docs/spec/11-checklist.md); atualizar o índice do plano (mover para "já entregue", tirar a linha da tabela); **apagar** o brief (`docs/plans/frontend/fXX-*.md`) e qualquer `docs/todo/<frontend|backend>/<slug>.md` que a entrega tenha absorvido
+10. **Ao observar** uma feature, erro ou refactor fora do escopo da entrega atual: criar `docs/todo/<frontend|backend>/<slug>.md` (nunca solto em `docs/todo/`), sem bloquear a entrega. Ver [`docs/todo/README.md`](./docs/todo/README.md)
 11. **Ao observar** um padrão de código, decisão técnica ou comportamento não óbvio da stack (ex.: tipagem de um campo no ORM, convenção implícita repetida em vários arquivos): registrar aqui neste `AGENTS.md`, na seção de **decisões adotadas** ou **convenções**, conforme o caso
 12. Atualizar README apenas quando pedido ou ao finalizar fase

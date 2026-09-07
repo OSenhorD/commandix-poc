@@ -167,7 +167,7 @@ Workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — push/PR em
 |-----|----------------|
 | **validate** | Backend — `npm ci`, `contract:emit` (+ contract commitado), `prisma db migrate`, lint, Prettier, testes unit/e2e, build |
 
-Node **24.16.0** + Postgres **16** como service. O job de frontend entra na entrega F12 ([`docs/plans/frontend/f12-production.md`](./docs/plans/frontend/f12-production.md)); a validação por Docker Compose ainda não existe — ver [`docs/todo/ci-sem-job-docker.md`](./docs/todo/ci-sem-job-docker.md).
+Node **24.16.0** + Postgres **16** como service. O job de frontend entra na entrega F12 ([`docs/plans/frontend/f12-production.md`](./docs/plans/frontend/f12-production.md)); a validação por Docker Compose ainda não existe — ver [`docs/todo/backend/ci-sem-job-docker.md`](./docs/todo/backend/ci-sem-job-docker.md).
 
 ## Status
 

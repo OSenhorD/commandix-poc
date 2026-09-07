@@ -307,7 +307,7 @@ export function ExecutionsListPage() {
 - [ ] `from > to` bloqueado no cliente com mensagem
 - [ ] Estados de carregando, vazio e erro funcionando
 - [ ] Lint, typecheck e testes verdes
-- [ ] Marcar **F10** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md)
+- [ ] Marcar **F10** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md); atualizar [`docs/plans/frontend.md`](../frontend.md) (mover para "já entregue", tirar a linha da tabela); **apagar este arquivo**
 
 ---
 

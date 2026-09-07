@@ -188,7 +188,7 @@ export function ExecutionDetailPage() {
 - [ ] Truncamento sinalizado quando presente
 - [ ] Cross-tenant / id inexistente cai em `ErrorState` com a mensagem da API
 - [ ] Lint, typecheck e testes verdes
-- [ ] Marcar **F11** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md)
+- [ ] Marcar **F11** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md); atualizar [`docs/plans/frontend.md`](../frontend.md) (mover para "já entregue", tirar a linha da tabela); **apagar este arquivo**
 
 ---
 

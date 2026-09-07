@@ -497,7 +497,7 @@ Em `src/features/integrations/pages/list.tsx`, dentro da coluna de ações:
 - [ ] Salvar sem alterações não dispara requisição
 - [ ] 6 testes de `schemas.test.ts` passando
 - [ ] Lint, typecheck e testes verdes
-- [ ] Marcar **F08** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md)
+- [ ] Marcar **F08** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md); atualizar [`docs/plans/frontend.md`](../frontend.md) (mover para "já entregue", tirar a linha da tabela); **apagar este arquivo**
 
 ---
 

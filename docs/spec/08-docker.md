@@ -210,6 +210,6 @@ Arquivo: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
 | `validate` | Backend: Node 24.16.0 + Postgres 16 service — `contract:emit`, diff do contract, migrate, lint, Prettier, test/e2e, build |
 | `frontend` | Frontend: `npm ci`, ESLint, `tsc -b`, Vitest, `vite build` — **a criar na entrega F12** |
 
-> **Não existe job de Docker Compose no CI** — ver [`docs/todo/ci-sem-job-docker.md`](../todo/ci-sem-job-docker.md).
+> **Não existe job de Docker Compose no CI** — ver [`docs/todo/backend/ci-sem-job-docker.md`](../todo/backend/ci-sem-job-docker.md).
 
 Dispara em push/PR para `main`.

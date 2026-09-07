@@ -443,7 +443,7 @@ Topbar com "Nexus" e o menu do usuário; alternar o tema muda a paleta e sobrevi
 - [ ] Menu do usuário mostra email + papel, alterna tema e faz logout
 - [ ] `DataTable`, `PaginationBar`, `EmptyState`, `ErrorState` compilam e são exportados
 - [ ] Lint, typecheck e testes verdes
-- [ ] Marcar **F06** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md)
+- [ ] Marcar **F06** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md); atualizar [`docs/plans/frontend.md`](../frontend.md) (mover para "já entregue", tirar a linha da tabela); **apagar este arquivo**
 
 ---
 

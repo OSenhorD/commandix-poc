@@ -62,7 +62,7 @@ export function deleteIntegration(id: string): Promise<void> {
   // argumento de tipo em CallExpression (só isenta void em posição de tipo, ex. Promise<void>
   // como anotação). TypeScript já infere T = void contextualmente a partir do retorno
   // declarado da função — mesmo comportamento, sem o argumento de tipo. Achado em F03
-  // (docs/todo/eslint-no-invalid-void-type-apifetch-generic.md), aplicado aqui de antemão.
+  // (docs/todo/frontend/eslint-no-invalid-void-type-apifetch-generic.md), aplicado aqui de antemão.
   return apiFetch(`/integrations/${id}`, { method: "DELETE" });
 }
 
@@ -258,7 +258,7 @@ export function IntegrationsListPage() {
 - [ ] "Nova integração" oculto para VIEWER
 - [ ] Estados de carregando, vazio e erro funcionando
 - [ ] Lint, typecheck e testes verdes
-- [ ] Marcar **F07** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md)
+- [ ] Marcar **F07** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md); atualizar [`docs/plans/frontend.md`](../frontend.md) (mover para "já entregue", tirar a linha da tabela); **apagar este arquivo** e [`docs/todo/frontend/eslint-no-invalid-void-type-apifetch-generic.md`](../../todo/frontend/eslint-no-invalid-void-type-apifetch-generic.md)
 
 ---
 

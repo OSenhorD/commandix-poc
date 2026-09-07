@@ -147,7 +147,7 @@ export function BootstrapPage() {
 - [ ] Cadastro cria tenant + admin e já entra logado
 - [ ] `409` cai no campo certo; `429` mostra mensagem de rate limit
 - [ ] Lint, typecheck e testes verdes
-- [ ] Marcar **F05** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md)
+- [ ] Marcar **F05** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md); atualizar [`docs/plans/frontend.md`](../frontend.md) (mover para "já entregue", tirar a linha da tabela); **apagar este arquivo**
 
 ---
 

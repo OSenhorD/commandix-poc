@@ -5,7 +5,8 @@
 
 **Arquivos:**
 - Criar: `nexus-frontend/docker/production/Dockerfile`, `nexus-frontend/docker/production/nginx.conf`
-- Modificar: `docker/production/docker-compose.yml`, `.github/workflows/ci.yml`, `readme.md`, `nexus-frontend/README.md`, `AGENTS.md`, `docs/spec/06-stack.md`, `docs/spec/11-checklist.md`, `docs/todo/openapi-nginx-proxy-assumption.md`
+- Modificar: `docker/production/docker-compose.yml`, `.github/workflows/ci.yml`, `readme.md`, `nexus-frontend/README.md`, `AGENTS.md`, `docs/spec/06-stack.md`, `docs/spec/11-checklist.md`
+- Apagar: `docs/todo/frontend/openapi-nginx-proxy-assumption.md`
 
 **Interfaces:**
 - Consome: build de produção (`npm run build` → `dist/`)
@@ -151,7 +152,7 @@ O status de F01–F03 (dev compose, cliente HTTP, sessão, rotas) já está refl
 | [`readme.md`](../../../readme.md) | Serviço `frontend` de produção; tabela de status; job `frontend` no CI |
 | [`nexus-frontend/README.md`](../../../nexus-frontend/README.md) | Remover o aviso de telas pendentes |
 | [`AGENTS.md`](../../../AGENTS.md) | "Estado atual" — `nexus-frontend/` passa a **Funcional**; Compose de produção inclui `frontend` |
-| [`docs/todo/openapi-nginx-proxy-assumption.md`](../../todo/openapi-nginx-proxy-assumption.md) | Encerrar: o nginx proxia todo `/api/` |
+| [`docs/todo/frontend/openapi-nginx-proxy-assumption.md`](../../todo/frontend/openapi-nginx-proxy-assumption.md) | **Apagar** o arquivo: o nginx proxia todo `/api/` |
 
 - [ ] **Passo 7: Validação final**
 
@@ -170,8 +171,8 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 - [ ] Rotas do SPA acessadas direto pela URL respondem 200 (fallback do nginx)
 - [ ] `/api/v1/health` e `/api/openapi.json` acessíveis pelo proxy
 - [ ] Job `frontend` no CI passa (lint, testes, build)
-- [ ] Documentação atualizada e `docs/todo/openapi-nginx-proxy-assumption.md` encerrado
-- [ ] Marcar **F12** e o item de Compose da Fase 1 em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md)
+- [ ] Documentação atualizada e `docs/todo/frontend/openapi-nginx-proxy-assumption.md` apagado
+- [ ] Marcar **F12** e o item de Compose da Fase 1 em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md); atualizar [`docs/plans/frontend.md`](../frontend.md) (mover para "já entregue", tirar a linha da tabela); **apagar este arquivo**
 
 ---
 

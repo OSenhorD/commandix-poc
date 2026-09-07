@@ -189,7 +189,7 @@ docker compose -f docker/development/docker-compose.yml --project-directory . ex
 - [ ] Erro de credencial aparece na tela com a mensagem da API
 - [ ] Logout limpa o `localStorage` e volta para `/login`
 - [ ] Lint, typecheck e testes verdes
-- [ ] Marcar **F04** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md)
+- [ ] Marcar **F04** em [`docs/spec/11-checklist.md`](../../spec/11-checklist.md); atualizar [`docs/plans/frontend.md`](../frontend.md) (mover para "já entregue", tirar a linha da tabela); **apagar este arquivo**
 
 ---
 

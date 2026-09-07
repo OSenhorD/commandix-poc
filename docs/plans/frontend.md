@@ -6,7 +6,7 @@
 
 **Objetivo:** entregar a SPA React do Commandix com o fluxo completo do protótipo — login/logout, bootstrap de tenant, CRUD de integrações, disparo manual e histórico de execuções — consumindo a API NestJS em `/api/v1`, com isolamento de papéis (ADMIN/VIEWER) na UI.
 
-**Já entregue (não reimplementar):** F01 ambiente (deps, Vitest, proxy Vite, serviço `frontend` no compose de desenvolvimento), F02 cliente HTTP (`apiFetch` + refresh single-flight + storage + tipos), F03 sessão e rotas (`AuthProvider`, `ProtectedRoute`, `RoleGate`, placeholders das páginas). Relatórios em `.superpowers/sdd/frontend/`.
+**Já entregue (não reimplementar):** F01 ambiente (deps, Vitest, proxy Vite, serviço `frontend` no compose de desenvolvimento), F02 cliente HTTP (`apiFetch` + refresh single-flight + storage + tipos), F03 sessão e rotas (`AuthProvider`, `ProtectedRoute`, `RoleGate`, placeholders das páginas). Relatórios em `.superpowers/sdd/frontend/`. Briefs concluídos são **apagados** — o histórico fica neste parágrafo e no checklist.
 
 **Restante neste plano:** F04–F12.
 
@@ -57,8 +57,8 @@ Valem para **todas** as entregas:
 | `components/ui/` | Fica em `@/components/ui` — `components.json` fixa o alias; mover quebra o `shadcn add` |
 | Idioma | Código e nomes em **inglês**; textos de UI e documentação em **português** |
 | Commits | **Só quando o usuário pedir** (`AGENTS.md`). Cada entrega termina em ponto commitável, mas não commite por conta própria |
-| Ao concluir uma entrega | Marcar o item em [`docs/spec/11-checklist.md`](../spec/11-checklist.md) Fase 5 **e** o "Critério de done" no arquivo da entrega |
-| Ao observar algo fora do escopo | Registrar em `docs/todo/<slug>.md` sem bloquear a entrega |
+| Ao concluir uma entrega | Marcar o item em [`docs/spec/11-checklist.md`](../spec/11-checklist.md) Fase 5; neste índice, mover a entrega para "já entregue" e tirar a linha da tabela; **apagar** o brief em `frontend/fXX-*.md` e o todo correspondente, se houver |
+| Ao observar algo fora do escopo | Criar `docs/todo/<frontend\|backend>/<slug>.md` sem bloquear a entrega — ver [`docs/todo/README.md`](../todo/README.md) |
 
 **Atalho de comando** — todos os comandos de verificação usam o compose de desenvolvimento:
 
