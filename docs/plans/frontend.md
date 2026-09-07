@@ -19,10 +19,11 @@
 | F07 | Integrações: listagem — `api.ts`/`hooks.ts`, `IntegrationTypeBadge`, tela com filtro `isActive` e paginação na URL |
 | F08 | Integrações: formulário — `schemas.ts` (`buildPatchPayload` diff-based), `json-field.tsx`, criar/editar com `authKey` nunca pré-preenchida |
 | F09 | Integrações: ações — ativar/desativar (`Switch` + `PATCH`), disparo com payload opcional e resultado, exclusão com aviso de cascade |
+| F10 | Histórico: listagem — `api.ts`/`hooks.ts` de execuções, `ExecutionStatusBadge`, filtros `status`/`from`/`to` e paginação na URL |
 
 Briefs concluídos são **apagados**: o histórico fica nesta tabela, no [checklist](../spec/11-checklist.md) e no git.
 
-**Restante:** F09–F12.
+**Restante:** F11–F12.
 
 **Arquitetura:** SPA feature-sliced. `shared/api/client.ts` centraliza o `fetch` (Bearer + refresh single-flight); TanStack Query cuida de cache, paginação e invalidação; React Router 7 protege rotas por autenticação e papel; react-hook-form + zod validam formulários espelhando os DTOs `class-validator` do backend. Paginação e filtros vivem na URL, e a query key deriva dela.
 
@@ -32,16 +33,15 @@ Briefs concluídos são **apagados**: o histórico fica nesta tabela, no [checkl
 
 | # | Brief | Como se prova |
 |---|-------|----------------|
-| F10 | [Histórico: listagem](./frontend/f10-executions-list.md) | Filtros `status`/`from`/`to` na URL; `from > to` barrado no cliente |
 | F11 | [Histórico: detalhe](./frontend/f11-executions-detail.md) | `requestPayload`/`responseBody` legíveis; truncamento sinalizado |
 | F12 | [Produção: Docker, nginx, CI](./frontend/f12-production.md) | Compose de produção com os três serviços; CI verde |
 
 ### Ordem de execução
 
-Próxima entrega: **F10**.
+Próxima entrega: **F11**.
 
 ```
-F10 histórico ──▶ F11 detalhe ──▶ F12 produção + CI + docs
+F11 detalhe ──▶ F12 produção + CI + docs
 ```
 
 ---
