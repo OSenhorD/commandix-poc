@@ -43,7 +43,7 @@
 - [x] **F02** Interceptor 401 → refresh **single-flight** → logout (+ teste)
 - [x] **F03** Providers, router (`createBrowserRouter`), `ProtectedRoute` e `RoleGate` (+ teste)
 - [x] **F04** Login + logout + reidratação de sessão (`GET /auth/me`)
-- [ ] **[F05](../plans/frontend/f05-bootstrap.md)** Bootstrap (cadastro de tenant + admin)
+- [x] **F05** Bootstrap (cadastro de tenant + admin)
 - [ ] **[F06](../plans/frontend/f06-shell.md)** Shell (topbar, tema, toasts) e componentes compartilhados (`DataTable`, paginação, vazio, erro)
 - [ ] **[F07](../plans/frontend/f07-integrations-list.md)** Integrações — listar com filtro `isActive` e paginação (ADMIN + VIEWER)
 - [ ] **[F08](../plans/frontend/f08-integrations-form.md)** Integrações — criar / editar (`authKey` nunca pré-preenchida; PATCH só do que mudou)

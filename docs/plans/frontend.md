@@ -6,7 +6,7 @@
 
 **Objetivo:** entregar a SPA React do Commandix com o fluxo completo do protótipo — login/logout, bootstrap de tenant, CRUD de integrações, disparo manual e histórico de execuções — consumindo a API NestJS em `/api/v1`, com isolamento de papéis (ADMIN/VIEWER) na UI.
 
-**Já entregue (não reimplementar):** F01 ambiente (deps, Vitest, proxy Vite, serviço `frontend` no compose de desenvolvimento), F02 cliente HTTP (`apiFetch` + refresh single-flight + storage + tipos), F03 sessão e rotas (`AuthProvider`, `ProtectedRoute`, `RoleGate`, placeholders das páginas), F04 login/logout (`AuthProvider.login`/`logout`, reidratação via `GET /auth/me`, schemas zod, validação com react-hook-form, ver `.superpowers/sdd/frontend/task-4-report.md`). Relatórios em `.superpowers/sdd/frontend/`. Briefs concluídos são **apagados** — o histórico fica neste parágrafo e no checklist.
+**Já entregue (não reimplementar):** F01 ambiente (deps, Vitest, proxy Vite, serviço `frontend` no compose de desenvolvimento), F02 cliente HTTP (`apiFetch` + refresh single-flight + storage + tipos), F03 sessão e rotas (`AuthProvider`, `ProtectedRoute`, `RoleGate`, placeholders das páginas), F04 login/logout (`AuthProvider.login`/`logout`, reidratação via `GET /auth/me`, schemas zod, validação com react-hook-form, ver `.superpowers/sdd/frontend/task-4-report.md`), F05 bootstrap (cadastro de tenant e admin, rate limiting `429`, conflitos `409` nos campos corretos, ver `.superpowers/sdd/frontend/task-5-report.md`). Relatórios em `.superpowers/sdd/frontend/`. Briefs concluídos são **apagados** — o histórico fica neste parágrafo e no checklist.
 
 **Restante neste plano:** F04–F12.
 
@@ -28,7 +28,6 @@
 
 | # | Status | Brief | Como se prova |
 |---|--------|-------|----------------|
-| F05 | pendente | [Bootstrap: tenant + admin](./frontend/f05-bootstrap.md) | Bootstrap cria tenant e já entra logado; `409` no campo certo |
 | F06 | pendente | [Shell e componentes compartilhados](./frontend/f06-shell.md) | Shell + tema persistente; menu do usuário com papel |
 | F07 | pendente | [Integrações: listagem](./frontend/f07-integrations-list.md) | Filtro e página na URL; VIEWER sem "Nova integração" |
 | F08 | pendente | [Integrações: formulário](./frontend/f08-integrations-form.md) | PATCH só do que mudou; `authKey` em branco não é enviada (6 testes) |
