@@ -72,6 +72,7 @@ Módulos backend: `auth`, `tenants`, `integrations`, `executions`, `database` (w
 | Truncamento | `responseBody` limitado a **10 240 bytes** UTF-8 (+ sufixo `… [truncated]` se cortado) |
 | PATCH integração | Parcial — todos os campos opcionais; `authKey` omitido mantém; JSON substitui inteiro |
 | Filtros de data | ISO 8601/RFC 3339; UTC; `from`/`to` **inclusive**; date-only `YYYY-MM-DD` → dia inteiro UTC; `from > to` → 400 |
+| `targetUrl` validação | `@IsUrl({ require_tld: false })` — o default do `class-validator` (`require_tld: true`) rejeita hostnames sem ponto, incluindo o hostname de serviço do Compose (`http://n8n:5678/...`, `http://localhost:...`) que o próprio readme manda colar no campo |
 | Paginação | Envelope `{ data, meta }` — `page`/`limit` (default 20, máx. 100); `meta`: `total`, `totalPages`, `hasNextPage`, `hasPreviousPage` — [05-api §5.0](./docs/spec/05-api.md#50-paginação-listagens) |
 | Listagem integrações | Filtro opcional `isActive`; `updatedAt DESC` — [05-api §5.3](./docs/spec/05-api.md#get-integrations) |
 | Frontend UI | **Escopo completo do protótipo** — login, logout, bootstrap, CRUD integrações (admin), trigger, histórico + detalhe; viewer somente leitura |
