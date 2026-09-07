@@ -2,7 +2,7 @@
 
 > **Aplica-se a:** `nexus-frontend/**/*.{ts,tsx}` — ler antes de escrever ou alterar código do frontend.
 
-**Escopo completo do protótipo:** todas as telas e ações expostas pela API necessárias ao fluxo end-to-end (via UI, não curl). Plano: índice em [`docs/plans/frontend.md`](../../docs/plans/frontend.md); brief da entrega atual em [`docs/plans/frontend/`](../../docs/plans/frontend/) — não ler as outras entregas.
+**Escopo completo do protótipo:** todas as telas e ações expostas pela API necessárias ao fluxo end-to-end (via UI, não curl) — login, logout, bootstrap, CRUD de integrações, disparo e histórico + detalhe de execuções.
 
 Acabamento visual é prioridade **baixa** na avaliação ([10-criterios](../../docs/spec/10-criterios.md)) — usar o que shadcn/Tailwind já entregam, sem projeto de design próprio.
 

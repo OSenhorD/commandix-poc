@@ -10,7 +10,7 @@
 - [x] `DatabaseModule` (wrapper do client Prisma)
 - [x] Bootstrap da aplicação NestJS (`main.ts`, prefixo `api/v1`, `GET /health`)
 - [x] Seed idempotente (`src/prisma/seed.ts`)
-- [ ] Docker Compose (`database` + `api` + `frontend` dev ✅ — F01; `frontend` prod pendente — entrega **F12** de [`docs/plans/frontend/f12-production.md`](../plans/frontend/f12-production.md))
+- [x] Docker Compose (`database` + `api` + `frontend` dev — F01; `frontend` prod com nginx — F12)
 
 ## Fase 2 — Auth
 
@@ -34,7 +34,6 @@
 
 ## Fase 5 — Frontend
 
-> Índice: [`docs/plans/frontend.md`](../plans/frontend.md). Brief e critério de done: um arquivo por entrega em [`docs/plans/frontend/`](../plans/frontend/).
 > Stack: React 19 + Vite 8 + Tailwind 4 + shadcn (`base-lyra`/Base UI) + React Router 7 + TanStack Query v5 + react-hook-form/zod.
 
 - [x] Scaffold Vite + React 19 + TypeScript + Tailwind 4 + shadcn (11 componentes base)
@@ -50,7 +49,7 @@
 - [x] **F09** Integrações — ativar/desativar, excluir e disparar (ADMIN)
 - [x] **F10** Histórico — listagem por integração com filtros `status`/`from`/`to`
 - [x] **F11** Histórico — detalhe da execução (`requestPayload`, `responseBody` truncado)
-- [ ] **[F12](../plans/frontend/f12-production.md)** Docker de produção (`frontend` + nginx) + job CI + READMEs
+- [x] **F12** Docker de produção (`frontend` + nginx) + job CI + READMEs
 
 ## Fase 6 — Polish
 

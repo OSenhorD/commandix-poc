@@ -41,7 +41,7 @@ Aguarde os healthchecks. A API sobe sozinha executando `prisma db migrate` → s
 | Docs (Swagger UI) | http://localhost:3000/api/docs | Try-it com JWT (`Authorize` → Bearer) |
 | OpenAPI JSON | http://localhost:3000/api/openapi.json | Documento OpenAPI 3.x via `@nestjs/swagger` |
 | PostgreSQL | `localhost:5432` | Só no compose de desenvolvimento; user/senha/db default `commandix` |
-| Frontend | http://localhost:5173 | Compose de **desenvolvimento**; o serviço de produção (nginx) entra na entrega F12 |
+| Frontend | http://localhost:5173 | Compose de **desenvolvimento** ou **produção** (nginx servindo o build estático + proxy `/api/`) |
 
 ### Credenciais demo (seed)
 
@@ -136,18 +136,21 @@ A API recebe `DATABASE_URL` montada internamente pelo Compose (`database:5432`) 
 
 ## CI
 
-[`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — push/PR em `main`. Job único `validate` (Node 24.16.0 + Postgres 16 como service): `npm ci`, `contract:emit` com checagem de diff, `prisma db migrate`, lint, Prettier, testes unitários e e2e, build.
+[`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — push/PR em `main`. Dois jobs:
 
-O job de frontend entra na entrega F12; a validação por Docker Compose ainda não existe — ver [`docs/todo/backend/ci-sem-job-docker.md`](./docs/todo/backend/ci-sem-job-docker.md).
+- `validate` (Node 24.16.0 + Postgres 16 como service): `npm ci`, `contract:emit` com checagem de diff, `prisma db migrate`, lint, Prettier, testes unitários e e2e, build.
+- `frontend` (Node 24.16.0): `npm ci`, ESLint, Vitest, `vite build`.
+
+A validação por Docker Compose ainda não existe — ver [`docs/todo/backend/ci-sem-job-docker.md`](./docs/todo/backend/ci-sem-job-docker.md).
 
 ## Status
 
 | Componente | Diretório | Status |
 |------------|-----------|--------|
 | API NestJS | `nexus-backend/` | Funcional — auth, tenants, integrações, execuções, OpenAPI, testes críticos |
-| Frontend React | `nexus-frontend/` | F01–F06 (ambiente, cliente HTTP, sessão, rotas, login/bootstrap, shell); F07–F12 em [`docs/plans/frontend.md`](./docs/plans/frontend.md) |
+| Frontend React | `nexus-frontend/` | Funcional — login/bootstrap, shell, CRUD de integrações, disparo, histórico + detalhe, Docker de produção |
 | PostgreSQL + Prisma 8 | `nexus-backend/src/prisma/` | Contract + migrations + seed |
-| Docker Compose | `docker/` | Dev: `database` + `api` + `frontend`; prod: `database` + `api` (`frontend` na F12) |
+| Docker Compose | `docker/` | Dev: `database` + `api` + `frontend`; prod: `database` + `api` + `frontend` (nginx) |
 
 ## Decisões técnicas
 
@@ -165,7 +168,6 @@ Log completo das decisões em [`AGENTS.md`](./AGENTS.md) § Decisões adotadas. 
 
 ## Pontos em aberto
 
-- **Frontend F07–F12** — telas de integrações e histórico, Docker de produção com nginx e job de frontend no CI. Índice em [`docs/plans/frontend.md`](./docs/plans/frontend.md).
 - **CI sem validação de Docker Compose** — o workflow valida o backend direto no runner; ninguém garante que `docker compose up` sobe. Ver [`docs/todo/backend/ci-sem-job-docker.md`](./docs/todo/backend/ci-sem-job-docker.md).
 - **`authKey` sem criptografia at-rest** — ver decisão acima.
 - **Bônus não implementados** — workflow n8n e cobertura de testes além do mínimo crítico.

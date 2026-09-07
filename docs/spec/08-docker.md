@@ -10,7 +10,7 @@ Versões pinadas — ver `nexus-backend/package.json` (`engines.node`) e imagens
 |---------|--------------|----------------|
 | database | 5432 (dev) / não exposto (prod) | `postgres:16-alpine` |
 | api | 3000 | build `nexus-backend/docker/production/Dockerfile` (prod) / `nexus-backend/docker/development/Dockerfile` (dev) — `node:24.16.0-alpine` |
-| frontend | 5173 → 80 (prod) / 5173 (dev) | build `nexus-frontend/docker/development/Dockerfile` (`vite dev --host`); o de produção (nginx) entra na F12 |
+| frontend | 5173 → 80 (prod) / 5173 (dev) | dev: `nexus-frontend/docker/development/Dockerfile` (`vite dev --host`); prod: multi-stage `nexus-frontend/docker/production/Dockerfile` (`npm run build` → nginx servindo `dist/`) |
 
 Em produção, o Postgres **não expõe porta no host** — apenas os serviços da rede do compose acessam via hostname interno `database`.
 
@@ -173,7 +173,7 @@ server: {
 | Compose | `docker/production/docker-compose.yml`, `docker/development/docker-compose.yml` |
 | CI | `.github/workflows/ci.yml` |
 | API | `nexus-backend/docker/{production,development}/` — `Dockerfile` + `entrypoint.sh` em cada |
-| Frontend | `nexus-frontend/docker/development/Dockerfile`; `production/` (`Dockerfile` + `nginx.conf`) entra na F12 |
+| Frontend | `nexus-frontend/docker/development/Dockerfile`; `production/` (`Dockerfile` + `nginx.conf`) |
 | Volume | `postgres_data` |
 
 ## 8.8 CORS
@@ -208,7 +208,7 @@ Arquivo: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
 | Job | Validações |
 |-----|------------|
 | `validate` | Backend: Node 24.16.0 + Postgres 16 service — `contract:emit`, diff do contract, migrate, lint, Prettier, test/e2e, build |
-| `frontend` | Frontend: `npm ci`, ESLint, `tsc -b`, Vitest, `vite build` — **a criar na entrega F12** |
+| `frontend` | Frontend: `npm ci`, ESLint, Vitest, `vite build` |
 
 > **Não existe job de Docker Compose no CI** — ver [`docs/todo/backend/ci-sem-job-docker.md`](../todo/backend/ci-sem-job-docker.md).
 
